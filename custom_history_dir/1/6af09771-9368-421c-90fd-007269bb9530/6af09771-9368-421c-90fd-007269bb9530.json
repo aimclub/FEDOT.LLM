@@ -1,0 +1,61 @@
+{
+    "fitness": {
+        "_weights": [
+            1.0,
+            1.0
+        ],
+        "wvalues": [
+            -0.7577383658008658,
+            -0.7350000000000001
+        ],
+        "_class_path": "golem.core.optimisers.fitness.multi_objective_fitness/MultiObjFitness"
+    },
+    "graph": {
+        "operator": {
+            "_nodes": [
+                {
+                    "_nodes_from": [],
+                    "content": {
+                        "name": "rf",
+                        "params": {
+                            "n_jobs": 1
+                        },
+                        "metadata": {
+                            "metric": null,
+                            "_class_path": "fedot.core.pipelines.node/NodeMetadata"
+                        }
+                    },
+                    "uid": "d9978513-16c0-4765-abda-fef601c6444f",
+                    "_class_path": "golem.core.dag.linked_graph_node/LinkedGraphNode"
+                }
+            ],
+            "_postprocess_nodes": {
+                "_class_path": "golem.core.dag.linked_graph/LinkedGraph._empty_postprocess"
+            },
+            "_class_path": "golem.core.dag.linked_graph/LinkedGraph"
+        },
+        "_class_path": "golem.core.dag.graph_delegate/GraphDelegate"
+    },
+    "metadata": {
+        "use_input_preprocessing": true,
+        "computation_time_in_seconds": 456.181734999991,
+        "evaluation_time_iso": "2024-07-05T01:04:41.865172"
+    },
+    "native_generation": 1,
+    "parent_operator": {
+        "operators": [
+            {
+                "value": "single_drop",
+                "_class_path": "golem.core.optimisers.genetic.operators.base_mutations/MutationTypesEnum"
+            }
+        ],
+        "parent_individuals": [
+            "81b9f78f-190a-48c4-9b29-518b1ae8851b"
+        ],
+        "type_": "mutation",
+        "uid": "ef616f1f-1e57-46c0-a8f4-764debc9f72a",
+        "_class_path": "golem.core.optimisers.opt_history_objects.parent_operator/ParentOperator"
+    },
+    "uid": "6af09771-9368-421c-90fd-007269bb9530",
+    "_class_path": "golem.core.optimisers.opt_history_objects.individual/Individual"
+}

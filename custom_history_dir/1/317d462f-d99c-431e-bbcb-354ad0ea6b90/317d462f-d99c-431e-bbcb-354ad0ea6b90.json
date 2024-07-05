@@ -1,0 +1,80 @@
+{
+    "fitness": {
+        "_weights": [
+            1.0,
+            1.0
+        ],
+        "wvalues": [
+            -0.7534485930735931,
+            -0.7350000000000001
+        ],
+        "_class_path": "golem.core.optimisers.fitness.multi_objective_fitness/MultiObjFitness"
+    },
+    "graph": {
+        "operator": {
+            "_nodes": [
+                {
+                    "_nodes_from": [
+                        "d467681e-d653-4ea3-b1f5-4a63d09c2371"
+                    ],
+                    "content": {
+                        "name": "rf",
+                        "params": {
+                            "n_jobs": 1
+                        },
+                        "metadata": {
+                            "metric": null,
+                            "_class_path": "fedot.core.pipelines.node/NodeMetadata"
+                        }
+                    },
+                    "uid": "b57e1756-6573-4f57-a3c8-af6d61728f30",
+                    "_class_path": "golem.core.dag.linked_graph_node/LinkedGraphNode"
+                },
+                {
+                    "_nodes_from": [],
+                    "content": {
+                        "name": "resample",
+                        "params": {
+                            "balance": "expand_minority",
+                            "replace": false,
+                            "balance_ratio": 1
+                        },
+                        "metadata": {
+                            "metric": null,
+                            "_class_path": "fedot.core.pipelines.node/NodeMetadata"
+                        }
+                    },
+                    "uid": "d467681e-d653-4ea3-b1f5-4a63d09c2371",
+                    "_class_path": "golem.core.dag.linked_graph_node/LinkedGraphNode"
+                }
+            ],
+            "_postprocess_nodes": {
+                "_class_path": "golem.core.dag.linked_graph/LinkedGraph._empty_postprocess"
+            },
+            "_class_path": "golem.core.dag.linked_graph/LinkedGraph"
+        },
+        "_class_path": "golem.core.dag.graph_delegate/GraphDelegate"
+    },
+    "metadata": {
+        "use_input_preprocessing": true,
+        "computation_time_in_seconds": 456.181734999991,
+        "evaluation_time_iso": "2024-07-05T01:04:41.865172"
+    },
+    "native_generation": 1,
+    "parent_operator": {
+        "operators": [
+            {
+                "value": "single_change",
+                "_class_path": "golem.core.optimisers.genetic.operators.base_mutations/MutationTypesEnum"
+            }
+        ],
+        "parent_individuals": [
+            "e1902ad2-a5e1-4251-ad87-b01981aea5eb"
+        ],
+        "type_": "mutation",
+        "uid": "d674ced9-008b-43fa-a841-cc891130e77d",
+        "_class_path": "golem.core.optimisers.opt_history_objects.parent_operator/ParentOperator"
+    },
+    "uid": "317d462f-d99c-431e-bbcb-354ad0ea6b90",
+    "_class_path": "golem.core.optimisers.opt_history_objects.individual/Individual"
+}

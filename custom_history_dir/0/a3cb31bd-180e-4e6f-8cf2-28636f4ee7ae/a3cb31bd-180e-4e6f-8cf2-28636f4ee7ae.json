@@ -1,0 +1,61 @@
+{
+    "fitness": {
+        "_weights": [
+            1.0,
+            1.0
+        ],
+        "wvalues": [
+            -0.8546033443680503,
+            -0.810274656679151
+        ],
+        "_class_path": "golem.core.optimisers.fitness.multi_objective_fitness/MultiObjFitness"
+    },
+    "graph": {
+        "operator": {
+            "_nodes": [
+                {
+                    "_nodes_from": [
+                        "e77168d3-e285-424c-aa36-8fb958461c65"
+                    ],
+                    "content": {
+                        "name": "logit",
+                        "params": {},
+                        "metadata": {
+                            "metric": null,
+                            "_class_path": "fedot.core.pipelines.node/NodeMetadata"
+                        }
+                    },
+                    "uid": "755d8208-bf9c-4dbf-a2a1-795187722bd6",
+                    "_class_path": "golem.core.dag.linked_graph_node/LinkedGraphNode"
+                },
+                {
+                    "_nodes_from": [],
+                    "content": {
+                        "name": "scaling",
+                        "params": {},
+                        "metadata": {
+                            "metric": null,
+                            "_class_path": "fedot.core.pipelines.node/NodeMetadata"
+                        }
+                    },
+                    "uid": "e77168d3-e285-424c-aa36-8fb958461c65",
+                    "_class_path": "golem.core.dag.linked_graph_node/LinkedGraphNode"
+                }
+            ],
+            "_postprocess_nodes": {
+                "_class_path": "golem.core.dag.linked_graph/LinkedGraph._empty_postprocess"
+            },
+            "_class_path": "golem.core.dag.linked_graph/LinkedGraph"
+        },
+        "_class_path": "golem.core.dag.graph_delegate/GraphDelegate"
+    },
+    "metadata": {
+        "use_input_preprocessing": true,
+        "computation_time_in_seconds": 15.922228700015694,
+        "evaluation_time_iso": "2024-07-04T16:09:47.533969"
+    },
+    "native_generation": 0,
+    "parent_operator": null,
+    "uid": "a3cb31bd-180e-4e6f-8cf2-28636f4ee7ae",
+    "_class_path": "golem.core.optimisers.opt_history_objects.individual/Individual"
+}

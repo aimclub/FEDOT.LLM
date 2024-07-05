@@ -1,0 +1,94 @@
+{
+    "fitness": {
+        "_weights": [
+            1.0,
+            1.0
+        ],
+        "wvalues": [
+            -0.7648319805194805,
+            -0.74875
+        ],
+        "_class_path": "golem.core.optimisers.fitness.multi_objective_fitness/MultiObjFitness"
+    },
+    "graph": {
+        "operator": {
+            "_nodes": [
+                {
+                    "_nodes_from": [
+                        "2299d25b-46f2-497b-b5ab-5f57de3236f9"
+                    ],
+                    "content": {
+                        "name": "rf",
+                        "params": {
+                            "n_jobs": 1
+                        },
+                        "metadata": {
+                            "metric": null,
+                            "_class_path": "fedot.core.pipelines.node/NodeMetadata"
+                        }
+                    },
+                    "uid": "9a4e2c92-2ada-4e73-9067-6f6d2365aec8",
+                    "_class_path": "golem.core.dag.linked_graph_node/LinkedGraphNode"
+                },
+                {
+                    "_nodes_from": [
+                        "fb7291a9-0a62-4f9b-835a-33ae80a1a877"
+                    ],
+                    "content": {
+                        "name": "scaling",
+                        "params": {},
+                        "metadata": {
+                            "metric": null,
+                            "_class_path": "fedot.core.pipelines.node/NodeMetadata"
+                        }
+                    },
+                    "uid": "2299d25b-46f2-497b-b5ab-5f57de3236f9",
+                    "_class_path": "golem.core.dag.linked_graph_node/LinkedGraphNode"
+                },
+                {
+                    "_nodes_from": [],
+                    "content": {
+                        "name": "resample",
+                        "params": {
+                            "balance": "expand_minority",
+                            "replace": false,
+                            "balance_ratio": 1
+                        },
+                        "metadata": {
+                            "metric": null,
+                            "_class_path": "fedot.core.pipelines.node/NodeMetadata"
+                        }
+                    },
+                    "uid": "fb7291a9-0a62-4f9b-835a-33ae80a1a877",
+                    "_class_path": "golem.core.dag.linked_graph_node/LinkedGraphNode"
+                }
+            ],
+            "_postprocess_nodes": {
+                "_class_path": "golem.core.dag.linked_graph/LinkedGraph._empty_postprocess"
+            },
+            "_class_path": "golem.core.dag.linked_graph/LinkedGraph"
+        },
+        "_class_path": "golem.core.dag.graph_delegate/GraphDelegate"
+    },
+    "metadata": {
+        "use_input_preprocessing": true,
+        "computation_time_in_seconds": 456.181734999991,
+        "evaluation_time_iso": "2024-07-05T01:04:41.865172"
+    },
+    "native_generation": 1,
+    "parent_operator": {
+        "operators": [
+            {
+                "_class_path": "fedot.core.composer.gp_composer.specific_operators/add_resample_mutation"
+            }
+        ],
+        "parent_individuals": [
+            "81b9f78f-190a-48c4-9b29-518b1ae8851b"
+        ],
+        "type_": "mutation",
+        "uid": "9fa142d0-fddc-4eb2-afe2-4a162375ebb0",
+        "_class_path": "golem.core.optimisers.opt_history_objects.parent_operator/ParentOperator"
+    },
+    "uid": "9cfab022-9734-4941-a60a-860a713471df",
+    "_class_path": "golem.core.optimisers.opt_history_objects.individual/Individual"
+}
