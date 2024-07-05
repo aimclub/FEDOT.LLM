@@ -1,1 +1,0 @@
-{"categorical_columns": ["Survived", "Pclass", "Sex", "SibSp", "Parch", "Embarked"], "target_column": "Survived", "task_type": "Classification"}

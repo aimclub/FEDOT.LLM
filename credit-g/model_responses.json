@@ -1,1 +1,0 @@
-{"categorical_columns": ["checking_status", "credit_history", "purpose", "savings_status", "employment", "personal_status", "other_parties", "property_magnitude", "other_payment_plans", "housing", "job", "own_telephone"], "target_column": "class", "task_type": "classification"}
