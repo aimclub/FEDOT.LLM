@@ -1,5 +1,9 @@
 import os
 import json
+from tenacity import retry, stop_after_attempt, wait_random_exponential, retry_if_exception_type
+from requests.exceptions import RequestException
+
+_MAX_RETRIES = 6
 
 
 def run_model_multicall(model, tokenizer, generation_config, prompts):
@@ -29,6 +33,12 @@ def run_model_multicall(model, tokenizer, generation_config, prompts):
 
     return responses
 
+@retry(
+    wait=wait_random_exponential(min=1, max=60),
+    stop=stop_after_attempt(_MAX_RETRIES),
+    retry=(retry_if_exception_type(RequestException) | retry_if_exception_type(RuntimeError)),
+    reraise=True
+)
 def run_web_model_multicall(model, prompts):
     """Run all prompts on web model
     """
