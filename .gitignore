@@ -4,3 +4,5 @@ custom_history_dir/
 parsing/
 legacy/
 *.zip
+__pycache__/
+.vscode

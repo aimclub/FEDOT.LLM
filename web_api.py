@@ -41,6 +41,7 @@ class WebAssistant:
                  temperature: float = .015,
                  top_p: float = .5,
                  token_limits: int = 8000,
+                 timeout: int = 10,
                  *args: Any,
                  **kwargs: Any) -> str:
         """Get a response from model for given question.
@@ -49,7 +50,8 @@ class WebAssistant:
             user_question (str): A user's prompt. Question that requires an answer.
             temperature (float, optional): Generation temperature. 
             The higher ,the less stable answers will be. Defaults to 0.015.
-            top_p (float, optional): Nuclear sampling. Selects the most likely tokens from a probability distribution, 
+            top_p (float, optional): Nuclear sampling. Selects the most likely tokens from a probability distribution,
+            timeout (int, optional): Timeout for the request. Defaults to 10 sec. 
             considering the cumulative probability until it reaches a predefined threshold “top_p”. Defaults to 0.5.
 
         Returns:
@@ -96,7 +98,10 @@ class WebAssistant:
         else:
             raise NotImplementedError("Model type not supported")
         
-        response = requests.post(url=self._url, json=formatted_prompt)
+        response = requests.post(url=self._url, json=formatted_prompt, timeout=timeout)
+        if response.status_code != requests.codes.ok:
+            raise RuntimeError("Error while communicating with the model")
+        
         if kwargs.get('as_json'):
             try:
                 res = json.loads(response.text)['choices'][0]['message']['content'].split('ANSWER: ')[1]
