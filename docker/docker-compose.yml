@@ -1,0 +1,11 @@
+version: '3'
+services:
+  jupyter-fedotllm:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8800:8888"
+    volumes:
+      - ../:/home/fedya/work
+      - ../.cache/pip-docker:/home/fedya/.cache/pip
