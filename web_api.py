@@ -74,6 +74,18 @@ class WebAssistant:
                     }
                 ]
             }
+            response = requests.post(url=self._url, json=formatted_prompt, timeout=timeout)
+            if response.status_code != requests.codes.ok:
+                raise RuntimeError("Error while communicating with the model")
+            
+            if kwargs.get('as_json'):
+                try:
+                    res = json.loads(response.text)['choices'][0]['message']['content'].split('ANSWER: ')[1]
+                except:
+                    res = json.loads(response.text)['choices'][0]['message']['content']
+                return res
+            else:
+                return response.text
 
         elif self._model_type == "70b":
 
@@ -94,20 +106,18 @@ class WebAssistant:
                 },
                 "content": content
             }
-
+            response = requests.post(url=self._url, json=formatted_prompt)
+            if kwargs.get('as_json'):
+                try:
+                    res = json.loads(response.text)['content'].split('ОТВЕТ: ')[1]
+                except:
+                    res = json.loads(response.text)['content']
+                return res
+            else:
+                res = json.loads(response.text)
+                return res['content']
         else:
             raise NotImplementedError("Model type not supported")
         
-        response = requests.post(url=self._url, json=formatted_prompt, timeout=timeout)
-        if response.status_code != requests.codes.ok:
-            raise RuntimeError("Error while communicating with the model")
         
-        if kwargs.get('as_json'):
-            try:
-                res = json.loads(response.text)['choices'][0]['message']['content'].split('ANSWER: ')[1]
-            except:
-                res = json.loads(response.text)['choices'][0]['message']['content']
-            return res
-        else:
-            return response.text
         
