@@ -126,5 +126,3 @@ class WebAssistant:
         else:
             raise NotImplementedError("Model type not supported")
         
-        
-        

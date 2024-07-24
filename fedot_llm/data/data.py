@@ -1,17 +1,18 @@
 import json
 import os
-import requests
 import arff
 import pandas as pd
 
-from typing import Any
+from typing import Any, Dict
+
 
 
 class Split:
     """
     Split within dataset object
     """
-    def __init__(self, name = None, data = None, path = None, description = None) -> None:
+
+    def __init__(self, name: str, data: pd.DataFrame, path: str, description: str | None = None, columns: dict | None = None) -> None:
         """
         Initialize an instanse of a Split.
         """
@@ -19,6 +20,17 @@ class Split:
         self.data = data
         self.path = path
         self.description = description
+        
+        # init columns metadata info
+        self.columns_meta = {col: {} for col in data.columns}
+        if columns is not None:
+            for col, metainfo in columns.items():
+                if col not in self.columns_meta:
+                    raise RuntimeError("Failed to find the column {col} defined in the metadata.json file")
+                if 'hint' in metainfo:
+                    self.columns_meta[col]['hint'] = metainfo['hint']
+                if 'description' in metainfo:
+                    self.columns_meta[col]['description'] = metainfo['description']
 
     def get_description(self):
         if self.name is not None:
@@ -50,33 +62,53 @@ class Split:
 
     def get_unique_counts(self):
         return self.data.apply(lambda col: col.nunique())
-    
+
     def get_unique_ratios(self):
-        return self.data.apply(lambda col: col.nunique() / len(col))
-    
+        return self.data.apply(lambda col: round(col.nunique() / len(col.dropna()), 2))
+
     def get_column_types(self):
         return self.data.apply(lambda col: "string" if col.name in self.get_text_columns() else "numeric")
-    
-    def get_head_by_column(self, column_name, count = 10):
+
+    def get_head_by_column(self, column_name, count=10):
         return list(self.data[column_name].head(count))
-                    
+
     def get_column_descriptions(self):
-        unique_counts = self.get_unique_counts()
-        unique_ratios = self.get_unique_ratios()
-        column_types = self.get_column_types()
-        
-        column_descriptions = [f"{column_name}: {column_types[column_name]}, "
-                            f"{100 * unique_ratios[column_name]:.2f}% unique values, examples: {self.get_head_by_column(column_name)}"
-                            for column_name in self.data.columns]
-        return column_descriptions
+        return dict((key, value['description']) for key, value in self.columns_meta.items())
+    
+    def get_column_hint(self, column_name: str) -> None | str:
+        """ 
+        Get the hint associated with a specific column.
+
+        Args:
+            column_name (str): The name of the column.
+
+        Returns:
+            str or None: The hint associated with the column, or None if not found.
+        """
+        return self.columns_meta.get(column_name, None).get('hint', None)
+
+    def set_column_descriptions(self, column_description: Dict[str, str]) -> None:
+        """
+        Set descriptions for columns in the metadata.
+
+        Args:
+            column_description (Dict[str, str]): A dictionary where keys are column names and values are descriptions.
+
+        Returns:
+            None
+        """
+        for key, value in column_description.items():
+            if key in self.columns_meta:
+                self.columns_meta[key]['description'] = value
+
 
 
 class Dataset:
     """
     Dataset object that represents an ML task and may contain multiple splits
     """
-    def __init__(self, name = None, description = None, 
-                 goal = None, splits = None, train_split_name = None) -> None:
+
+    def __init__(self, splits: Split, name: str = None, description: str = None, goal: str = None) -> None:
         """
         Initialize an instance of a Dataset.
         """
@@ -101,36 +133,39 @@ class Dataset:
         
             with open(os.sep.join([path, 'metadata.json']), 'r') as json_file:
                 dataset_metadata = json.load(json_file)
-            
-            #Loading all splits in folder
+
+            # load each split file
             splits = []
-            for split_name in dataset_metadata['split_names']:
-                split_path = os.sep.join([path, dataset_metadata["split_paths"][split_name]]) 
-                split_description = dataset_metadata["split_descriptions"][split_name] 
+            for split in dataset_metadata['splits']:
+                split_name = split['name']
+                split_path = os.sep.join([path, split["path"]])
+                split_description = split.get("description", '')
+                split_columns = split.get('columns', None)
                 if split_path.split(".")[-1] == "csv":
                     data = pd.read_csv(split_path)
-                    split = Split(data = data,
-                                name = split_name,
-                                path = split_path,
-                                description = split_description)
+                    split = Split(data=data,
+                                name=split_name,
+                                path=split_path,
+                                description=split_description,
+                                columns=split_columns)
                     splits.append(split)
                 elif split_path.split(".")[-1] == "arff":
-                    data = arff.loadarff(split_path)
-                    split = Split(data = pd.DataFrame(data[0]),
-                                name = split_name,
-                                path = split_path,
-                                description = split_description)
+                    data = pd.DataFrame(arff.loadarff(split_path)[0])
+                    split = Split(data=data,
+                                name=split_name,
+                                path=split_path,
+                                description=split_description,
+                                columns=split_columns)
                     splits.append(split)
                 else:
                     print(f"split {split_path}: unsupported format")
 
             return cls(
-                name = dataset_metadata["name"],
-                description = dataset_metadata["description"],
-                goal = dataset_metadata["goal"],
-                splits = splits,
-                train_split_name = dataset_metadata["train_split_name"],
-                )
+                name=dataset_metadata["name"],
+                description=dataset_metadata["description"],
+                goal=dataset_metadata["goal"],
+                splits=splits
+            )
         
         else:
             #Loading all splits in folder
