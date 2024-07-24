@@ -10,19 +10,21 @@ import ast
 from tenacity import retry, stop_after_attempt
 from typing import Dict
 
+from fedot_llm.language_models.base import BaseLLM
+
 _MAX_RETRIES = 6
 
 class ModelAction():
     
-    def __init__(self, model) -> None:
+    def __init__(self, model: BaseLLM) -> None:
         self.model = model
 
     def run_model_call(self, system, context, task):
         """Run a prompt on model
         """
-        self.model.set_sys_prompt(system)
-        self.model.set_context(context)
-        response = self.model(task, as_json=True)
+        response = self.model.generate(user_prompt=task,
+                                       sys_prompt=system,
+                                       context=context)
         return response
 
     def run_model_multicall(self, prompts):
@@ -78,6 +80,18 @@ class ModelAction():
         """
         FIND_ANSWER = re.compile(
             r"\{['\"]data['\"]\s*:\s*\{['\"]type['\"]\s*:\s*['\"]string['\"]\s*\,\s*['\"]description['\"]\s*:\s*['\"].*['\"]\}\}")
+        
+        schema = {
+            "data": {
+                "type": "string",
+                "description": "one line plain text"
+            }
+        }
+
+        sys_prompt = """You are helpful AI assistant.
+        User will enter one column from dataset, and the assistant will make one sentence discription of data in this column.
+        Don't make assumptions about what values to plug into functions. Use column hint.
+        Output format: only JSON using the schema defined here: {schema}""".format(schema=json.dumps(schema))
 
         user_template = """Dataset Title: {title}
         Dataset description: {ds_descr}
@@ -88,8 +102,7 @@ class ModelAction():
         {values}
         ```
         """
-
-        self.model.set_context(column.head(30).to_markdown(index=False))
+        
         column_uniq_vals = column.unique().tolist()
         column_vals = pd.Series(column_uniq_vals if len(
             column_uniq_vals) < 30 else random.sample(column_uniq_vals, k=30), name=column.name)
@@ -100,7 +113,9 @@ class ModelAction():
             hint=split.get_column_hint(column.name),
             values=column_vals.to_markdown(index=False)
         )
-        response = self.model(user_prompt, as_json=True)
+        response = self.model.generate(user_prompt=user_prompt,
+                                       sys_prompt=sys_prompt,
+                                       context=column.head(30).to_markdown(index=False))
         response = response.strip().replace('\n', '').capitalize()
 
         answer = re.findall(FIND_ANSWER, response)
@@ -122,20 +137,6 @@ class ModelAction():
         Returns:
             A dictionary where keys are column names and values are descriptions generated for each column.
         """
-
-        schema = {
-            "data": {
-                "type": "string",
-                "description": "one line plain text"
-            }
-        }
-
-        sys_prompt = """You are helpful AI assistant.
-        User will enter one column from dataset, and the assistant will make one sentence discription of data in this column.
-        Don't make assumptions about what values to plug into functions. Use column hint.
-        Output format: only JSON using the schema defined here: {schema}""".format(schema=json.dumps(schema))
-
-        self.model.set_sys_prompt(sys_prompt)
 
         result = {}
 

@@ -116,7 +116,7 @@ class Dataset:
         self.description = description
         self.goal = goal
         self.splits = splits
-        self.train_split_name = train_split_name
+        self.train_split_name = None
 
     @classmethod
     def load_from_path(cls, path, with_metadata = False):
@@ -211,14 +211,13 @@ class Dataset:
         train_split = next((split for split in self.splits if split.name == self.train_split_name), None)
         if train_split is not None:
             column_descriptions = train_split.get_column_descriptions()
-            introduction_lines += [
-                f"Below is the type (numeric or string), unique value count and ratio for each column, and few examples of values:",
-                f""
-            ] + column_descriptions + [
-                f"",
+            introduction_lines = [
+                f'Below is the type (numeric or string), unique value count and ratio for each column, and few examples of values:',
+                '\n'.join([f"{key}: {value}" for key, value in column_descriptions.items()])
             ]
+                
 
-        return "\n".join(introduction_lines)
+        return '\n'.join(introduction_lines)
     
     def get_metadata_description(self):
         splits_metadatas = [split.get_metadata_description() for split in self.splits]
