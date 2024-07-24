@@ -17,9 +17,15 @@ RUN adduser --disabled-password \
 
 # Install the required packages
 WORKDIR ${HOME}
+RUN apt-get update && \
+    apt-get --no-install-recommends install -yq \
+    libgomp1 \
+    libhdf5-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt
+RUN pip3 install --upgrade pip && pip3 install -r requirements.txt
+
 
 
 COPY . ${WORK}

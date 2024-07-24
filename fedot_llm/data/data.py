@@ -12,7 +12,7 @@ class Split:
     Split within dataset object
     """
 
-    def __init__(self, name: str, data: pd.DataFrame, path: str, description: str, columns: dict | None) -> None:
+    def __init__(self, name: str, data: pd.DataFrame, path: str, description: str | None = None, columns: dict | None = None) -> None:
         """
         Initialize an instanse of a Split.
         """
@@ -31,14 +31,32 @@ class Split:
                     self.columns_meta[col]['hint'] = metainfo['hint']
                 if 'description' in metainfo:
                     self.columns_meta[col]['description'] = metainfo['description']
-        
 
     def get_description(self):
-        return f"The {self.name} split contains following columns: {self.data.columns}. It is described as {self.description}"
+        if self.name is not None:
+            description = f"The {self.name} split"
+        else:
+            description = f"The split"
 
+        if self.path is not None:
+
+            fname = os.path.split(self.path)[-1]
+
+            description += f' stored in file "{fname}"'
+
+        description += f" contains following columns: {list(self.data.columns)}."
+
+        if self.name is not None:
+            description += f" It is described as {self.description}"
+
+        return description
+    
+    def get_metadata_description(self):
+        return f"name: {self.name} \npath: {self.path} \ndescription: {self.description}"
+    
     def get_text_columns(self):
         return list(self.data.select_dtypes(include=['object']).columns)
-
+    
     def get_numeric_columns(self):
         return list(self.data.select_dtypes(include=['number']).columns)
 
@@ -90,7 +108,7 @@ class Dataset:
     Dataset object that represents an ML task and may contain multiple splits
     """
 
-    def __init__(self, name, description, goal, splits) -> None:
+    def __init__(self, splits: Split, name: str = None, description: str = None, goal: str = None) -> None:
         """
         Initialize an instance of a Dataset.
         """
@@ -98,70 +116,111 @@ class Dataset:
         self.description = description
         self.goal = goal
         self.splits = splits
-        
+        self.train_split_name = None
 
     @classmethod
-    def load_from_path(cls, path):
+    def load_from_path(cls, path, with_metadata = False):
         """
         Load Dataset a folder with dataset objects
+        
+        Args:
+            path: Path to folder with Dataset data
+            with_metadata: Whether Dataset should be loading metadata.json file contained in folder. Defaults to false. 
 
-        WIP: add support for incomplete descriptions?
         """
-        with open(os.sep.join([path, 'metadata.json']), 'r') as json_file:
-            dataset_metadata = json.load(json_file)
 
-        # load each split file
-        splits = []
-        for split in dataset_metadata['splits']:
-            split_name = split['name']
-            split_path = os.sep.join([path, split["path"]])
-            split_description = split.get("description", '')
-            split_columns = split.get('columns', None)
-            if split_path.split(".")[-1] == "csv":
-                data = pd.read_csv(split_path)
-                split = Split(data=data,
-                              name=split_name,
-                              path=split_path,
-                              description=split_description,
-                              columns=split_columns)
-                splits.append(split)
-            elif split_path.split(".")[-1] == "arff":
-                data = pd.DataFrame(arff.loadarff(split_path)[0])
-                split = Split(data=data,
-                              name=split_name,
-                              path=split_path,
-                              description=split_description,
-                              columns=split_columns)
-                splits.append(split)
-            else:
-                print(f"split {split_path}: unsupported format")
+        if with_metadata:
+        
+            with open(os.sep.join([path, 'metadata.json']), 'r') as json_file:
+                dataset_metadata = json.load(json_file)
 
-        return cls(
-            name=dataset_metadata["name"],
-            description=dataset_metadata["description"],
-            goal=dataset_metadata["goal"],
-            splits=splits,
-        )
+            # load each split file
+            splits = []
+            for split in dataset_metadata['splits']:
+                split_name = split['name']
+                split_path = os.sep.join([path, split["path"]])
+                split_description = split.get("description", '')
+                split_columns = split.get('columns', None)
+                if split_path.split(".")[-1] == "csv":
+                    data = pd.read_csv(split_path)
+                    split = Split(data=data,
+                                name=split_name,
+                                path=split_path,
+                                description=split_description,
+                                columns=split_columns)
+                    splits.append(split)
+                elif split_path.split(".")[-1] == "arff":
+                    data = pd.DataFrame(arff.loadarff(split_path)[0])
+                    split = Split(data=data,
+                                name=split_name,
+                                path=split_path,
+                                description=split_description,
+                                columns=split_columns)
+                    splits.append(split)
+                else:
+                    print(f"split {split_path}: unsupported format")
+
+            return cls(
+                name=dataset_metadata["name"],
+                description=dataset_metadata["description"],
+                goal=dataset_metadata["goal"],
+                splits=splits
+            )
+        
+        else:
+            #Loading all splits in folder
+            splits = [] 
+            for fpath in os.listdir(path):
+                file_path = os.path.join(path, fpath)
+                split_name = os.path.split(file_path)[-1].split(".")[0]
+                if file_path.split(".")[-1] == "csv":
+                    data = pd.read_csv(file_path)
+                    split = Split(data = data,
+                                path = file_path,
+                                name = split_name)
+                    splits.append(split)
+                if file_path.split(".")[-1] == "arff":
+                    data = arff.loadarff(file_path)
+                    split = Split(data = pd.DataFrame(data[0]),
+                                path = file_path,
+                                name = split_name)
+                    splits.append(split)
+            
+            return cls(splits = splits)
 
     def get_description(self):
-        train_split = next(split for split in self.splits if split.name == self.train_split_name)
         split_description_lines = [split.get_description() for split in self.splits]
-        column_descriptions = train_split.get_column_descriptions()
+
+        first_line = "Assume we have a dataset"
+
+        if self.name is not None:
+            first_line += f" called '{self.name}.'"
+
+        if self.description is not None:
+            first_line += f"\n It could be described as following: {self.description}"
+
+        if self.goal is not None:
+            first_line += f"\n The goal is: {self.goal}"
 
         introduction_lines = [
-                                 f"Assume we have a dataset called '{self.name}', which describes {self.description}, and the task is to {self.goal}.",
-                                 f""
-                             ] + split_description_lines + [
-                                 f"Below is the type (numeric or string), unique value count and ratio for each "
-                                 f"column, and few examples of values:",
-                                 f""
-                             ] + column_descriptions + [
-                                 f"",
-                             ]
+            first_line,
+            f"The dataset contains the following splits:",
+            f" ",
+        ] + split_description_lines 
+        
+        train_split = next((split for split in self.splits if split.name == self.train_split_name), None)
+        if train_split is not None:
+            column_descriptions = train_split.get_column_descriptions()
+            introduction_lines = [
+                f'Below is the type (numeric or string), unique value count and ratio for each column, and few examples of values:',
+                '\n'.join([f"{key}: {value}" for key, value in column_descriptions.items()])
+            ]
+                
 
-        return "\n".join(introduction_lines)
-
+        return '\n'.join(introduction_lines)
+    
     def get_metadata_description(self):
-        splits_names = [split.name for split in self.splits]
-        description = f"name: {self.name} \ndescription: {self.description} \ntrain_split_name: {self.train_split_name} \nsplits: {splits_names}"
+        splits_metadatas = [split.get_metadata_description() for split in self.splits]
+        description = f"name: {self.name} \ndescription: {self.description} \ngoal: {self.goal} \ntrain_split_name: {self.train_split_name} \nsplits:\n\n"
+        description += '\n\n'.join(splits_metadatas)
         return description

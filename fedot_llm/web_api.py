@@ -76,6 +76,20 @@ class WebAssistant:
                     }
                 ]
             }
+            try:
+                response = requests.post(url=self._url, json=formatted_prompt, timeout=timeout)
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as err:
+                raise RuntimeError(err)
+            
+            if kwargs.get('as_json'):
+                try:
+                    res = json.loads(response.text)['choices'][0]['message']['content'].split('ANSWER: ')[1]
+                except:
+                    res = json.loads(response.text)['choices'][0]['message']['content']
+                return res
+            else:
+                return response.text
 
         elif self._model_type == "70b":
 
@@ -96,21 +110,21 @@ class WebAssistant:
                 },
                 "content": content
             }
-
+            try:
+                response = requests.post(url=self._url, json=formatted_prompt, timeout=timeout)
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as err:
+                raise RuntimeError(err)
+            
+            if kwargs.get('as_json'):
+                try:
+                    res = json.loads(response.text)['content'].split('ОТВЕТ: ')[1]
+                except:
+                    res = json.loads(response.text)['content']
+                return res
+            else:
+                res = json.loads(response.text)
+                return res['content']
         else:
             raise NotImplementedError("Model type not supported")
-        try:
-            response = requests.post(url=self._url, json=formatted_prompt, timeout=timeout)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as err:
-            raise RuntimeError(err)
-        
-        if kwargs.get('as_json'):
-            try:
-                res = json.loads(response.text)['choices'][0]['message']['content'].split('ANSWER: ')[1]
-            except:
-                res = json.loads(response.text)['choices'][0]['message']['content']
-            return res
-        else:
-            return response.text
         
