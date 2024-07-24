@@ -1,7 +1,10 @@
-from typing import Dict, List, Optional
-from fedot_llm.language_models.base import BaseLLM
-import requests
 import json
+from typing import Dict, List, Optional
+
+import requests
+
+from fedot_llm.language_models.base import BaseLLM
+
 
 class CustomWebLLM(BaseLLM):
     def __init__(self, url: str, model: str, timeout: Optional[int] = 10):

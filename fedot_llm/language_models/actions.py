@@ -1,17 +1,23 @@
-import os
+import ast
 import json
-from tenacity import retry, stop_after_attempt, wait_random_exponential, retry_if_exception_type
-from requests.exceptions import RequestException
-import pandas as pd
-from fedot_llm.data.data import Dataset, Split
+import logging
+import os
 import random
 import re
-import ast
-from tenacity import retry, stop_after_attempt
 from typing import Dict
+
+import pandas as pd
+from tenacity import (
+    retry,
+    stop_after_attempt,
+)
+
+from fedot_llm.data.data import Dataset, Split
+from fedot_llm.language_models.base import BaseLLM
 
 _MAX_RETRIES = 6
 
+logger = logging.getLogger(__name__)
 
 class ModelAction():
 
@@ -86,7 +92,20 @@ class ModelAction():
         RuntimeError: If the answer is not found in the response or if the 'data' node is not found in the response.
         """
         FIND_ANSWER = re.compile(
-            r"\{['\"]data['\"]\s*:\s*\{['\"]type['\"]\s*:\s*['\"]string['\"]\s*\,\s*['\"]description['\"]\s*:\s*['\"].*['\"]\}\}")
+            r"\{\s*['\"]\s*data\s*['\"]\s*:\s*\{\s*['\"]type['\"]\s*:\s*['\"]string['\"]\s*\,\s*['\"]description['\"]\s*:\s*['\"].*['\"]\s*\}\s*\}")
+
+        
+        schema = {
+            "data": {
+                "type": "string",
+                "description": "one line plain text"
+            }
+        }
+
+        sys_prompt = """You are helpful AI assistant.
+        User will enter one column from dataset, and the assistant will make one sentence discription of data in this column.
+        Don't make assumptions about what values to plug into functions. Use column hint.
+        Output format: only JSON using the schema defined here: {schema}""".format(schema=json.dumps(schema))
 
         user_template = """Dataset Title: {title}
         Dataset description: {ds_descr}
@@ -111,12 +130,15 @@ class ModelAction():
         )
         response = self.model(user_prompt, as_json=True)
         response = response.strip().replace('\n', '').capitalize()
+        response = ' '.join(response.split())
+        re.sub(r"['\"]\s*([\w+])\s*['\"]", '"\1"', response)
 
         answer = re.findall(FIND_ANSWER, response)
         if not answer:
+            logger.warning("Description not found in: ", response)
             raise RuntimeError("Answer not found in: ", response)
 
-        dict_resp = ast.literal_eval(answer[0])
+        dict_resp = json.loads(answer[0])
         if "data" not in dict_resp:
             raise RuntimeError("Data node not found in: ", response)
         return dict_resp

@@ -1,10 +1,6 @@
 import logging
 
 from fedot import Fedot
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.repository.tasks import TaskTypesEnum, Task
-from fedot.core.utils import fedot_project_root
 
 def run_example(train_df, test_df, dataset_metadata,
                 cv_folds = 10, metric = ['roc_auc', 'accuracy'], n_jobs = -1,
