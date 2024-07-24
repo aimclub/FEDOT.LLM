@@ -29,8 +29,8 @@ class WebAssistant:
         """
         self._system_prompt = new_prompt
 
-    def add_context(self, context: str) -> None:
-        """Add a context to model's prompt
+    def set_context(self, context: str) -> None:
+        """Set a context to model's prompt
 
         Args:
             context (str): context related to question.
@@ -74,9 +74,11 @@ class WebAssistant:
                     }
                 ]
             }
-            response = requests.post(url=self._url, json=formatted_prompt, timeout=timeout)
-            if response.status_code != requests.codes.ok:
-                raise RuntimeError("Error while communicating with the model")
+            try:
+                response = requests.post(url=self._url, json=formatted_prompt, timeout=timeout)
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as err:
+                raise RuntimeError(err)
             
             if kwargs.get('as_json'):
                 try:
@@ -106,7 +108,12 @@ class WebAssistant:
                 },
                 "content": content
             }
-            response = requests.post(url=self._url, json=formatted_prompt)
+            try:
+                response = requests.post(url=self._url, json=formatted_prompt, timeout=timeout)
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as err:
+                raise RuntimeError(err)
+            
             if kwargs.get('as_json'):
                 try:
                     res = json.loads(response.text)['content'].split('ОТВЕТ: ')[1]
