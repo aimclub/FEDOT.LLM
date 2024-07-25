@@ -1,4 +1,4 @@
-from typing import Literal, Mapping, Tuple, Union
+from typing import Mapping, Union
 
 import pandas as pd
 

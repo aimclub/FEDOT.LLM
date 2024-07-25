@@ -9,7 +9,7 @@ from fedot_llm.data.data import Dataset
 from fedot_llm.fedot_util import run_example
 from fedot_llm.language_models import prompts
 from fedot_llm.language_models.actions import ModelAction
-from fedot_llm.language_models.llms import HuggingFaceLLM
+from fedot_llm.language_models.llms import OllamaLLM
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
@@ -18,9 +18,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 def main(dataset_name, dataset_description):
     dataset = load_data(dataset_name)
 
-    model = HuggingFaceLLM(
-        model_id="microsoft/Phi-3-mini-4k-instruct", max_new_tokens=500
-    )
+    model = OllamaLLM(model="llama3")
     action = ModelAction(model=model)
 
     data_clarification(action, dataset, dataset_description)

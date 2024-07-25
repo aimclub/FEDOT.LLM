@@ -1,4 +1,3 @@
-import ast
 import json
 import logging
 import os
@@ -7,13 +6,12 @@ import re
 from typing import Dict
 
 import pandas as pd
-from tenacity import (
-    retry,
-    stop_after_attempt,
-)
+from tenacity import retry, stop_after_attempt
 
 from fedot_llm.data.data import Dataset, Split
 from fedot_llm.language_models.base import BaseLLM
+from fedot_llm.language_models.prompts import (describe_column_sys,
+                                               describe_column_user)
 
 _MAX_RETRIES = 6
 
@@ -94,33 +92,21 @@ class ModelAction():
             }
         }
 
-        sys_prompt = """You are helpful AI assistant.
-        User will enter one column from dataset, and the assistant will make one sentence discription of data in this column.
-        Don't make assumptions about what values to plug into functions. Use column hint.
-        Output format: only JSON using the schema defined here: {schema}""".format(schema=json.dumps(schema))
-
-        user_template = """Dataset Title: {title}
-        Dataset description: {ds_descr}
-        Column name: {col_name}
-        Column hint: {hint}
-        Column values: 
-        ```
-        {values}
-        ```
-        """
+        sys_prompt = describe_column_sys.format(schema=json.dumps(schema))
         
         column_uniq_vals = column.unique().tolist()
         column_vals = pd.Series(column_uniq_vals if len(
             column_uniq_vals) < 30 else random.sample(column_uniq_vals, k=30), name=column.name)
-        user_prompt = user_template.format(
+        user_prompt = describe_column_user.format(
             title=dataset.name,
             ds_descr=dataset.description,
             col_name=column.name,
             hint=split.get_column_hint(column.name),
             values=column_vals.to_markdown(index=False)
         )
-        response = self.model.generate(user_prompt=user_prompt,
-                                       sys_prompt=sys_prompt,
+        
+        response = self.run_model_call(task=user_prompt,
+                                       system=sys_prompt,
                                        context=column.head(30).to_markdown(index=False))
         response = response.strip().replace('\n', '').capitalize()
         response = ' '.join(response.split())
