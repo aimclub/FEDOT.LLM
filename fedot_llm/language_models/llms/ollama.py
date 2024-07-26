@@ -13,7 +13,7 @@ class OllamaLLM(BaseLLM):
         self.timeout = timeout
     
     def _generate(self, formatted_prompt: Dict[str, List[Dict[str, str]]]) -> str:
-        payload = {"model": self.model, "format": "json", "stream": False, 'messages': formatted_prompt['messages']}
+        payload = {"model": self.model, "stream": False, 'messages': formatted_prompt['messages']}
 
         try:
             response = requests.post(url=self.url, json=payload, timeout=self.timeout)

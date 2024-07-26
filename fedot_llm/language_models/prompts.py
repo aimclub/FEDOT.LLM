@@ -42,3 +42,27 @@ Column values:
 ```
 {values}
 ```"""
+
+categorical_sys_template = """Be specific and respond in the tone of a McKinsey consultant.
+User will enter one column from dataset, and the assistant will define whether the column consists of categorical variables or not.
+You MUST follow the instructions for your given task exactly. Use column description.
+Categorical variable represents string variable where the values in the column have a finite set of values (usually way smaller than the length of the column), assigning each individual or other unit of observation to a particular group or nominal category on the basis of some qualitative property.
+Output format: {{Insert reasoning steps plain text list here}}.\n{{JSON using the schema defined here: {schema}}}
+Options: yes or not"""
+
+categorical_user_template = """Dataset Title: {title}
+
+Dataset description: {ds_desc}
+
+Column name: {col_name}
+
+Column description: {col_desc}
+
+Column unique ratio: {col_ratio} (number of unique values divided by the number of total values)
+
+Column data: 
+```
+{data}
+```
+Let’s think step by step. 
+"""
