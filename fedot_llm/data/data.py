@@ -1,8 +1,8 @@
 import json
 import os
 import random
-from typing import Any, Dict
 from functools import cached_property, lru_cache
+from typing import Any, Dict, List, Union
 
 import arff
 import pandas as pd
@@ -42,8 +42,8 @@ class Split:
                 if "description" in metainfo:
                     self.columns_meta[col]["description"] = metainfo["description"]
 
-    @cached_property
-    def description(self):
+    @property
+    def detailed_description(self):
         if self.name is not None:
             description = f"The {self.name} split"
         else:
@@ -60,9 +60,9 @@ class Split:
             description += f" It is described as {self.description}"
 
         return description
-    
-    @cached_property
-    def metadata_description(self):
+
+    @property
+    def metadata_description(self) -> str:
         return (
             f"name: {self.name} \npath: {self.path} \ndescription: {self.description}"
         )
@@ -107,11 +107,11 @@ class Split:
     @cached_property
     def column_types(self):
         return self.data.apply(
-            lambda col: "string" if col.name in self.get_text_columns() else "numeric"
+            lambda col: "string" if col.name in self.text_columns else "numeric"
         )
 
-    @cached_property
-    def head_by_column(self, column_name, count=10):
+    @lru_cache
+    def get_head_by_column(self, column_name: str, count: int = 10) -> List[Any]:
         return list(self.data[column_name].head(count))
 
     @cached_property
@@ -130,7 +130,10 @@ class Split:
         Returns:
             str or None: The hint associated with the column, or None if not found.
         """
-        return self.columns_meta.get(column_name, None).get("hint", None)
+        if column_name not in self.columns_meta:
+            return None
+        else:
+            return self.columns_meta[column_name].get("hint", None)
 
     def set_column_descriptions(self, column_description: Dict[str, str]) -> None:
         """
@@ -146,6 +149,9 @@ class Split:
             if key in self.columns_meta:
                 self.columns_meta[key]["description"] = value
 
+    def __str__(self):
+        return self.metadata_description
+
 
 class Dataset:
     """
@@ -153,7 +159,11 @@ class Dataset:
     """
 
     def __init__(
-        self, splits: Split, name: str = None, description: str = None, goal: str = None
+        self,
+        splits: List[Split],
+        name: Union[str, None] = None,
+        description: Union[str, None] = None,
+        goal: Union[str, None] = None,
     ) -> None:
         """
         Initialize an instance of a Dataset.
@@ -162,10 +172,13 @@ class Dataset:
         self.description = description
         self.goal = goal
         self.splits = splits
-        self.train_split_name = None
+        self.__test_split = None
+        self.__train_split = None
+        self.__target_name = None
+        self.__task_type = None
 
     @classmethod
-    def load_from_path(cls, path, with_metadata=False):
+    def load_from_path(cls, path: str, with_metadata: bool = False):
         """
         Load Dataset a folder with dataset objects
 
@@ -197,7 +210,7 @@ class Dataset:
                     )
                     splits.append(split)
                 elif split_path.split(".")[-1] == "arff":
-                    data = pd.DataFrame(arff.loadarff(split_path)[0])
+                    data = pd.DataFrame(list(arff.load(split_path)))
                     split = Split(
                         data=data,
                         name=split_name,
@@ -227,41 +240,100 @@ class Dataset:
                     split = Split(data=data, path=file_path, name=split_name)
                     splits.append(split)
                 if file_path.split(".")[-1] == "arff":
-                    data = arff.loadarff(file_path)
+                    data = arff.load(file_path)
                     split = Split(
-                        data=pd.DataFrame(data[0]), path=file_path, name=split_name
+                        data=pd.DataFrame(list(data)), path=file_path, name=split_name
                     )
                     splits.append(split)
 
             return cls(splits=splits)
 
-    @cached_property
-    def description(self):
-        split_description_lines = [split.get_description() for split in self.splits]
+    def is_train(self) -> bool:
+        return self.__train_split is not None
 
-        first_line = "Assume we have a dataset"
+    def is_test(self) -> bool:
+        return self.__test_split is not None
 
-        if self.name is not None:
-            first_line += f" called '{self.name}.'"
+    @property
+    def train_split(self) -> Split:
+        if self.__train_split is None:
+            raise ValueError("Train split is not set")
+        return self.__train_split
 
-        if self.description is not None:
-            first_line += f"\n It could be described as following: {self.description}"
+    @train_split.setter
+    def train_split(self, train_name: str) -> None:
+        train_list = list(filter(lambda split: split.name == train_name, self.splits))
+        if not train_list:
+            raise ValueError(f"No split found with name '{train_name}'")
+        self.__train_split = train_list[0]
 
-        if self.goal is not None:
-            first_line += f"\n The goal is: {self.goal}"
+    @property
+    def test_split(self) -> Split:
+        if self.__test_split is None:
+            raise ValueError("Test split is not set")
+        return self.__test_split
+
+    @test_split.setter
+    def test_split(self, test_name: str) -> None:
+        test_list = list(filter(lambda split: split.name == test_name, self.splits))
+        if not test_list:
+            raise ValueError(f"No split found with name '{test_name}'")
+        self.__test_split = test_list[0]
+
+    @property
+    def target_name(self) -> str:
+        if self.__target_name is None:
+            raise ValueError("Target name is not set")
+        return self.__target_name
+
+    @target_name.setter
+    def target_name(self, target: str) -> None:
+        if self.__train_split is None:
+            raise ValueError("No train split found")
+        elif target not in self.train_split.data.columns:
+            raise ValueError("Target not found in split data")
+        else:
+            self.__target_name = target
+
+    @property
+    def task_type(self) -> str:
+        if self.__task_type is None:
+            raise ValueError("Task type is not set")
+        return self.__task_type
+
+    @task_type.setter
+    def task_type(self, type: str) -> None:
+        if type not in ["regression", "classification"]:
+            raise ValueError(
+                "Task type must be either 'regression' or 'classification'"
+            )
+        self.__task_type = type
+
+    @property
+    def detailed_description(self) -> str:
+        split_description_lines = [split.detailed_description for split in self.splits]
+
+        first_line = [
+            "Assume we have a dataset",
+            "{name}".format(name=(f" called {self.name}\n" if self.name else "")),
+            "{description}".format(
+                description=(
+                    f"It could be described as following: {self.description}\n"
+                    if self.description
+                    else ""
+                )
+            ),
+            "{goal}".format(goal=(f"The goal is: {self.goal}\n" if self.goal else "")),
+            "The dataset contains the following splits:\n",
+        ]
+        first_line = "".join(first_line)
 
         introduction_lines = [
             first_line,
-            "The dataset contains the following splits:",
-            " ",
         ] + split_description_lines
 
-        train_split = next(
-            (split for split in self.splits if split.name == self.train_split_name),
-            None,
-        )
-        if train_split is not None:
-            column_descriptions = train_split.get_column_descriptions()
+        if self.is_train():
+            column_descriptions = self.train_split.column_descriptions
             introduction_lines = [
                 "Below is the type (numeric or string), unique value count and ratio for each column, and few examples of values:",
                 "\n".join(
@@ -271,9 +343,39 @@ class Dataset:
 
         return "\n".join(introduction_lines)
 
-    @cached_property
-    def metadata_description(self):
+    @property
+    def metadata_description(self) -> str:
         splits_metadatas = [split.metadata_description for split in self.splits]
-        description = f"name: {self.name} \ndescription: {self.description} \ngoal: {self.goal} \ntrain_split_name: {self.train_split_name} \nsplits:\n\n"
-        description += "\n\n".join(splits_metadatas)
+        descriptions = [
+            "{name}".format(
+                name=(f"name: {self.name}\n" if self.name is not None else "")
+            ),
+            "{description}".format(
+                description=(
+                    f"description: {self.description}\n"
+                    if self.description is not None
+                    else ""
+                )
+            ),
+            "{goal}".format(
+                goal=(f"goal: {self.goal}\n" if self.goal is not None else "")
+            ),
+            "{train_split}".format(
+                train_split=(
+                    f"train split: {self.train_split.name}\n" if self.is_train() else ""
+                )
+            ),
+            "{test_split}".format(
+                test_split=(
+                    f"test split: {self.test_split.name}\n" if self.is_test() else ""
+                )
+            ),
+            "splits:\n\n",
+        ]
+        description = "".join(descriptions) + "\n".join(
+            [f"{split}\n" for split in splits_metadatas]
+        )
         return description
+
+    def __str__(self):
+        return self.metadata_description

@@ -5,6 +5,8 @@ It should be no longer than a paragraph'''
 
 train_split_definition_prompt = '''Your task is to define the train split of this dataset. Answer only with the name of the file with train split. Mind the register.'''
 
+test_split_definition_prompt = '''Your task is to define the test split of this dataset. Answer only with the name of the file with train split. Mind the register.'''
+
 target_split_definition_prompt = '''Your task is to define the target split of this dataset. Answer only with the name of the file with target split. Mind the register.'''
 
 dataset_goal_prompt = '''Your task is to formulate the task associated with this dataset. Answer only with the task description, mention the target column.
