@@ -1,0 +1,24 @@
+{
+  "name": "Health Insurance Cross Sell Prediction Data",
+  "description": "сustomer details to predict the response to an automobile insurance offer",
+  "goal": "predict which customers respond positively to an automobile insurance offer",
+  "splits": [
+    {
+      "name": "train",
+      "path": "train.csv",
+      "description": "train dataset",
+      "columns": {
+        "Response": {
+            "hint": "prediction which customers respond positively to an automobile insurance offer."
+        }
+      }
+    },
+    {
+        "name": "test",
+        "path": "test.csv",
+        "description": "test dataset"
+    }
+  ],
+  "license": "CC0: Public Domain",
+  "kaggle": "https://www.kaggle.com/datasets/annantkumarsingh/health-insurance-cross-sell-prediction-data"
+}

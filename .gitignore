@@ -171,3 +171,19 @@ FEDOT/
 custom_history_dir/
 parsing/
 legacy/
+
+# IDEs
+.vscode
+.idea
+
+
+# Jupyter
+.ipynb_checkpoints/
+.ipython/
+.jupyter/
+.local/
+.cache/
+
+# MacOS
+.DS_Store
+
