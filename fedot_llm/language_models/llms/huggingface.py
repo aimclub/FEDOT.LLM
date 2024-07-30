@@ -1,6 +1,8 @@
+from typing import Dict, List, Optional
+
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 from fedot_llm.language_models.base import BaseLLM
-from typing import Optional, Dict, List
-from transformers import AutoTokenizer, AutoModelForCausalLM
 
 """
 Under Development
