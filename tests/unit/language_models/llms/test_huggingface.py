@@ -5,6 +5,6 @@ from fedot_llm.language_models.llms import HuggingFaceLLM
 class TestHuggingFace:
     def test_generate_something(self):
         model = HuggingFaceLLM(
-            model_id="microsoft/Phi-3-mini-4k-instruct", max_new_tokens=500
+            repo_id="microsoft/Phi-3-mini-4k-instruct"
         )
-        print(model.generate(user_prompt="hi"))
+        print(model.generate(user_prompt="hi",  max_new_tokens=500))

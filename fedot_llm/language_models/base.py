@@ -4,17 +4,19 @@ from typing import Dict, List, Optional
 
 class BaseLLM(ABC):
     
-    def generate(self, user_prompt: str, sys_prompt: Optional[str] = None, context: Optional[str] = None) -> str:
+    def generate(self, user_prompt: str, sys_prompt: Optional[str] = None, context: Optional[str] = None, **kwargs) -> str:
         """
         Generate a response based on user input, system prompt, and context.
 
         Args:
             user_prompt (str): The user input prompt.
             sys_prompt (str): The system prompt.
-            context (None): Optional context information.
+            context (str): Optional context information.
+            kwargs (dict): Arbitrary additional keyword arguments. These are usually passed
+                to the model provider API call.
 
         Returns:
-            response (str): Model response
+            str: Model string response
         """
         
         formatted_prompt = {}
@@ -39,17 +41,19 @@ class BaseLLM(ABC):
             )
         else:
             raise RuntimeError("User_promt can't be None!")
-        return self._generate(formatted_prompt)
+        return self._generate(formatted_prompt, **kwargs)
     
     @abstractmethod
-    def _generate(self, formatted_prompt: Dict[str, List[Dict[str, str]]]) -> str:
+    def _generate(self, formatted_prompt: Dict[str, List[Dict[str, str]]], **kwargs) -> str:
         """Generate a response using an LLM-specific interface
 
         Args:
             formatted_prompt (Dict[str, List[Dict[str, str]]]): The formatted prompt to generate a response
+            kwargs (dict): Arbitrary additional keyword arguments. These are usually passed
+                to the model provider API call.
 
         Returns:
-            str: The generated response
+            str: Model string response
         """
 
         

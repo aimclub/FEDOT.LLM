@@ -1,3 +1,4 @@
+import json
 from pprint import pprint
 
 from fedot_llm.data import Dataset
@@ -11,12 +12,28 @@ class TestOllamaLLM:
         print(model.generate(user_prompt="hi"))
 
     def test_generate_description(self):
-        dataset = Dataset.load_from_path("datasets/Health_Insurance")
+        dataset = Dataset.load_from_path("../../../../datasets/Health_Insurance")
         train = dataset.splits[0]
-        model = OllamaLLM(model="llama3")
+        model = OllamaLLM(model="llama3", temperature=0.0)
         action = ModelAction(model=model)
         column_descriptions = action.generate_all_column_description(
             split=train, dataset=dataset
         )
         train.set_column_descriptions(column_descriptions)
         pprint(column_descriptions)
+        
+    def test_set_custom_default_params(self):
+        model = OllamaLLM(model="llama3", mirostat_tau=0.1, format='json')
+        answer = model.generate(sys_prompt="Respond using JSON", user_prompt="5+5=", context="math")
+        assert bool(json.loads(answer))
+        print(answer)
+
+    def test_custom_generation_params(self):
+        model = OllamaLLM(model="llama3", mirostat_tau=0.1)
+        answer = model.generate(sys_prompt="Respond using JSON",
+                                user_prompt="5+5=",
+                                context="math",
+                                mirostat_tau=0.1,
+                                format='json')
+        assert bool(json.loads(answer))
+        print(answer)

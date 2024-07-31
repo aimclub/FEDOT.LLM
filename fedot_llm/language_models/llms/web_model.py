@@ -12,7 +12,7 @@ class CustomWebLLM(BaseLLM):
         self.model = model
         self.timeout = timeout
     
-    def _generate(self, formatted_prompt: Dict[str, List[Dict[str, str]]]) -> str:
+    def _generate(self, formatted_prompt: Dict[str, List[Dict[str, str]]], **kwargs) -> str:
         try:
             response = requests.post(url=self.url, json=formatted_prompt, timeout=self.timeout)
             response.raise_for_status()
