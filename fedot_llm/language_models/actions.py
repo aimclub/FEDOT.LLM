@@ -41,7 +41,7 @@ class ModelAction:
     def __init__(self, model: BaseLLM) -> None:
         self.model = model
 
-    def run_model_call(self, system, context, task):
+    def run_model_call(self, system, context, task, **kwargs):
         """Run a prompt on model"""
         response = self.model.generate(
             user_prompt=task, sys_prompt=system, context=context

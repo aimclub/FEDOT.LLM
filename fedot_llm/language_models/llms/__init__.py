@@ -1,5 +1,8 @@
 from typing import Any, Type
 from fedot_llm.language_models.base import BaseLLM
+from fedot_llm.language_models.llms.web_model import CustomWebLLM
+from fedot_llm.language_models.llms.huggingface import HuggingFaceLLM
+from fedot_llm.language_models.llms.ollama import OllamaLLM
 
 def _import_web_model() -> Type[BaseLLM]:
     from fedot_llm.language_models.llms.web_model import CustomWebLLM
