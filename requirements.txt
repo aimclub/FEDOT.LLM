@@ -22,3 +22,7 @@ typing~=3.7.4.3
 # HTTP requests things. You need this even if you use only local llms. Trust me.
 requests~=2.32.3
 tenacity~=8.5.0
+
+# LangChain. Bugs love this place. Pls keep the latest versions. (even if it released yesterday)
+langchain>=0.2.12
+langchain-community>=0.2.11

@@ -7,6 +7,12 @@ from typing import Any, Dict, List, Union
 import arff
 import pandas as pd
 
+from langchain_core.pydantic_v1 import BaseModel, Field
+
+class ColumnDescription(BaseModel):
+    name: str = Field(description="The name of the column")
+    description: str = Field(description="The short description of the column")
+
 
 class Split:
     """
@@ -41,6 +47,9 @@ class Split:
                     self.columns_meta[col]["hint"] = metainfo["hint"]
                 if "description" in metainfo:
                     self.columns_meta[col]["description"] = metainfo["description"]
+                    
+    def __getitem__(self, key: str) -> pd.Series:
+        return self.data[key]
 
     @property
     def detailed_description(self):
@@ -117,7 +126,7 @@ class Split:
     @cached_property
     def column_descriptions(self):
         return dict(
-            (key, value["description"]) for key, value in self.columns_meta.items()
+            (key, value["description"]) for key, value in self.columns_meta.items() if "description" in value
         )
 
     def get_column_hint(self, column_name: str) -> None | str:
@@ -135,7 +144,11 @@ class Split:
         else:
             return self.columns_meta[column_name].get("hint", None)
 
-    def set_column_descriptions(self, column_description: Dict[str, str]) -> None:
+    def set_column_description(self, column_description: ColumnDescription) -> None:
+        if column_description.name in self.columns_meta:
+            self.columns_meta[column_description.name]['description'] = column_description.description
+
+    def set_column_descriptions(self, column_descriptions: List[ColumnDescription]) -> None:
         """
         Set descriptions for columns in the metadata.
 
@@ -145,9 +158,9 @@ class Split:
         Returns:
             None
         """
-        for key, value in column_description.items():
-            if key in self.columns_meta:
-                self.columns_meta[key]["description"] = value
+        for column in column_descriptions:
+            if column.name in self.columns_meta:
+                self.columns_meta[column.name]["description"] = column.description
 
     def __str__(self):
         return self.metadata_description
@@ -334,12 +347,13 @@ class Dataset:
 
         if self.is_train():
             column_descriptions = self.train_split.column_descriptions
-            introduction_lines = [
-                "Below is the type (numeric or string), unique value count and ratio for each column, and few examples of values:",
-                "\n".join(
-                    [f"{key}: {value}" for key, value in column_descriptions.items()]
-                ),
-            ]
+            if column_descriptions:
+                introduction_lines = [
+                    "Below is the type (numeric or string), unique value count and ratio for each column, and few examples of values:",
+                    "\n".join(
+                        [f"{key}: {value}" for key, value in column_descriptions.items()]
+                    ),
+                ]
 
         return "\n".join(introduction_lines)
 
