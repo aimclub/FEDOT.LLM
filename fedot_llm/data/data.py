@@ -1,44 +1,36 @@
 import json
 import os
 import random
-from functools import cached_property, lru_cache
-from typing import Any, Dict, List, Union
+from functools import lru_cache
+from typing import Any, Dict, List, Optional
+from dataclasses import dataclass, InitVar, field
 
 import arff
 import pandas as pd
 
-from langchain_core.pydantic_v1 import BaseModel, Field
-
-class ColumnDescription(BaseModel):
-    name: str = Field(description="The name of the column")
-    description: str = Field(description="The short description of the column")
-
-
+@dataclass
 class Split:
     """
     Split within dataset object
     """
-
-    def __init__(
-        self,
-        name: str,
-        data: pd.DataFrame,
-        path: str,
-        description: str | None = None,
-        columns: dict | None = None,
-    ) -> None:
-        """
-        Initialize an instanse of a Split.
-        """
-        self.name = name
-        self.data = data
-        self.path = path
-        self.description = description
-
-        # init columns metadata info
-        self.columns_meta = {col: {} for col in data.columns}
-        if columns is not None:
-            for col, metainfo in columns.items():
+    
+    name: str
+    """ The name of the split """
+    data: pd.DataFrame = field(repr=False)
+    """ Data that is stored in the split """
+    path: str
+    """ Path to the file with split data """
+    description: Optional[str] = None
+    """ Description of the split data """
+    init_columns_meta: InitVar[Optional[Dict]] = None
+    """ Init metadata for columns in the split """
+    columns_meta: Dict[str, Dict] = field(default_factory=dict, init=False)
+    """ Metadata for columns in the split """
+  
+    def __post_init__(self, init_columns_meta):
+        self.columns_meta = {col: {} for col in self.data.columns}
+        if init_columns_meta is not None:
+            for col, metainfo in init_columns_meta.items():
                 if col not in self.columns_meta:
                     raise RuntimeError(
                         "Failed to find the column {col} defined in the metadata.json file"
@@ -76,21 +68,25 @@ class Split:
             f"name: {self.name} \npath: {self.path} \ndescription: {self.description}"
         )
 
-    @cached_property
+    @property
     def text_columns(self):
         return list(self.data.select_dtypes(include=["object"]).columns)
 
-    @cached_property
+    @property
     def numeric_columns(self):
         return list(self.data.select_dtypes(include=["number"]).columns)
 
-    @cached_property
+    @property
     def unique_counts(self):
         return self.data.apply(lambda col: col.nunique())
 
-    @cached_property
+    @property
     def unique_ratios(self):
         return self.data.apply(lambda col: round(col.nunique() / len(col.dropna()), 2))
+    
+    @lru_cache(maxsize=128)
+    def get_column_unique_ratio(self, column_name: str, ndigits: int = 2) -> float:
+        return round(self[column_name].nunique() / len(self[column_name].dropna()), ndigits)
 
     @lru_cache(maxsize=128)
     def get_unique_values(self, column_name: str, max_number: int = -1) -> pd.Series:
@@ -98,11 +94,11 @@ class Split:
         Get unique values from the data attribute up to a specified maximum number.
 
         Args:
-        column_name (str): The name of the column in split.
-        max_number (int): Maximum number of unique values to return. Defaults to -1, which means return all unique values.
+            column_name (str): The name of the column in split.
+            max_number (int): Maximum number of unique values to return. Defaults to -1, which means return all unique values.
 
         Returns:
-        pd.Series: A pandas Series containing unique values from the data attribute.
+            pd.Series: A pandas Series containing unique values from the data attribute.
         """
         column_uniq_vals = self.data[column_name].unique().tolist()
         if max_number != -1:
@@ -113,83 +109,48 @@ class Split:
             )
         return pd.Series(column_uniq_vals, name=column_name)
 
-    @cached_property
+    @property
     def column_types(self):
         return self.data.apply(
             lambda col: "string" if col.name in self.text_columns else "numeric"
         )
 
     @lru_cache
-    def get_head_by_column(self, column_name: str, count: int = 10) -> List[Any]:
-        return list(self.data[column_name].head(count))
+    def get_head_by_column(self, column_name: str, count: int = 10) -> pd.Series:
+        return self[column_name].head(count)
 
-    @cached_property
+    @property
     def column_descriptions(self):
         return dict(
             (key, value["description"]) for key, value in self.columns_meta.items() if "description" in value
         )
 
-    def get_column_hint(self, column_name: str) -> None | str:
-        """
-        Get the hint associated with a specific column.
-
-        Args:
-            column_name (str): The name of the column.
-
-        Returns:
-            str or None: The hint associated with the column, or None if not found.
-        """
-        if column_name not in self.columns_meta:
-            return None
-        else:
-            return self.columns_meta[column_name].get("hint", None)
-
-    def set_column_description(self, column_description: ColumnDescription) -> None:
-        if column_description.name in self.columns_meta:
-            self.columns_meta[column_description.name]['description'] = column_description.description
-
-    def set_column_descriptions(self, column_descriptions: List[ColumnDescription]) -> None:
-        """
-        Set descriptions for columns in the metadata.
-
-        Args:
-            column_description (Dict[str, str]): A dictionary where keys are column names and values are descriptions.
-
-        Returns:
-            None
-        """
-        for column in column_descriptions:
-            if column.name in self.columns_meta:
-                self.columns_meta[column.name]["description"] = column.description
-
     def __str__(self):
         return self.metadata_description
 
-
+@dataclass
 class Dataset:
     """
     Dataset object that represents an ML task and may contain multiple splits
     """
-
-    def __init__(
-        self,
-        splits: List[Split],
-        name: Union[str, None] = None,
-        description: Union[str, None] = None,
-        goal: Union[str, None] = None,
-    ) -> None:
-        """
-        Initialize an instance of a Dataset.
-        """
-        self.name = name
-        self.description = description
-        self.goal = goal
-        self.splits = splits
-        self.__test_split = None
-        self.__train_split = None
-        self.__target_name = None
-        self.__task_type = None
-
+    
+    splits: List[Split]
+    """ List of splits in the dataset """
+    name: Optional[str] = None
+    """ Name of the dataset """
+    description: Optional[str] = None
+    """ Description of the dataset """
+    goal: Optional[str] = None
+    """ Goal of the dataset """
+    __test_split: Optional[Split] = field(init=False, default=None)
+    """ Test split of the dataset """
+    __train_split: Optional[Split] = field(init=False, default=None)
+    """ Train split of the dataset """
+    __target_name: Optional[str] = field(init=False, default=None)
+    """ Target column name of the dataset """
+    __task_type: Optional[str] = field(init=False, default=None)
+    """ Task type of the dataset """
+    
     @classmethod
     def load_from_path(cls, path: str, with_metadata: bool = False):
         """
@@ -219,7 +180,7 @@ class Dataset:
                         name=split_name,
                         path=split_path,
                         description=split_description,
-                        columns=split_columns,
+                        init_columns_meta=split_columns,
                     )
                     splits.append(split)
                 elif split_path.split(".")[-1] == "arff":
@@ -229,7 +190,7 @@ class Dataset:
                         name=split_name,
                         path=split_path,
                         description=split_description,
-                        columns=split_columns,
+                        init_columns_meta=split_columns,
                     )
                     splits.append(split)
                 else:
@@ -301,12 +262,7 @@ class Dataset:
 
     @target_name.setter
     def target_name(self, target: str) -> None:
-        if self.__train_split is None:
-            raise ValueError("No train split found")
-        elif target not in self.train_split.data.columns:
-            raise ValueError("Target not found in split data")
-        else:
-            self.__target_name = target
+        self.__target_name = target
 
     @property
     def task_type(self) -> str:
