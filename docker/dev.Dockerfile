@@ -20,7 +20,7 @@ WORKDIR /workspaces/fedot_llm
 # Use a multi-stage build to install dependencies
 FROM fedot_llm-dev-base AS fedot_llm-dev-dependencies
 
-ARG PYTHON_VIRTUALENV_HOME
+ARG PYTHON_VIRTUALENV_HOME=/home/vscode/fedot_llm-py-env
 
 # Copy only the dependency files for installation
 COPY requirements.txt ./

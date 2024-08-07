@@ -4,7 +4,6 @@ import re
 from typing import Literal, Optional
 from dataclasses import dataclass
 
-from attr import field
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.output_parsers import (
     StrOutputParser,
