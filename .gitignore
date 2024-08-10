@@ -171,6 +171,7 @@ FEDOT/
 custom_history_dir/
 parsing/
 legacy/
+saved_pipelines/
 
 # IDEs
 .vscode
