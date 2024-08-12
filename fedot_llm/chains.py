@@ -22,6 +22,9 @@ from nlangchain.output_parsers.retry import \
     RetryWithErrorOutputParser  # My PR already in master of langchain but not in pypi yet
 import logging
 from fedot.api import Fedot
+from fedot.core.pipelines.pipeline import Pipeline
+from numpy import ndarray
+
 
 
 class ColumnDescription(BaseModel):
@@ -63,9 +66,9 @@ stages: List[Stage] = [
 
 @dataclass
 class FedotPredictions:
-    predictions: Any
-    auto_model: Any
-    best_pipeline: Any
+    predictions: ndarray[Any, Any]
+    auto_model: Fedot
+    best_pipeline: Pipeline
 
 
 @dataclass
@@ -135,7 +138,7 @@ class ChainBuilder:
             prompts.dataset_goal_template
             | self.assistant
             | StrOutputParser()
-            | (lambda x: setattr(self.dataset, "target", x) or x)
+            | (lambda x: setattr(self.dataset, "goal", x) or x)
         ).with_config({"run_name": "dataset_goal_chain"})
 
     def __set_split(
@@ -160,7 +163,7 @@ class ChainBuilder:
             prompts.train_split_template
             | self.assistant
             | StrOutputParser()
-            | (lambda name: name.split(".")[0])
+            | (lambda name: name.split(".")[0].strip().strip(r",.\'\"“”‘’`´"))
             | (lambda name: self.__set_split(str(name), "train") or name)
         ).with_config({"run_name": "dataset_train_chain"})
 
@@ -175,7 +178,7 @@ class ChainBuilder:
             prompts.test_split_template
             | self.assistant
             | StrOutputParser()
-            | (lambda name: name.split(".")[0])
+            | (lambda name: name.split(".")[0].strip().strip(r",.\'\"“”‘’`´"))
             | (lambda name: self.__set_split(str(name), "test") or name)
         ).with_config({"run_name": "dataset_test_chain"})
 
@@ -190,7 +193,7 @@ class ChainBuilder:
             prompts.target_definition_template
             | self.assistant
             | StrOutputParser()
-            | (lambda x: re.sub(r"[\'\"“”‘’`´]", "", x) or x)
+            | (lambda x: x.strip().strip(r",.\'\"“”‘’`´"))
             | (lambda x: setattr(self.dataset, "target_name", x) or x)
         ).with_config({"run_name": "dataset_target_chain"})
 
@@ -205,7 +208,7 @@ class ChainBuilder:
             prompts.task_definition_template
             | self.assistant
             | StrOutputParser()
-            | (lambda x: re.sub(r"[\'\"“”‘’`´]", "", x.lower()))
+            | (lambda x: x.lower().strip().strip(r",.\'\"“”‘’`´"))
             | (lambda x: setattr(self.dataset, "task_type", x) or x)
         ).with_config({"run_name": "dataset_task_type_chain"})
 

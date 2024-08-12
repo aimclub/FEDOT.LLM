@@ -1,7 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate, FewShotChatMessagePromptTemplate
 
 dataset_name_template = ChatPromptTemplate([
-    ('system', 'Define the name of this dataset. Answer only with the name.'),
+    ('system', 'Define a concisethe name of this dataset. Answer only with the name.'),
     ('human', '{big_description}')
 ])
 """INPUT: 
@@ -9,16 +9,18 @@ dataset_name_template = ChatPromptTemplate([
 
 dataset_description_template = ChatPromptTemplate([
     ('system', ('Formulate a short description this dataset.'
-                'It should be no longer than a paragraph')),
-    ('human', '{big_description}')
+                'It should be no longer than a paragraph. ')),
+    ('human', '{big_description}'),
+    ('ai', 'Here is a short description of the dataset:\n\n')
 ])
 """INPUT: 
 - big_description -- user input big description of dataset"""
 
 dataset_goal_template = ChatPromptTemplate([
-    ('system', ('Your task is to formulate the task associated with this dataset. Answer only with the task description, mention the target column.'
-                'It should be short, 1-2 sentences long.')),
-    ('human', '{big_description}')
+    ('system', ('Formulate the goal associated with this dataset. Write a concisethe goal description.'
+                'It should be 1 sentences long.')),
+    ('human', '{big_description}'),
+    ('ai', 'The goal is\n')
 ])
 """INPUT: 
 - big_description -- user input big description of dataset"""
@@ -40,7 +42,8 @@ test_split_template = ChatPromptTemplate([
 
 target_definition_template = ChatPromptTemplate([
     ('system', 'Your task is to return the target column of the dataset. Only answer with a column name.'),
-    ('human', '{detailed_description}')
+    ('human', '{detailed_description}'),
+    ('ai', 'Target column:\n')
 ])
 """INPUT:
 - detailed_description: property of the dataset object"""
