@@ -1,8 +1,12 @@
+import logging
 import re
 from dataclasses import dataclass, field
 from operator import itemgetter
-from typing import Literal, Optional, List, Any
+from typing import Any, List, Literal, Optional
 
+from fedot.api import Fedot
+from fedot.core.pipelines.pipeline import Pipeline
+from golem.core.dag.graph_utils import graph_structure
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.output_parsers import (BaseOutputParser, JsonOutputParser,
                                            PydanticOutputParser,
@@ -11,20 +15,16 @@ from langchain_core.prompt_values import PromptValue
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.runnables import (Runnable, RunnableAssign, RunnableLambda,
                                       RunnableParallel, RunnablePassthrough,
-                                      RunnableSequence, RunnableSerializable,
-                                      RunnablePick)
+                                      RunnablePick, RunnableSequence,
+                                      RunnableSerializable)
+from numpy import ndarray
 from pydantic import BaseModel, Field
-from golem.core.dag.graph_utils import graph_structure
+
 from fedot_llm import prompts
 from fedot_llm.data import Dataset
 from fedot_llm.data.data import Split
 from nlangchain.output_parsers.retry import \
     RetryWithErrorOutputParser  # My PR already in master of langchain but not in pypi yet
-import logging
-from fedot.api import Fedot
-from fedot.core.pipelines.pipeline import Pipeline
-from numpy import ndarray
-
 
 
 class ColumnDescription(BaseModel):
