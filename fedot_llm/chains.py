@@ -21,6 +21,7 @@ from pydantic import BaseModel, Field
 
 from fedot_llm import prompts
 from fedot_llm.data import Dataset
+from langchain.output_parsers import OutputFixingParser
 from nlangchain.output_parsers.retry import \
     RetryWithErrorOutputParser  # My PR already in master of langchain but not in pypi yet
 
@@ -99,17 +100,22 @@ class ChainBuilder:
             self.arbiter = self.assistant
 
     def with_retry_chain(self, parser: BaseOutputParser, prompt: Optional[PromptValue] = None):
-        retry_parser = RetryWithErrorOutputParser.from_llm(
-            parser=parser, llm=(self.arbiter or self.assistant)
+        fixing_retry_parser = OutputFixingParser.from_llm(
+            parser=parser, llm=(self.arbiter or self.assistant),
+            max_retries=3
+        )
+        error_retry_parser = RetryWithErrorOutputParser.from_llm(
+            parser=fixing_retry_parser, llm=(self.arbiter or self.assistant),
+            max_retries=3
         )
         return (
             {
                 "completion": self.assistant.with_retry(wait_exponential_jitter=True, stop_after_attempt=self.retry_num) | StrOutputParser(),
                 "prompt_value": lambda x: PromptTemplate.from_template('{instractions}').invoke({'instractions': (prompt or parser.get_format_instructions())})
             }
-            | RunnableLambda(lambda x: retry_parser.parse_with_prompt(x["completion"], x["prompt_value"]))
+            | RunnableLambda(lambda x: error_retry_parser.parse_with_prompt(x["completion"], x["prompt_value"]))
             .with_retry(wait_exponential_jitter=True, stop_after_attempt=self.retry_num)
-        )
+        ).with_config({'tags': ['retry']})
 
     @property
     def dataset_name_chain(self):
