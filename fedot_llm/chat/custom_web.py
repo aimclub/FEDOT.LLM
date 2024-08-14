@@ -1,19 +1,18 @@
-from typing import List, Optional, Any, Dict, Union
+from typing import List, Optional, Any, Dict, Union, Literal, Tuple
 from langchain_core.callbacks import (
-    AsyncCallbackManagerForLLMRun,
     CallbackManagerForLLMRun,
 )
-from langchain_core.language_models import BaseChatModel, SimpleChatModel
-from langchain_core.messages import AIMessageChunk, BaseMessage, HumanMessage, AIMessage, SystemMessage
-from langchain_core.outputs import ChatGeneration, ChatGenerationChunk, ChatResult
-from langchain_core.runnables import run_in_executor
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
+from langchain_core.outputs import ChatGeneration, ChatResult
 import requests
 import json
 
+        
 
 
 class ChatCustomWeb(BaseChatModel):
-    model: str = 'llama3'
+    model: Optional[str] = 'llama3'
     base_url: str = 'http://10.32.2.2:8672'
     timeout: Optional[int] = None
     """Timeout for the request stream"""
@@ -95,11 +94,12 @@ class ChatCustomWeb(BaseChatModel):
     ) -> ChatResult:
         response = self._create_chat(messages, stop, **kwargs)
         chat_generation = ChatGeneration(
-            message=AIMessage(content=response['choices'][0]['message']['content']),
+            message=AIMessage(
+                content=response['choices'][0]['message']['content']),
             generation_info=response,
         )
         return ChatResult(generations=[chat_generation])
-    
+
     @property
     def _identifying_params(self) -> Dict[str, Any]:
         """Return a dictionary of identifying parameters.

@@ -1,24 +1,24 @@
-import json
 import os
 import random
 from functools import lru_cache
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from dataclasses import dataclass, InitVar, field
+from pathlib import Path
 
-import arff
 import pandas as pd
+
 
 @dataclass
 class Split:
     """
     Split within dataset object
     """
-    
+
     name: str
     """ The name of the split """
     data: pd.DataFrame = field(repr=False)
     """ Data that is stored in the split """
-    path: str
+    path: Optional[Path] = None
     """ Path to the file with split data """
     description: Optional[str] = None
     """ Description of the split data """
@@ -26,7 +26,7 @@ class Split:
     """ Init metadata for columns in the split """
     columns_meta: Dict[str, Dict] = field(default_factory=dict, init=False)
     """ Metadata for columns in the split """
-  
+
     def __post_init__(self, init_columns_meta):
         self.columns_meta = {col: {} for col in self.data.columns}
         if init_columns_meta is not None:
@@ -39,7 +39,7 @@ class Split:
                     self.columns_meta[col]["hint"] = metainfo["hint"]
                 if "description" in metainfo:
                     self.columns_meta[col]["description"] = metainfo["description"]
-                    
+
     def __getitem__(self, key: str) -> pd.Series:
         return self.data[key]
 
@@ -51,7 +51,7 @@ class Split:
             description = "The split"
 
         if self.path is not None:
-            fname = os.path.split(self.path)[-1]
+            fname = self.path.name
 
             description += f' stored in file "{fname}"'
 
@@ -83,7 +83,7 @@ class Split:
     @property
     def unique_ratios(self):
         return self.data.apply(lambda col: round(col.nunique() / len(col.dropna()), 2))
-    
+
     @lru_cache(maxsize=128)
     def get_column_unique_ratio(self, column_name: str, ndigits: int = 2) -> float:
         return round(self[column_name].nunique() / len(self[column_name].dropna()), ndigits)
@@ -128,12 +128,13 @@ class Split:
     def __str__(self):
         return self.metadata_description
 
+
 @dataclass
 class Dataset:
     """
     Dataset object that represents an ML task and may contain multiple splits
     """
-    
+
     splits: List[Split]
     """ List of splits in the dataset """
     name: Optional[str] = None
@@ -150,77 +151,6 @@ class Dataset:
     """ Target column name of the dataset """
     __task_type: Optional[str] = field(init=False, default=None)
     """ Task type of the dataset """
-    
-    @classmethod
-    def load_from_path(cls, path: str, with_metadata: bool = False):
-        """
-        Load Dataset a folder with dataset objects
-
-        Args:
-            path: Path to folder with Dataset data
-            with_metadata: Whether Dataset should be loading metadata.json file contained in folder. Defaults to false.
-
-        """
-
-        if with_metadata:
-            with open(os.sep.join([path, "metadata.json"]), "r") as json_file:
-                dataset_metadata = json.load(json_file)
-
-            # load each split file
-            splits = []
-            for split in dataset_metadata["splits"]:
-                split_name = split["name"]
-                split_path = os.sep.join([path, split["path"]])
-                split_description = split.get("description", "")
-                split_columns = split.get("columns", None)
-                if split_path.split(".")[-1] == "csv":
-                    data = pd.read_csv(split_path)
-                    split = Split(
-                        data=data,
-                        name=split_name,
-                        path=split_path,
-                        description=split_description,
-                        init_columns_meta=split_columns,
-                    )
-                    splits.append(split)
-                elif split_path.split(".")[-1] == "arff":
-                    data = pd.DataFrame(list(arff.load(split_path)))
-                    split = Split(
-                        data=data,
-                        name=split_name,
-                        path=split_path,
-                        description=split_description,
-                        init_columns_meta=split_columns,
-                    )
-                    splits.append(split)
-                else:
-                    print(f"split {split_path}: unsupported format")
-
-            return cls(
-                name=dataset_metadata["name"],
-                description=dataset_metadata["description"],
-                goal=dataset_metadata["goal"],
-                splits=splits,
-            )
-
-        else:
-            # Loading all splits in folder
-            splits = []
-            for fpath in os.listdir(path):
-                file_path = os.path.join(path, fpath)
-                split_name = os.path.split(file_path)[-1].split(".")[0]
-                if file_path.split(".")[-1] == "csv":
-                    data = pd.read_csv(file_path)
-                    split = Split(data=data, path=file_path, name=split_name)
-                    splits.append(split)
-                if file_path.split(".")[-1] == "arff":
-                    data = arff.load(file_path)
-                    split = Split(
-                        data=pd.DataFrame(list(data)), path=file_path, name=split_name
-                    )
-                    splits.append(split)
-
-            return cls(splits=splits)
 
     def is_train(self) -> bool:
         return self.__train_split is not None
@@ -236,7 +166,8 @@ class Dataset:
 
     @train_split.setter
     def train_split(self, train_name: str) -> None:
-        train_list = list(filter(lambda split: split.name == train_name, self.splits))
+        train_list = list(
+            filter(lambda split: split.name == train_name, self.splits))
         if not train_list:
             raise ValueError(f"No split found with name '{train_name}'")
         self.__train_split = train_list[0]
@@ -249,7 +180,8 @@ class Dataset:
 
     @test_split.setter
     def test_split(self, test_name: str) -> None:
-        test_list = list(filter(lambda split: split.name == test_name, self.splits))
+        test_list = list(
+            filter(lambda split: split.name == test_name, self.splits))
         if not test_list:
             raise ValueError(f"No split found with name '{test_name}'")
         self.__test_split = test_list[0]
@@ -274,17 +206,19 @@ class Dataset:
     def task_type(self, type: str) -> None:
         if type not in ["regression", "classification"]:
             raise ValueError(
-                "Task type must be either 'regression' or 'classification'"
+                f"Task type must be either 'regression' or 'classification', but got '{type}'"
             )
         self.__task_type = type
 
     @property
     def detailed_description(self) -> str:
-        split_description_lines = [split.detailed_description for split in self.splits]
+        split_description_lines = [
+            split.detailed_description for split in self.splits]
 
         first_line = [
             "Assume we have a dataset",
-            "{name}".format(name=(f" called {self.name}\n" if self.name else "")),
+            "{name}".format(
+                name=(f" called {self.name}\n" if self.name else "")),
             "{description}".format(
                 description=(
                     f"It could be described as following: {self.description}\n"
@@ -292,7 +226,8 @@ class Dataset:
                     else ""
                 )
             ),
-            "{goal}".format(goal=(f"The goal is: {self.goal}\n" if self.goal else "")),
+            "{goal}".format(
+                goal=(f"The goal is: {self.goal}\n" if self.goal else "")),
             "The dataset contains the following splits:\n",
         ]
         first_line = "".join(first_line)
@@ -307,7 +242,8 @@ class Dataset:
                 introduction_lines = [
                     "Below is the type (numeric or string), unique value count and ratio for each column, and few examples of values:",
                     "\n".join(
-                        [f"{key}: {value}" for key, value in column_descriptions.items()]
+                        [f"{key}: {value}" for key,
+                            value in column_descriptions.items()]
                     ),
                 ]
 
@@ -315,7 +251,8 @@ class Dataset:
 
     @property
     def metadata_description(self) -> str:
-        splits_metadatas = [split.metadata_description for split in self.splits]
+        splits_metadatas = [
+            split.metadata_description for split in self.splits]
         descriptions = [
             "{name}".format(
                 name=(f"name: {self.name}\n" if self.name is not None else "")
@@ -332,12 +269,14 @@ class Dataset:
             ),
             "{train_split}".format(
                 train_split=(
-                    f"train split: {self.train_split.name}\n" if self.is_train() else ""
+                    f"train split: {self.train_split.name}\n" if self.is_train(
+                    ) else ""
                 )
             ),
             "{test_split}".format(
                 test_split=(
-                    f"test split: {self.test_split.name}\n" if self.is_test() else ""
+                    f"test split: {self.test_split.name}\n" if self.is_test(
+                    ) else ""
                 )
             ),
             "splits:\n\n",
