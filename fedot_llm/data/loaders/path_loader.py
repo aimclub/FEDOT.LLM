@@ -1,6 +1,6 @@
 import json
-import os
-from typing import List
+from pathlib import Path
+from typing import List, Union
 
 import arff
 import pandas as pd
@@ -9,7 +9,8 @@ from fedot_llm.data.data import Dataset, Split
 
 
 class PathDatasetLoader:
-    def load(self, path: str, with_metadata: bool = False):
+    @staticmethod
+    def load(path: Union[Path, str], with_metadata: bool = False):
         """
         Load Dataset a folder with dataset objects
 
@@ -18,16 +19,17 @@ class PathDatasetLoader:
             with_metadata: Whether Dataset should be loading metadata.json file contained in folder. Defaults to false.
 
         """
+        
+        if isinstance(path, str):
+            path = Path(path)
 
         if with_metadata:
-            with open(os.sep.join([path, "metadata.json"]), "r") as json_file:
-                dataset_metadata = json.load(json_file)
-
+            dataset_metadata = json.loads((path / "metadata.json").read_text(encoding="UTF-8"))
             # load each split file
             splits: List[Split] = []
             for split in dataset_metadata["splits"]:
                 split_name = split["name"]
-                split_path = os.sep.join([path, split["path"]])
+                split_path = path / split["path"]
                 split_description = split.get("description", "")
                 split_columns = split.get("columns", None)
                 if split_path.split(".")[-1] == "csv":
@@ -63,14 +65,15 @@ class PathDatasetLoader:
         else:
             # Loading all splits in folder
             splits = []
-            for fpath in os.listdir(path):
-                file_path = os.path.join(path, fpath)
-                split_name = os.path.split(file_path)[-1].split(".")[0]
-                if file_path.split(".")[-1] == "csv":
+            files = [x for x in path.glob('**/*') if x.is_file()]
+            for file in files:
+                file_path = file.absolute()
+                split_name = file.name.split(".")[0]
+                if file.name.split(".")[-1] == "csv":
                     data = pd.read_csv(file_path)
                     split = Split(data=data, path=file_path, name=split_name)
                     splits.append(split)
-                if file_path.split(".")[-1] == "arff":
+                if file.name.split(".")[-1] == "arff":
                     data = arff.load(file_path)
                     split = Split(
                         data=pd.DataFrame(list(data)), path=file_path, name=split_name

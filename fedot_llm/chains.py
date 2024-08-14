@@ -13,16 +13,14 @@ from langchain_core.output_parsers import (BaseOutputParser, JsonOutputParser,
                                            StrOutputParser)
 from langchain_core.prompt_values import PromptValue
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from langchain_core.runnables import (Runnable, RunnableAssign, RunnableLambda,
+from langchain_core.runnables import (Runnable, RunnableLambda,
                                       RunnableParallel, RunnablePassthrough,
-                                      RunnablePick, RunnableSequence,
-                                      RunnableSerializable)
+                                      RunnablePick)
 from numpy import ndarray
 from pydantic import BaseModel, Field
 
 from fedot_llm import prompts
 from fedot_llm.data import Dataset
-from fedot_llm.data.data import Split
 from nlangchain.output_parsers.retry import \
     RetryWithErrorOutputParser  # My PR already in master of langchain but not in pypi yet
 
@@ -37,6 +35,20 @@ class ColumnType(BaseModel):
     column_type: Literal["categorical", "numerical"] = Field(
         description="The variables type: categorical or numerical"
     )
+    
+# @dataclass
+# class RunnableFromList:
+#     runnable: str
+#     @property
+#     def chain(self):
+#         return (self._create_runnanble_dict_from_list | RunnableLambda(lambda x: RunnableParallel(eval(x))))
+        
+           
+#     def _create_runnanble_dict_from_list(self, input: List[str]):
+#         string_dict = ['{']
+#         string_dict.extend([f'"{item}": (lambda _: RunnableLambda(lambda _: "{item}") | ({self.runnable})),' for item in input])
+#         string_dict.append('}')
+#         return ''.join(string_dict)
 
 
 @dataclass
@@ -324,7 +336,7 @@ class ChainBuilder:
         new_train, new_test = train_test_split(input['train_split'].data, train_size=0.8, random_state=42)
         return {'new_train': new_train, 'new_test': new_test}
 
-    def categorize_runnable(self, x):
+    def __categorize_runnable(self, x):
         return self.categorize_columns_chain.batch(x)
 
     def fedot_predict_runnable(self, input):
@@ -363,7 +375,7 @@ class ChainBuilder:
             | RunnablePassthrough.assign(train_split_columns=lambda input: list(input['train_split'].data.columns))
             | RunnablePassthrough.assign(
                 categorize=(itemgetter("train_split_columns") | RunnableLambda(
-                    self.categorize_runnable)).with_config({"run_name": "categorize_runnable"})
+                    self.__categorize_runnable)).with_config({"run_name": "categorize_runnable"})
             )
             | RunnablePassthrough.assign(new_splits=self.split_train_to_2_splits)
             | RunnablePassthrough.assign(fedot=RunnableLambda(self.fedot_predict_runnable).with_config({"run_name": "fedot_predict"}))

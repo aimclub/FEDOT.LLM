@@ -1,11 +1,10 @@
-import json
 import os
 import random
 from functools import lru_cache
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from dataclasses import dataclass, InitVar, field
+from pathlib import Path
 
-import arff
 import pandas as pd
 
 
@@ -19,7 +18,7 @@ class Split:
     """ The name of the split """
     data: pd.DataFrame = field(repr=False)
     """ Data that is stored in the split """
-    path: Optional[str] = None
+    path: Optional[Path] = None
     """ Path to the file with split data """
     description: Optional[str] = None
     """ Description of the split data """
@@ -52,7 +51,7 @@ class Split:
             description = "The split"
 
         if self.path is not None:
-            fname = os.path.split(self.path)[-1]
+            fname = self.path.name
 
             description += f' stored in file "{fname}"'
 

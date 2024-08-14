@@ -7,7 +7,7 @@ from langchain_core.runnables import Runnable
 from fedot_llm.chains import ChainBuilder, FedotPredictions
 from fedot_llm.data import Dataset
 from fedot_llm.output import BaseFedotAIOutput, ConsoleFedotAIOutput, JupyterFedotAIOutput
-from fedot_llm.data.dataset_loaders import PathDatasetLoader
+from fedot_llm.data.loaders import PathDatasetLoader
 
 
 @dataclass
