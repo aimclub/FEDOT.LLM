@@ -2,9 +2,9 @@ import pandas as pd
 from fedot.api.main import Fedot
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
-train = pd.read_csv("../playground-series-s4e7/train.csv")
-test = pd.read_csv("../playground-series-s4e7/test.csv")
-sub = pd.read_csv("../playground-series-s4e7/sample_submission.csv")
+train = pd.read_csv("../datasets-offline/playground-series-s4e7/train.csv")
+test = pd.read_csv("../datasets-offline/playground-series-s4e7/test.csv")
+sub = pd.read_csv("../datasets-offline/playground-series-s4e7/sample_submission.csv")
 
 train.drop(columns=["id"], inplace=True)
 test.drop(columns=["id"], inplace=True)

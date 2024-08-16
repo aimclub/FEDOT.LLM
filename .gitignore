@@ -164,6 +164,7 @@ cython_debug/
 # Example datasets
 titanic/
 credit-g/
+datasets-offline/
 *.zip
 
 # Fedot
