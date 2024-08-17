@@ -1,5 +1,4 @@
 import logging
-import re
 from dataclasses import dataclass, field
 from operator import itemgetter
 from typing import Any, List, Literal, Optional
@@ -12,7 +11,7 @@ from langchain_core.output_parsers import (BaseOutputParser, JsonOutputParser,
                                            PydanticOutputParser,
                                            StrOutputParser)
 from langchain_core.prompt_values import PromptValue
-from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import (Runnable, RunnableLambda,
                                       RunnableParallel, RunnablePassthrough,
                                       RunnablePick)
@@ -53,9 +52,9 @@ class ColumnType(BaseModel):
 
 
 @dataclass
-class Stage:
+class Step:
+    id: str
     name: str
-    display_name: str
     status:  Literal['Waiting', 'Running', 'Streaming',
                      'Сompleted'] = field(default='Waiting')
 
@@ -63,18 +62,18 @@ class Stage:
         return self.name
 
 
-stages: List[Stage] = [
-    Stage('dataset_name_chain', 'Define Dataset Name'),
-    Stage('dataset_description_chain', 'Define Dataset Description'),
-    Stage('dataset_goal_chain', 'Define Dataset Goal'),
-    Stage('dataset_train_chain', 'Define Train Split'),
-    Stage('dataset_test_chain', 'Define Test Split'),
-    Stage('dataset_target_chain', 'Define Target Column'),
-    Stage('dataset_task_type_chain', 'Define Task Type'),
-    Stage('categorize_runnable',
+steps: List[Step] = [
+    Step('dataset_name_chain', 'Define Dataset Name'),
+    Step('dataset_description_chain', 'Define Dataset Description'),
+    Step('dataset_goal_chain', 'Define Dataset Goal'),
+    Step('dataset_train_chain', 'Define Train Split'),
+    Step('dataset_test_chain', 'Define Test Split'),
+    Step('dataset_target_chain', 'Define Target Column'),
+    Step('dataset_task_type_chain', 'Define Task Type'),
+    Step('categorize_runnable',
           'Create Column Descriptions And Define Columns Category'),
-    Stage('fedot_predict', 'Fedot makes predictions'),
-    Stage('fedot_analyze_predictions_chain', 'Fedot Analyze Results')
+    Step('fedot_predict', 'Fedot makes predictions'),
+    Step('fedot_analyze_predictions_chain', 'Fedot Analyze Results')
 ]
 
 @dataclass
@@ -406,6 +405,6 @@ class ChainBuilder:
             | RunnablePassthrough.assign(train_split_columns=lambda input: list(input['train_split'].data.columns))
             | RunnablePassthrough.assign(
                 categorize=(itemgetter("train_split_columns") | RunnableLambda(
-                    self.categorize_runnable)).with_config({"run_name": "categorize_runnable"})
+                    self.__categorize_runnable)).with_config({"run_name": "categorize_runnable"})
             )
         )

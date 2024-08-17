@@ -14,7 +14,7 @@ from fedot_llm.data.loaders import PathDatasetLoader
 class FedotAI():
     dataset: Union[Dataset, str]
     model: InitVar[BaseChatModel]
-    second_model: InitVar[Optional[BaseChatModel]] = field(default=None)
+    second_model: InitVar[Optional[BaseChatModel]] = field(default=None, repr=False)
     chain_builder: ChainBuilder = field(init=False)
     output: Optional[Union[BaseFedotAIOutput, Literal['jupyter', 'debug']]] = None
 

@@ -4,7 +4,7 @@ from typing import Any, Dict
 from IPython.display import Markdown, clear_output, display
 from langchain_core.runnables import Runnable
 
-from fedot_llm.chains import stages
+from fedot_llm.chains import steps
 from fedot_llm.output.base import BaseFedotAIOutput
 
 
@@ -35,22 +35,22 @@ class JupyterFedotAIOutput(BaseFedotAIOutput):
                     self.logger.debug(
                         f"{event['name']}\n" + '\n'.join(log_msg))
             display_str = '# Progress:\n'
-            for stage in stages:
-                if stage.name in event['name']:
+            for step in steps:
+                if step.id in event['name']:
                     if event['event'] == 'on_chain_start':
-                        stage.status = 'Running'
+                        step.status = 'Running'
                     elif event['event'] == 'on_chain_stream':
-                        stage.status = 'Streaming'
+                        step.status = 'Streaming'
                     elif event['event'] == 'on_chain_end':
-                        stage.status = 'Сompleted'
+                        step.status = 'Сompleted'
 
-            for stage in stages:
-                if stage.status == 'Waiting':
-                    display_str += f"- [] {stage.display_name}\n"
-                if stage.status == 'Running' or stage.status == 'Streaming':
-                    display_str += f"- () {stage.display_name}\n"
-                elif stage.status == 'Сompleted':
-                    display_str += f"- [x] {stage.display_name}\n"
+            for step in steps:
+                if step.status == 'Waiting':
+                    display_str += f"🏃‍♂️‍➡️ {step}"
+                if step.status == 'Running' or step.status == 'Streaming':
+                    display_str += f"- () {step.name}\n"
+                elif step.status == 'Сompleted':
+                    display_str += f"✅ {step.name}\n"
 
             if 'print' in event['tags']:
                 messages += event['data'].get('chunk', '')
