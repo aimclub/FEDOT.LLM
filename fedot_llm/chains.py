@@ -57,7 +57,7 @@ class Stage:
     name: str
     display_name: str
     status:  Literal['Waiting', 'Running', 'Streaming',
-                     'Сompleted'] = field(default='Waiting')
+                     'Completed'] = field(default='Waiting')
 
     def __str__(self):
         return self.name
