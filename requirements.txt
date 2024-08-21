@@ -26,7 +26,11 @@ tenacity~=8.5.0
 # LangChain. Bugs love this place. Pls keep the latest versions. (even if it released yesterday)
 langchain>=0.2.12
 langchain-community>=0.2.11
+langchain-openai~=0.1.22
 
 # Web Interface
 streamlit~=1.37.1
 streamlit-extras~=0.4.7
+
+# Models
+openai~=1.41.0

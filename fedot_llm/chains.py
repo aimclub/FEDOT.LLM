@@ -35,15 +35,16 @@ class ColumnType(BaseModel):
     column_type: Literal["categorical", "numerical"] = Field(
         description="The variables type: categorical or numerical"
     )
-    
+
+
 # @dataclass
 # class RunnableFromList:
 #     runnable: str
 #     @property
 #     def chain(self):
 #         return (self._create_runnanble_dict_from_list | RunnableLambda(lambda x: RunnableParallel(eval(x))))
-        
-           
+
+
 #     def _create_runnanble_dict_from_list(self, input: List[str]):
 #         string_dict = ['{']
 #         string_dict.extend([f'"{item}": (lambda _: RunnableLambda(lambda _: "{item}") | ({self.runnable})),' for item in input])
@@ -55,8 +56,8 @@ class ColumnType(BaseModel):
 class Step:
     id: str
     name: str
-    status:  Literal['Waiting', 'Running', 'Streaming',
-                     'Сompleted'] = field(default='Waiting')
+    status: Literal['Waiting', 'Running', 'Streaming',
+    'Сompleted'] = field(default='Waiting')
 
     def __str__(self):
         return self.name
@@ -71,10 +72,11 @@ steps: List[Step] = [
     Step('dataset_target_chain', 'Define Target Column'),
     Step('dataset_task_type_chain', 'Define Task Type'),
     Step('categorize_runnable',
-          'Create Column Descriptions And Define Columns Category'),
+         'Create Column Descriptions And Define Columns Category'),
     Step('fedot_predict', 'Fedot makes predictions'),
     Step('fedot_analyze_predictions_chain', 'Fedot Analyze Results')
 ]
+
 
 @dataclass
 class FedotPredictions:
@@ -108,12 +110,14 @@ class ChainBuilder:
             max_retries=3
         )
         return (
-            {
-                "completion": self.assistant.with_retry(wait_exponential_jitter=True, stop_after_attempt=self.retry_num) | StrOutputParser(),
-                "prompt_value": lambda x: PromptTemplate.from_template('{instractions}').invoke({'instractions': (prompt or parser.get_format_instructions())})
-            }
-            | RunnableLambda(lambda x: error_retry_parser.parse_with_prompt(x["completion"], x["prompt_value"]))
-            .with_retry(wait_exponential_jitter=True, stop_after_attempt=self.retry_num)
+                {
+                    "completion": self.assistant.with_retry(wait_exponential_jitter=True,
+                                                            stop_after_attempt=self.retry_num) | StrOutputParser(),
+                    "prompt_value": lambda x: PromptTemplate.from_template('{instractions}').invoke(
+                        {'instractions': (prompt or parser.get_format_instructions())})
+                }
+                | RunnableLambda(lambda x: error_retry_parser.parse_with_prompt(x["completion"], x["prompt_value"]))
+                .with_retry(wait_exponential_jitter=True, stop_after_attempt=self.retry_num)
         ).with_config({'tags': ['retry']})
 
     @property
@@ -124,10 +128,10 @@ class ChainBuilder:
         - big_description -- user input big description of dataset
         """
         return (
-            prompts.dataset_name_template
-            | self.assistant
-            | StrOutputParser()
-            | (lambda x: setattr(self.dataset, "name", x) or x)
+                prompts.dataset_name_template
+                | self.assistant
+                | StrOutputParser()
+                | (lambda x: setattr(self.dataset, "name", x) or x)
         ).with_config({"run_name": "dataset_name_chain"})
 
     @property
@@ -138,10 +142,10 @@ class ChainBuilder:
         - big_description -- user input big description of dataset
         """
         return (
-            prompts.dataset_description_template
-            | self.assistant
-            | StrOutputParser()
-            | (lambda x: setattr(self.dataset, "description", x) or x)
+                prompts.dataset_description_template
+                | self.assistant
+                | StrOutputParser()
+                | (lambda x: setattr(self.dataset, "description", x) or x)
         ).with_config({"run_name": "dataset_description_chain"})
 
     @property
@@ -152,14 +156,14 @@ class ChainBuilder:
             big_description -- user input big description of dataset
         """
         return (
-            prompts.dataset_goal_template
-            | self.assistant
-            | StrOutputParser()
-            | (lambda x: setattr(self.dataset, "goal", x) or x)
+                prompts.dataset_goal_template
+                | self.assistant
+                | StrOutputParser()
+                | (lambda x: setattr(self.dataset, "goal", x) or x)
         ).with_config({"run_name": "dataset_goal_chain"})
 
     def __set_split(
-        self, split_name: str, split_type: Literal["train", "test"]
+            self, split_name: str, split_type: Literal["train", "test"]
     ):
         split_name = split_name.split(".")[0]
         if split_type == "train":
@@ -177,11 +181,11 @@ class ChainBuilder:
             detailed_description: property of the dataset object
         """
         return (
-            prompts.train_split_template
-            | self.assistant
-            | StrOutputParser()
-            | (lambda name: name.split(".")[0].strip().strip(r",.\'\"“”‘’`´"))
-            | (lambda name: self.__set_split(str(name), "train") or name)
+                prompts.train_split_template
+                | self.assistant
+                | StrOutputParser()
+                | (lambda name: name.split(".")[0].strip().strip(r",.\'\"“”‘’`´"))
+                | (lambda name: self.__set_split(str(name), "train") or name)
         ).with_config({"run_name": "dataset_train_chain"})
 
     @property
@@ -192,11 +196,11 @@ class ChainBuilder:
             detailed_description: property of the dataset object
         """
         return (
-            prompts.test_split_template
-            | self.assistant
-            | StrOutputParser()
-            | (lambda name: name.split(".")[0].strip().strip(r",.\'\"“”‘’`´"))
-            | (lambda name: self.__set_split(str(name), "test") or name)
+                prompts.test_split_template
+                | self.assistant
+                | StrOutputParser()
+                | (lambda name: name.split(".")[0].strip().strip(r",.\'\"“”‘’`´"))
+                | (lambda name: self.__set_split(str(name), "test") or name)
         ).with_config({"run_name": "dataset_test_chain"})
 
     @property
@@ -207,11 +211,11 @@ class ChainBuilder:
             detailed_description: property of the dataset object
         """
         return (
-            prompts.target_definition_template
-            | self.assistant
-            | StrOutputParser()
-            | (lambda x: x.strip().strip(r",.\'\"“”‘’`´"))
-            | (lambda x: setattr(self.dataset, "target_name", x) or x)
+                prompts.target_definition_template
+                | self.assistant
+                | StrOutputParser()
+                | (lambda x: x.strip().strip(r",.\'\"“”‘’`´"))
+                | (lambda x: setattr(self.dataset, "target_name", x) or x)
         ).with_config({"run_name": "dataset_target_chain"})
 
     @property
@@ -222,11 +226,11 @@ class ChainBuilder:
             detailed_description: property of the dataset object
         """
         return (
-            prompts.task_definition_template
-            | self.assistant
-            | StrOutputParser()
-            | (lambda x: x.lower().strip().strip(r",.\'\"“”‘’`´"))
-            | (lambda x: setattr(self.dataset, "task_type", x) or x)
+                prompts.task_definition_template
+                | self.assistant
+                | StrOutputParser()
+                | (lambda x: x.lower().strip().strip(r",.\'\"“”‘’`´"))
+                | (lambda x: setattr(self.dataset, "task_type", x) or x)
         ).with_config({"run_name": "dataset_task_type_chain"})
 
     @property
@@ -237,19 +241,19 @@ class ChainBuilder:
             big_description -- user input big description of dataset
         """
         return (
-            RunnableParallel(
-                dataset_name=self.dataset_name_chain,
-                dataset_description=self.dataset_description_chain,
-                dataset_goal=self.dataset_goal_chain,
-            )
-            | RunnablePassthrough.assign(detailed_description=lambda _: self.dataset.detailed_description)
-            | RunnableParallel(
-                dataset_info=RunnablePassthrough(),
-                dataset_train=self.dataset_train_chain,
-                dataset_test=self.dataset_test_chain,
-                dataset_target=self.dataset_target_chain,
-                dataset_task_type=self.dataset_task_type_chain,
-            )
+                RunnableParallel(
+                    dataset_name=self.dataset_name_chain,
+                    dataset_description=self.dataset_description_chain,
+                    dataset_goal=self.dataset_goal_chain,
+                )
+                | RunnablePassthrough.assign(detailed_description=lambda _: self.dataset.detailed_description)
+                | RunnableParallel(
+            dataset_info=RunnablePassthrough(),
+            dataset_train=self.dataset_train_chain,
+            dataset_test=self.dataset_test_chain,
+            dataset_target=self.dataset_target_chain,
+            dataset_task_type=self.dataset_task_type_chain,
+        )
         ).with_config({"run_name": "dataset_metadata_chain"})
 
     @property
@@ -267,18 +271,18 @@ class ChainBuilder:
             format_instructions=parser.get_format_instructions(),
         )
         processing_chain = (
-            describe_column_template
-            | self.with_retry_chain(parser=JsonOutputParser(pydantic_object=ColumnDescription))
+                describe_column_template
+                | self.with_retry_chain(parser=JsonOutputParser(pydantic_object=ColumnDescription))
         )
 
         return (
-            {
-                "column_name": lambda x: x,
-                "column_samples": lambda x: self.dataset.train_split[x]
+                {
+                    "column_name": lambda x: x,
+                    "column_samples": lambda x: self.dataset.train_split[x]
                 .head(10)
                 .to_markdown(index=False),
-            }
-            | RunnablePassthrough.assign(column_description=processing_chain)
+                }
+                | RunnablePassthrough.assign(column_description=processing_chain)
         ).with_config({"run_name": "describe_column_chain"})
 
     @property
@@ -303,27 +307,28 @@ class ChainBuilder:
             parser=parser, llm=(self.arbiter or self.assistant)
         )
         return (
-            RunnablePassthrough.assign(
-                column_description=lambda x: x["column_description"]["description"]
-            ).assign(
-                column_ratio=lambda x: round(
-                    self.dataset.train_split[x["column_name"]].nunique()
-                    / len(self.dataset.train_split[x["column_name"]].dropna()),
-                    2,
+                RunnablePassthrough.assign(
+                    column_description=lambda x: x["column_description"]["description"]
+                ).assign(
+                    column_ratio=lambda x: round(
+                        self.dataset.train_split[x["column_name"]].nunique()
+                        / len(self.dataset.train_split[x["column_name"]].dropna()),
+                        2,
+                    )
                 )
-            )
-            | categorical_columns_def
-            | {
-                "completion": self.assistant.with_retry(wait_exponential_jitter=True, stop_after_attempt=self.retry_num) | StrOutputParser(),
-                "prompt_value": lambda x: prompts.categorical_fix_template.invoke({})
+                | categorical_columns_def
+                | {
+                    "completion": self.assistant.with_retry(wait_exponential_jitter=True,
+                                                            stop_after_attempt=self.retry_num) | StrOutputParser(),
+                    "prompt_value": lambda x: prompts.categorical_fix_template.invoke({})
 
-            }
-            | {
-                "reasoning": itemgetter("completion"),
-                "category": RunnableLambda(lambda x: retry_parser
-                                           .parse_with_prompt(x["completion"], x["prompt_value"]))
+                }
+                | {
+                    "reasoning": itemgetter("completion"),
+                    "category": RunnableLambda(lambda x: retry_parser
+                                               .parse_with_prompt(x["completion"], x["prompt_value"]))
                 .with_retry(wait_exponential_jitter=True, stop_after_attempt=self.retry_num)
-            }
+                }
         ).with_config({"run_name": "categorize_column_chain"})
 
     @property
@@ -335,7 +340,7 @@ class ChainBuilder:
         """
 
         return self.describe_column_chain | self.categorize_column_chain
-    
+
     def split_train_to_2_splits(self, input):
         from sklearn.model_selection import train_test_split
         new_train, new_test = train_test_split(input['train_split'].data, train_size=0.8, random_state=42)
@@ -357,38 +362,40 @@ class ChainBuilder:
             features=input['new_splits']['new_train'], target=input['dataset_target'])
         predictions = auto_model.predict(features=input['new_splits']['new_test'])
         return {'predictions': predictions, 'auto_model': auto_model, 'best_pipeline': best_pipeline}
-    
+
     @property
     def fedot_analyze_predictions_chain(self):
         return (
-            RunnablePassthrough
+                RunnablePassthrough
                 .assign(parameters=lambda input: graph_structure(input['fedot']['best_pipeline']))
                 .assign(metrics=lambda input: input['fedot']['auto_model'].get_metrics())
-            | prompts.analyze_predictions
-            | self.assistant
-            | StrOutputParser().with_config({"tags": ["print"]})
+                | prompts.analyze_predictions
+                | self.assistant
+                | StrOutputParser().with_config({"tags": ["print"]})
         ).with_config({"run_name": "fedot_analyze_predictions_chain"})
-    
 
     @property
     def predict_chain(self):
 
         return (
-            self.dataset_metadata_chain
-            | RunnablePassthrough.assign(train_split=lambda input: list(filter(lambda split: split.name == input['dataset_train'], self.dataset.splits))[0])
-            | RunnablePassthrough.assign(test_split=lambda input: list(filter(lambda split: split.name == input['dataset_test'], self.dataset.splits))[0])
-            | RunnablePassthrough.assign(train_split_columns=lambda input: list(input['train_split'].data.columns))
-            | RunnablePassthrough.assign(
-                categorize=(itemgetter("train_split_columns") | RunnableLambda(
-                    self.__categorize_runnable)).with_config({"run_name": "categorize_runnable"})
-            )
-            | RunnablePassthrough.assign(new_splits=self.split_train_to_2_splits)
-            | RunnablePassthrough.assign(fedot=RunnableLambda(self.fedot_predict_runnable).with_config({"run_name": "fedot_predict"}))
-            | RunnablePassthrough.assign(analyze=self.fedot_analyze_predictions_chain)
-            | RunnablePick('fedot')
-            | RunnableLambda(lambda input: FedotPredictions(predictions=input['predictions'],
-                                                            auto_model=input['auto_model'],
-                                                            best_pipeline=input['best_pipeline']))
+                self.dataset_metadata_chain
+                | RunnablePassthrough.assign(train_split=lambda input:
+        list(filter(lambda split: split.name == input['dataset_train'], self.dataset.splits))[0])
+                | RunnablePassthrough.assign(test_split=lambda input:
+        list(filter(lambda split: split.name == input['dataset_test'], self.dataset.splits))[0])
+                | RunnablePassthrough.assign(train_split_columns=lambda input: list(input['train_split'].data.columns))
+                | RunnablePassthrough.assign(
+            categorize=(itemgetter("train_split_columns") | RunnableLambda(
+                self.__categorize_runnable)).with_config({"run_name": "categorize_runnable"})
+        )
+                | RunnablePassthrough.assign(new_splits=self.split_train_to_2_splits)
+                | RunnablePassthrough.assign(
+            fedot=RunnableLambda(self.fedot_predict_runnable).with_config({"run_name": "fedot_predict"}))
+                | RunnablePassthrough.assign(analyze=self.fedot_analyze_predictions_chain)
+                | RunnablePick('fedot')
+                | RunnableLambda(lambda input: FedotPredictions(predictions=input['predictions'],
+                                                                auto_model=input['auto_model'],
+                                                                best_pipeline=input['best_pipeline']))
         ).with_config({"run_name": "master"})
 
     @property
@@ -399,12 +406,14 @@ class ChainBuilder:
             big_description -- user input big description of dataset
         """
         return (
-            self.dataset_metadata_chain
-            | RunnablePassthrough.assign(train_split=lambda input: list(filter(lambda split: split.name == input['dataset_train'], self.dataset.splits))[0])
-            | RunnablePassthrough.assign(test_split=lambda input: list(filter(lambda split: split.name == input['dataset_test'], self.dataset.splits))[0])
-            | RunnablePassthrough.assign(train_split_columns=lambda input: list(input['train_split'].data.columns))
-            | RunnablePassthrough.assign(
-                categorize=(itemgetter("train_split_columns") | RunnableLambda(
-                    self.__categorize_runnable)).with_config({"run_name": "categorize_runnable"})
-            )
+                self.dataset_metadata_chain
+                | RunnablePassthrough.assign(train_split=lambda input:
+        list(filter(lambda split: split.name == input['dataset_train'], self.dataset.splits))[0])
+                | RunnablePassthrough.assign(test_split=lambda input:
+        list(filter(lambda split: split.name == input['dataset_test'], self.dataset.splits))[0])
+                | RunnablePassthrough.assign(train_split_columns=lambda input: list(input['train_split'].data.columns))
+                | RunnablePassthrough.assign(
+            categorize=(itemgetter("train_split_columns") | RunnableLambda(
+                self.__categorize_runnable)).with_config({"run_name": "categorize_runnable"})
+        )
         )
