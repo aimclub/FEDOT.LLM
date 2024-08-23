@@ -1,34 +1,51 @@
-from fedot_llm.main import FedotAI
-from web.common.types import AnalyzeResponse, RequestFedotLLM, BaseResponse, ProgressResponse, PipeLineResponse
 from dataclasses import dataclass
-from typing_extensions import Iterator, List, AsyncIterator
+
+from typing_extensions import AsyncIterator, Iterator, List
+
+from fedot_llm.ai.actions import Action, Actions
+from fedot_llm.ai.chains.analyze import AnalyzeFedotResultChain
+from fedot_llm.ai.chains.fedot import FedotPredictChain
+from fedot_llm.ai.chains.metainfo import (DefineDatasetChain,
+                                          DefineSplitsChain, DefineTaskChain)
+from fedot_llm.ai.chains.ready_chains.predict import PredictChain
+from fedot_llm.main import FedotAI
+from web.common.types import (AnalyzeResponse, BaseResponse, PipeLineResponse,
+                              ProgressResponse, RequestFedotLLM, Response, UIElement,
+                              ResponseState, get_logger_handler)
 
 
 @dataclass
 class FedotAIBackend:
     fedotAI: FedotAI
+    actions: Actions = Actions([
+        Action.from_chain(DefineDatasetChain),
+        Action.from_chain(DefineSplitsChain),
+        Action.from_chain(DefineTaskChain),
+        Action.from_chain(FedotPredictChain),
+        Action.from_chain(AnalyzeFedotResultChain)
+    ])
 
     def get_response(self, request: RequestFedotLLM) -> Iterator[BaseResponse]:
-        for chain in self.fedotAI.chain_builder.assistant.stream(request['msg']):
-            yield BaseResponse(state='running', content=str(chain.content), stream=True)
-        yield BaseResponse(state='complete', stream=True)
+        for chain in self.fedotAI.model.stream(request['msg']):
+            yield BaseResponse(state=ResponseState.RUNNING, content=str(chain.content), stream=True)
+        yield BaseResponse(state=ResponseState.COMPLETE, stream=True)
 
     async def get_predict(self, request: RequestFedotLLM) -> AsyncIterator[BaseResponse]:
-        predict_chain = self.fedotAI.chain_builder.predict_chain
-        stages: List[BaseResponse] = [ProgressResponse(), PipeLineResponse(), AnalyzeResponse()]
-        handlers = [stage.handler for stage in stages]
-        response = BaseResponse()
-        async for event in predict_chain.astream_events({'big_description': request['msg']}, version='v2'):
-            content = []
-            is_changed = False
+        response = Response()
+
+        chain = PredictChain(self.fedotAI.model, self.fedotAI.dataset)
+
+        page_elements: List[UIElement] = [ProgressResponse(), AnalyzeResponse(), PipeLineResponse()]
+        for page_element in page_elements:
+            page_element.register_hooks(response=response, actions=self.actions)
+            
+        handlers = [get_logger_handler(), self.actions.handler]
+
+        async for event in chain.astream_events({'dataset_description': request['msg']}, version='v2'):
             for handler in handlers:
-                if msg := handler(event=event):
-                    if msg.content or msg.name or msg.state:
-                        is_changed = True
-                    content.append(msg)
-            if is_changed:
-                response.state = 'running'
-                response.content = content
-                yield response
-        response.state = 'complete'
-        yield response
+                handler(event=event)
+            if len(response.context) > 0:
+                yield response.pack()
+            response.clean()
+        response.root.state = ResponseState.COMPLETE
+        yield response.pack()

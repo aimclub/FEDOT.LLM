@@ -5,6 +5,7 @@ from langchain_core.runnables.utils import Input, Output
 from typing_extensions import Optional, cast
 from typing import Any, AsyncIterator, Coroutine, Iterator
 
+
 class BaseRunnableChain(Runnable[Input, Output]):
     """Base class for runnable chains."""
 
@@ -39,13 +40,13 @@ class BaseRunnableChain(Runnable[Input, Output]):
             input,
             config,
         )
-        
+
     async def _ainvoke(
-        self,
-        input: Input,
-        run_manager: AsyncCallbackManagerForChainRun,
-        config: RunnableConfig,
-        **kwargs: Any,
+            self,
+            input: Input,
+            run_manager: AsyncCallbackManagerForChainRun,
+            config: RunnableConfig,
+            **kwargs: Any,
     ) -> Output:
         recursion_limit = config["recursion_limit"]
         if recursion_limit <= 0:
@@ -61,26 +62,26 @@ class BaseRunnableChain(Runnable[Input, Output]):
             ),
         )
         return cast(Output, output)
-    
+
     async def ainvoke(
-        self,
-        input: Input,
-        config: Optional[RunnableConfig] = None,
-        **kwargs: Optional[Any],
+            self,
+            input: Input,
+            config: Optional[RunnableConfig] = None,
+            **kwargs: Optional[Any],
     ) -> Output:
         return await self._acall_with_config(
-                self._ainvoke,
-                input,
-                config,
-                **kwargs,
-            )
-        
+            self._ainvoke,
+            input,
+            config,
+            **kwargs,
+        )
+
     def _transform(
-        self,
-        input: Iterator[Input],
-        run_manager: CallbackManagerForChainRun,
-        config: RunnableConfig,
-        **kwargs: Any,
+            self,
+            input: Iterator[Input],
+            run_manager: CallbackManagerForChainRun,
+            config: RunnableConfig,
+            **kwargs: Any,
     ) -> Iterator[Output]:
         final: Input
         got_first_val = False
@@ -104,20 +105,20 @@ class BaseRunnableChain(Runnable[Input, Output]):
                 f"{self} with input {final}."
             )
         for chunk in self.chain.stream(
-            final,
-            patch_config(
-                config,
-                callbacks=run_manager.get_child(),
-                recursion_limit=recursion_limit - 1,
-            ),
+                final,
+                patch_config(
+                    config,
+                    callbacks=run_manager.get_child(),
+                    recursion_limit=recursion_limit - 1,
+                ),
         ):
             yield chunk
-            
+
     def transform(
-        self,
-        input: Iterator[Input],
-        config: Optional[RunnableConfig] = None,
-        **kwargs: Optional[Any],
+            self,
+            input: Iterator[Input],
+            config: Optional[RunnableConfig] = None,
+            **kwargs: Optional[Any],
     ) -> Iterator[Output]:
         for output in self._transform_stream_with_config(
                 input,
@@ -126,21 +127,21 @@ class BaseRunnableChain(Runnable[Input, Output]):
                 **kwargs,
         ):
             yield output
-        
+
     def stream(
-        self,
-        input: Input,
-        config: Optional[RunnableConfig] = None,
-        **kwargs: Optional[Any],
+            self,
+            input: Input,
+            config: Optional[RunnableConfig] = None,
+            **kwargs: Optional[Any],
     ) -> Iterator[Output]:
         return self.transform(iter([input]), config, **kwargs)
-    
+
     async def _atransform(
-        self,
-        input: AsyncIterator[Input],
-        run_manager: AsyncCallbackManagerForChainRun,
-        config: RunnableConfig,
-        **kwargs: Any,
+            self,
+            input: AsyncIterator[Input],
+            run_manager: AsyncCallbackManagerForChainRun,
+            config: RunnableConfig,
+            **kwargs: Any,
     ) -> AsyncIterator[Output]:
         final: Input
         got_first_val = False
@@ -164,41 +165,41 @@ class BaseRunnableChain(Runnable[Input, Output]):
                 f"{self} with input {final}."
             )
         async for chunk in self.chain.astream(
-            final,
-            patch_config(
-                config,
-                callbacks=run_manager.get_child(),
-                recursion_limit=recursion_limit - 1,
-            ),
+                final,
+                patch_config(
+                    config,
+                    callbacks=run_manager.get_child(),
+                    recursion_limit=recursion_limit - 1,
+                ),
         ):
             yield chunk
-            
+
     async def atransform(
-        self,
-        input: AsyncIterator[Input],
-        config: Optional[RunnableConfig] = None,
-        **kwargs: Optional[Any],
+            self,
+            input: AsyncIterator[Input],
+            config: Optional[RunnableConfig] = None,
+            **kwargs: Optional[Any],
     ) -> AsyncIterator[Output]:
         async for output in self._atransform_stream_with_config(
-            input,
-            self._atransform,
-            config,
-            **kwargs,
+                input,
+                self._atransform,
+                config,
+                **kwargs,
         ):
             yield output
-        
+
     async def astream(
-        self,
-        input: Input,
-        config: Optional[RunnableConfig] = None,
-        **kwargs: Optional[Any],
+            self,
+            input: Input,
+            config: Optional[RunnableConfig] = None,
+            **kwargs: Optional[Any],
     ) -> AsyncIterator[Output]:
         async def input_aiter() -> AsyncIterator[Input]:
             yield input
 
         async for chunk in self.atransform(input_aiter(), config, **kwargs):
             yield chunk
-            
+
 
 class ChainPassthrough(BaseRunnableChain):
     """Chain to passthrough inputs with additional keys.

@@ -12,16 +12,11 @@ from fedot_llm.ai.chains.ready_chains.predict import PredictChain
 
 @dataclass
 class FedotAI():
-    dataset: Union[Dataset, str]
+    dataset: Dataset
     model: BaseChatModel
-    second_model: Optional[BaseChatModel] = field(default=None, repr=False)
+    second_model: Optional[BaseChatModel] = None
     output: Optional[Union[BaseFedotAIOutput, Literal['jupyter', 'debug']]] = None
-
-    def __post_init__(self):
-        if isinstance(self.dataset, str):
-            self.dataset = PathDatasetLoader().load(self.dataset)
         
-
     async def predict(self, dataset_description, visualize=True):
         if isinstance(self.dataset, str):
             raise ValueError("Dataset is not loaded")

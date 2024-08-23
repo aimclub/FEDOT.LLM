@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
 
 from dataclasses import dataclass, field
 
@@ -6,15 +7,23 @@ from dataclasses_json import dataclass_json
 from langchain_core.runnables.schema import StreamEvent
 from typing_extensions import (List, Literal, Optional,
                                TypeAlias, TypedDict, Union, Dict)
+from enum import Enum
 
+from fedot_llm.ai.actions import Actions, Action
 from fedot_llm.ai.chains.legacy.chains import steps
 
 from web.backend.utils.graph import GraphvizBuilder
+from fedot_llm.ai.chains.analyze import AnalyzeFedotResultChain
 
 from hashlib import sha256
 from datetime import datetime
+import logging
+import random
 
-States: TypeAlias = Literal["running", "complete", "error"]
+
+class ResponseState(Enum):
+    RUNNING = 'running'
+    COMPLETE = 'complete'
 
 
 class RequestFedotLLM(TypedDict):
@@ -30,7 +39,7 @@ class TypedContentResponse(TypedDict):
 @dataclass
 class BaseResponse:
     id: Optional[str] = None
-    state: Optional[States] = None
+    state: Optional[ResponseState] = None
     name: Optional[str] = None
     content: ResponseContent = None
     stream: bool = False
@@ -39,13 +48,12 @@ class BaseResponse:
         if not self.id:
             self.id = self.new_id(self.name)
 
-    @staticmethod
-    def new_id(name: Optional[str] = ''):
+    def new_id(self, name: Optional[str] = ''):
         date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         if name:
-            return f"{name}{sha256(f'{date}'.encode()).hexdigest()}"
+            return f"{name}{self.__class__.__name__}{sha256(f'{self.__class__.__name__}{date}{random.random()}'.encode()).hexdigest()}"
         else:
-            return sha256(f'{date}'.encode()).hexdigest()
+            return f"{self.__class__.__name__}{sha256(f'{self.__class__.__name__}{date}{random.random()}'.encode()).hexdigest()}"
 
     def handler(self, event: StreamEvent) -> Optional[BaseResponse]:
         """Method that return stage handler"""
@@ -106,114 +114,158 @@ class BaseResponse:
             return self.content == other.content
 
 
+@dataclass
+class Response:
+    root: BaseResponse = BaseResponse()
+    context: List[BaseResponse] = field(default_factory=list)
+
+    def clean(self):
+        self.context = []
+
+    def append(self, item: BaseResponse):
+        self.context.append(item)
+
+    def pack(self) -> BaseResponse:
+        self.root.content = self.context
+        return self.root
+
+
+class UIElement(ABC):
+
+    @abstractmethod
+    def register_hooks(self, response: Response, actions: Actions) -> None:
+        """Method that register actions hooks"""
+
+
+def trim_string(input_string: str, max_length: int):
+    if len(input_string) <= max_length:
+        return input_string
+    else:
+        return input_string[:max_length - 3] + '...'
+
+
 @dataclass_json
 @dataclass
-class ProgressResponse(BaseResponse):
+class ProgressResponse(BaseResponse, UIElement):
+    records: Dict[Action, str] = field(init=False, default_factory=dict)
+    name: str = field(init=False, default='progress')
+    state: Optional[ResponseState] = field(init=False, default=None)
+    content: Optional[str] = field(init=False, default=None)
+    stream: bool = field(init=False, default=False)
+
     def __post_init__(self):
-        self.name = 'progress'
-        self.state = None
-        self.content = None
-        self.stream = False
-        if hasattr(super(), "__post_init__"):
-            super().__post_init__()
+        super().__post_init__()
 
-    def handler(self, event: StreamEvent) -> Optional[BaseResponse]:
-        content = ''
-        state_changed = False
-        for step in steps:
-            if step.id in event['name']:
-                if event['event'] == 'on_chain_start':
-                    step.status = 'Running'
-                    state_changed = True
-                elif event['event'] == 'on_chain_stream':
-                    step.status = 'Streaming'
-                    state_changed = True
-                elif event['event'] == 'on_chain_end':
-                    step.status = 'Сompleted'
+    def register_hooks(self, response: Response, actions: Actions) -> None:
+        def on_change_hook(event: StreamEvent, action: Action) -> None:
+            nonlocal self, response
+            content = ''
+            if action.state == 'Waiting':
+                content += f":gray[:material/pending:] {action}\n\n"
+            elif action.state == 'Running' or action.state == 'Streaming':
+                content += f":orange[:material/sprint:] {action}\n\n"
+            elif action.state == 'Completed':
+                content += (f":green[:material/check:]  {action} "
+                            f"```{trim_string(str(event['data']['output']), 40)}```\n\n")
 
-        if event['name'] == 'master':
-            if event['event'] == 'on_chain_start':
-                self.state = 'running'
-                state_changed = True
-            if event['event'] == 'on_chain_end':
-                self.state = 'complete'
-                state_changed = True
+            if any([item.state == 'Running' for item in actions.records.values()]):
+                self.state = ResponseState.RUNNING
 
-        if state_changed:
-            for step in steps:
-                if step.status == 'Waiting':
-                    content += f":gray[:material/pending:] {step.name}\n\n"
-                if step.status == 'Running' or step.status == 'Streaming':
-                    content += f":orange[:material/sprint:] {step}\n\n"
-                elif step.status == 'Сompleted':
-                    content += f":green[:material/check:] {step.name}\n\n"
-            self.content = content
-            return BaseResponse(id=self.id,
-                                name=self.name,
-                                state=self.state,
-                                content=self.content,
-                                stream=self.stream)
-        return BaseResponse(id=self.id)
+            if all([item.state == 'Completed' for item in actions.records.values()]):
+                self.state = ResponseState.COMPLETE
+
+            self.records[action] = content
+            response.append(BaseResponse(id=self.id,
+                                         name=self.name,
+                                         state=self.state,
+                                         content=''.join(self.records.values()),
+                                         stream=self.stream))
+
+        for action in actions.records.values():
+            action.on_change.append(on_change_hook)
+            self.records[action] = f":gray[:material/pending:] {action}\n\n"
 
 
 @dataclass_json
 @dataclass
-class AnalyzeResponse(BaseResponse):
+class AnalyzeResponse(BaseResponse, UIElement):
+    name: Optional[str] = field(init=False, default=None)
+    state: Optional[ResponseState] = field(init=False, default=None)
+    content: Optional[str] = field(init=False, default=None)
+    stream: bool = field(init=False, default=True)
+
     def __post_init__(self):
-        self.name = None
-        self.state = None
-        self.content = None
-        self.stream = True
-        if hasattr(super(), "__post_init__"):
-            super().__post_init__()
+        super().__post_init__()
 
-    def handler(self, event: StreamEvent) -> Optional[BaseResponse]:
-        if 'print' in event['tags']:
-            if 'chunk' in event['data']:
-                if not self.content:
-                    self.state = 'running'
-                self.content = event['data']['chunk']
-                return self
-        if event['name'] == 'fedot_analyze_predictions_chain':
-            if event['event'] == 'on_chain_end':
-                self.state = 'complete'
-                return BaseResponse(id=self.id,
-                                    name=self.name,
-                                    state=self.state,
-                                    content=self.content,
-                                    stream=self.stream)
-        return BaseResponse(id=self.id)
+    def register_hooks(self, response: Response, actions: Actions) -> None:
+        def on_stream_hook(event: StreamEvent, action: Action) -> None:
+            if action.state == 'Streaming':
+                response.append(BaseResponse(id=self.id,
+                                             name=self.name,
+                                             state=self.state,
+                                             content=event['data']['chunk'],
+                                             stream=self.stream))
+
+        def on_change_hook(event: StreamEvent, action: Action) -> None:
+            if action.state == 'Running':
+                self.state = ResponseState.RUNNING
+            if action.state == 'Completed':
+                self.state = ResponseState.COMPLETE
+            response.append(BaseResponse(id=self.id,
+                                         name=self.name,
+                                         state=self.state,
+                                         content=None,
+                                         stream=self.stream))
+
+        if AnalyzeFedotResultChain.__name__ in actions.records:
+            actions.records[AnalyzeFedotResultChain.__name__].on_stream.append(on_stream_hook)
+            actions.records[AnalyzeFedotResultChain.__name__].on_change.append(on_change_hook)
 
 
 @dataclass_json
 @dataclass
-class PipeLineResponse(BaseResponse):
+class PipeLineResponse(BaseResponse, UIElement):
     graph: GraphvizBuilder = field(init=False)
+    name: Optional[str] = field(init=False, default=None)
+    state: Optional[ResponseState] = field(init=False, default=None)
+    stream: bool = field(init=False, default=False)
 
     def __post_init__(self):
-        self.name = 'pipeline'
-        self.state = None
         self.content = {
             'data': None,
             'type': 'graphviz'
         }
-        self.stream = False
-        if hasattr(super(), "__post_init__"):
-            super().__post_init__()
+        super().__post_init__()
         self.graph = GraphvizBuilder()
+        
+    def register_hooks(self, response: Response, actions: Actions) -> None:
+        def on_change_hook(event: StreamEvent, action: Action) -> None:
+            if action.state == 'Running':
+                self.graph.add_node(action.name, fillcolor='orange')
+                self.content['data'] = self.graph.get_graph()
+                response.append(BaseResponse(id=self.id,
+                                             name=self.name,
+                                             state=self.state,
+                                             content=self.content,
+                                             stream=self.stream))
+        for action in actions.records.values():
+            action.on_change.append(on_change_hook)
 
-    def handler(self, event: StreamEvent) -> Optional[BaseResponse]:
-        for step in steps:
-            if step.id in event['name']:
-                if event['event'] == 'on_chain_stream':
-                    self.graph.add_node(step.name, fillcolor='orange')
-                    self.content['data'] = self.graph.get_graph()
-                    return BaseResponse(id=self.id,
-                                        name=self.name,
-                                        state=self.state,
-                                        content=self.content,
-                                        stream=self.stream)
-        return BaseResponse(id=self.id)
+
+def get_logger_handler():
+    logger = logging.getLogger(__name__)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler = logging.FileHandler(
+        filename='events.log', mode='w', encoding='utf-8')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    logger.setLevel(logging.DEBUG)
+
+    def handler(event: StreamEvent) -> None:
+        logger.debug(event)
+
+    return handler
 
 
 ResponseContent: TypeAlias = Union[None, str, List[BaseResponse], BaseResponse, TypedContentResponse]

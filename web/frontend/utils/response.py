@@ -3,16 +3,17 @@ import streamlit as st
 from typing_extensions import List, Dict
 from web.frontend.components.st_graph import st_graph
 from web.frontend.utils.utils import get_hash_key
+from web.common.types import ResponseState
 
 def create_expander_label(response: BaseResponse):
     if response.name:
         label = response.name.capitalize()
-        if response.state == 'running':
+        if response.state == ResponseState.RUNNING:
             label = f":orange[:material/sprint:] {label}..."
-        elif response.state == 'complete':
+        elif response.state == ResponseState.COMPLETE:
             label = f":green[:material/done_all:] {label}"
-        elif response.state == 'error':
-            label = f":red[:material/close:] {label}"
+        # elif response.state == 'error':
+        #     label = f":red[:material/close:] {label}"
         return label
     return ''
 
@@ -24,7 +25,7 @@ def render(response: ResponseContent):
             render(resp)
     elif isinstance(response, BaseResponse):
         if response.name:
-            with st.expander(label=create_expander_label(response), expanded=(response.state == 'running')):
+            with st.expander(label=create_expander_label(response), expanded=(response.state == ResponseState.RUNNING)):
                 with st.empty():
                     render(response=response.content)
         elif response.content:
@@ -36,6 +37,7 @@ def render(response: ResponseContent):
                     st_graph(response['data'], prev_dot=st.session_state.prev_graph, key=get_hash_key('graphviz'))
                 else:
                     st_graph(response['data'], key=get_hash_key('graphviz'))
+                st.session_state.prev_graph = response['data']
     elif not response:
         return
     else:

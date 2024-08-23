@@ -4,18 +4,18 @@ from typing import Any, Dict
 from IPython.display import Markdown, clear_output, display
 from langchain_core.runnables import Runnable
 from fedot_llm.output.base import BaseFedotAIOutput
-from fedot_llm.ai.stages import Stages, Stage
+from fedot_llm.ai.actions import Actions, Action
 from fedot_llm.ai.chains.metainfo import DefineDatasetChain, DefineSplitsChain, DefineTaskChain
 from fedot_llm.ai.chains.fedot import FedotPredictChain
 from fedot_llm.ai.chains.analyze import AnalyzeFedotResultChain
 
 class JupyterFedotAIOutput(BaseFedotAIOutput):
-    stages: Stages = Stages([
-        Stage.from_chain(DefineDatasetChain),
-        Stage.from_chain(DefineSplitsChain),
-        Stage.from_chain(DefineTaskChain),
-        Stage.from_chain(FedotPredictChain),
-        Stage.from_chain(AnalyzeFedotResultChain)
+    stages: Actions = Actions([
+        Action.from_chain(DefineDatasetChain),
+        Action.from_chain(DefineSplitsChain),
+        Action.from_chain(DefineTaskChain),
+        Action.from_chain(FedotPredictChain),
+        Action.from_chain(AnalyzeFedotResultChain)
     ])
     
     def __init__(self):

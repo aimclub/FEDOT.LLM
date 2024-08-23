@@ -1,5 +1,8 @@
 # Fedot
 fedot>=0.7.3.2
+## Topological features
+giotto_tda==0.6.0
+ripser==0.6.4
 
 # Data things.
 # If you don't have some data, I don't know what you are doing here.
