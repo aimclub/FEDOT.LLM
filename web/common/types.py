@@ -4,10 +4,10 @@ from dataclasses import dataclass, field
 
 from dataclasses_json import dataclass_json
 from langchain_core.runnables.schema import StreamEvent
-from typing_extensions import (Callable, List, Literal, NotRequired, Optional,
-                               TypeAlias, TypedDict, Union, Tuple, Dict)
+from typing_extensions import (List, Literal, Optional,
+                               TypeAlias, TypedDict, Union, Dict)
 
-from fedot_llm.chains import steps
+from fedot_llm.ai.chains.legacy.chains import steps
 
 from web.backend.utils.graph import GraphvizBuilder
 
@@ -33,7 +33,6 @@ class BaseResponse:
     state: Optional[States] = None
     name: Optional[str] = None
     content: ResponseContent = None
-    type: Optional[str] = None
     stream: bool = False
 
     def __post_init__(self):
@@ -72,10 +71,10 @@ class BaseResponse:
             self.content = self.content + other.content if other.stream else other.content
         elif isinstance(self.content, Dict) and isinstance(other.content, Dict):
             self.content = self.content | other.content
+        elif isinstance(self.content, BaseResponse) and isinstance(other.content, BaseResponse):
+            self.content += other.content
         else:
-            if self.content and other.content:
-                self.content += other.content
-            elif not self.content:
+            if other.content:
                 self.content = other.content
 
         if other.state:

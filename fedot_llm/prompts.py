@@ -182,5 +182,4 @@ analyze_predictions = ChatPromptTemplate([
                 '<metrics_description/>'
                 '</output>'
                )
-    
 ])

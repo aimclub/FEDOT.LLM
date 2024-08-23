@@ -3,12 +3,21 @@ from typing import Any, Dict
 
 from IPython.display import Markdown, clear_output, display
 from langchain_core.runnables import Runnable
-
-from fedot_llm.chains import steps
 from fedot_llm.output.base import BaseFedotAIOutput
-
+from fedot_llm.ai.stages import Stages, Stage
+from fedot_llm.ai.chains.metainfo import DefineDatasetChain, DefineSplitsChain, DefineTaskChain
+from fedot_llm.ai.chains.fedot import FedotPredictChain
+from fedot_llm.ai.chains.analyze import AnalyzeFedotResultChain
 
 class JupyterFedotAIOutput(BaseFedotAIOutput):
+    stages: Stages = Stages([
+        Stage.from_chain(DefineDatasetChain),
+        Stage.from_chain(DefineSplitsChain),
+        Stage.from_chain(DefineTaskChain),
+        Stage.from_chain(FedotPredictChain),
+        Stage.from_chain(AnalyzeFedotResultChain)
+    ])
+    
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         formatter = logging.Formatter(
@@ -35,26 +44,27 @@ class JupyterFedotAIOutput(BaseFedotAIOutput):
                     self.logger.debug(
                         f"{event['name']}\n" + '\n'.join(log_msg))
             display_str = '# Progress:\n'
-            for step in steps:
-                if step.id in event['name']:
-                    if event['event'] == 'on_chain_start':
-                        step.status = 'Running'
-                    elif event['event'] == 'on_chain_stream':
-                        step.status = 'Streaming'
-                    elif event['event'] == 'on_chain_end':
-                        step.status = 'Сompleted'
-
-            for step in steps:
-                if step.status == 'Waiting':
-                    display_str += f"🏃‍♂️‍➡️ {step}"
-                if step.status == 'Running' or step.status == 'Streaming':
-                    display_str += f"- () {step.name}\n"
-                elif step.status == 'Сompleted':
-                    display_str += f"✅ {step.name}\n"
+            
+            
+            if event['name'] in self.stages().keys():
+                if event['event'] == 'on_chain_start':
+                    self.stages()[event['name']].state = 'Running'
+                elif event['event'] == 'on_chain_stream':
+                    self.stages.data[event['name']].state = 'Streaming'
+                elif event['event'] == 'on_chain_end':
+                    self.stages.data[event['name']].state = 'Completed'
+    
+            for item in self.stages.data.values():
+                if item.state == 'Waiting':
+                    display_str += f"- [] {item.name}\n"
+                elif item.state == 'Running' or item.state == 'Streaming':
+                    display_str += f"- () {item.name}\n"
+                elif item.state == 'Completed':
+                    display_str += f"- [x] {item.name}\n"
 
             if 'print' in event['tags']:
                 messages += event['data'].get('chunk', '')
 
             display(Markdown(display_str + messages))
-            if event['name'] == 'master' and event['event'] == 'on_chain_end':
+            if event['name'] == chain.__class__.__name__ and event['event'] == 'on_chain_end':
                 return event['data']['output']

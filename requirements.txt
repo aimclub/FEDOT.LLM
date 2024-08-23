@@ -9,6 +9,7 @@ scipy~=1.12.0
 
 # Pandas optional dependencies.
 tabulate>=0.8.9
+numpy~=1.24.4
 
 # Supported llms things
 # Transformers (not film series)
@@ -34,3 +35,13 @@ streamlit-extras~=0.4.7
 
 # Models
 openai~=1.41.0
+
+#pydantic
+typing_extensions~=4.12.2
+pydantic~=2.8.2
+
+#asyncio
+asyncio~=3.4.3
+
+#jupyter
+ipython~=8.26.0

@@ -1,8 +1,8 @@
 from __future__ import annotations
 from fedot_llm.output import BaseFedotAIOutput
 from langchain_core.runnables import Runnable
-from typing import Dict, Any, List
-from fedot_llm.chains import steps
+from typing import Dict, Any
+from fedot_llm.ai.chains.legacy.chains import steps
 import logging
 import streamlit as st
 from langchain_core.runnables.schema import StreamEvent
