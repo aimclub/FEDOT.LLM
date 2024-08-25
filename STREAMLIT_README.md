@@ -26,7 +26,7 @@ This will install all the necessary libraries, including Streamlit, Fedot-LLM, a
 Run the following command to start the Streamlit application:
 
 ``` bash
-python -m streamlit run web/app.py
+streamlit run streamlit-app.py
 ```
 
 This will launch the Streamlit app in your default web browser.
