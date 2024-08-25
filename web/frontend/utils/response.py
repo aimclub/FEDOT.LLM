@@ -33,11 +33,7 @@ def render(response: ResponseContent):
     elif isinstance(response, Dict):
         if response['type'] == 'graphviz':
             if isinstance(response['data'], str):
-                if st.session_state.prev_graph and st.session_state.prev_graph != response['data']:
-                    st_graph(response['data'], prev_dot=st.session_state.prev_graph, key=get_hash_key('graphviz'))
-                else:
-                    st_graph(response['data'], key=get_hash_key('graphviz'))
-                st.session_state.prev_graph = response['data']
+                st_graph(response['data'], key=get_hash_key('graphviz'))
     elif not response:
         return
     else:

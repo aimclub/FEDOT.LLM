@@ -48,3 +48,6 @@ asyncio~=3.4.3
 
 #jupyter
 ipython~=8.26.0
+
+# draw graphs
+graphviz~=0.20.3

@@ -5,20 +5,20 @@ from dataclasses import dataclass, field
 
 from dataclasses_json import dataclass_json
 from langchain_core.runnables.schema import StreamEvent
-from typing_extensions import (List, Literal, Optional,
+from typing_extensions import (List, Optional,
                                TypeAlias, TypedDict, Union, Dict)
 from enum import Enum
 
 from fedot_llm.ai.actions import Actions, Action
-from fedot_llm.ai.chains.legacy.chains import steps
 
-from web.backend.utils.graph import GraphvizBuilder
+from web.backend.utils.graphviz_builder import GraphvizBuilder, Node, Edge
 from fedot_llm.ai.chains.analyze import AnalyzeFedotResultChain
 
 from hashlib import sha256
 from datetime import datetime
 import logging
 import random
+from web.common.colors import BSColors, STColors, AdditionalColors
 
 
 class ResponseState(Enum):
@@ -200,11 +200,12 @@ class AnalyzeResponse(BaseResponse, UIElement):
     def register_hooks(self, response: Response, actions: Actions) -> None:
         def on_stream_hook(event: StreamEvent, action: Action) -> None:
             if action.state == 'Streaming':
-                response.append(BaseResponse(id=self.id,
-                                             name=self.name,
-                                             state=self.state,
-                                             content=event['data']['chunk'],
-                                             stream=self.stream))
+                if 'data' in event and 'chunk' in event['data']:
+                    response.append(BaseResponse(id=self.id,
+                                                 name=self.name,
+                                                 state=self.state,
+                                                 content=event['data']['chunk'],
+                                                 stream=self.stream))
 
         def on_change_hook(event: StreamEvent, action: Action) -> None:
             if action.state == 'Running':
@@ -226,7 +227,7 @@ class AnalyzeResponse(BaseResponse, UIElement):
 @dataclass
 class PipeLineResponse(BaseResponse, UIElement):
     graph: GraphvizBuilder = field(init=False)
-    name: Optional[str] = field(init=False, default=None)
+    name: Optional[str] = field(init=False, default='pipeline')
     state: Optional[ResponseState] = field(init=False, default=None)
     stream: bool = field(init=False, default=False)
 
@@ -236,20 +237,55 @@ class PipeLineResponse(BaseResponse, UIElement):
             'type': 'graphviz'
         }
         super().__post_init__()
-        self.graph = GraphvizBuilder()
-        
+        self.graph = GraphvizBuilder(
+            graph_type='digraph',
+            graph_attr={
+                'bgcolor': 'transparent',
+                'rankdir': 'LR',
+            },
+            edge_attr={
+                'color': BSColors.SECONDARY.value
+            },
+            node_attr={
+                'shape': 'box',
+                'color': STColors.SECONDARY.value,
+                'fontcolor': STColors.TEXT.value,
+                'style': 'filled'
+            }
+        )
+
     def register_hooks(self, response: Response, actions: Actions) -> None:
+        content: TypedContentResponse = {
+            'data': None,
+            'type': 'graphviz'
+        }
+
         def on_change_hook(event: StreamEvent, action: Action) -> None:
-            if action.state == 'Running':
-                self.graph.add_node(action.name, fillcolor='orange')
-                self.content['data'] = self.graph.get_graph()
+            nonlocal content
+            if action.state in ['Running', 'Completed']:
+                if action.state == 'Running':
+                    new_node = Node(name=action.id, attrs={'label': action.name,
+                                                           'color': BSColors.PRIMARY.value})
+                    if len(self.graph.edges) > 0:
+                        prev_node = self.graph.edges[-1].dst
+                        self.graph.add_edge(Edge(src=prev_node, dst=new_node))
+                    elif len(self.graph.edges) == 0 and len(self.graph.nodes) == 1:
+                        prev_node = list(self.graph.nodes.values())[0]
+                        self.graph.add_edge(Edge(src=prev_node, dst=new_node))
+                    self.graph.add_node(new_node)
+                if action.state == 'Completed':
+                    self.graph.add_node(Node(name=action.id, attrs={'label': action.name,
+                                                                    'color': BSColors.SUCCESS.value}))
+                content['data'] = self.graph.compile().source.replace('\n\t', ' ')
                 response.append(BaseResponse(id=self.id,
                                              name=self.name,
                                              state=self.state,
-                                             content=self.content,
+                                             content=content,
                                              stream=self.stream))
+
         for action in actions.records.values():
             action.on_change.append(on_change_hook)
+
 
 
 def get_logger_handler():
