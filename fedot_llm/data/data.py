@@ -46,7 +46,7 @@ class Split:
     @property
     def detailed_description(self):
         if self.name is not None:
-            description = f"The {self.name} split"
+            description = f"The '{self.name}' split"
         else:
             description = "The split"
 

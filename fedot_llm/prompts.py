@@ -33,7 +33,7 @@ train_split_template = ChatPromptTemplate([
 - detailed_description: property of the dataset object"""
 
 test_split_template = ChatPromptTemplate([
-    ('system', 'Your task is to define the test split of this dataset. Answer only with the name of the file with test split. Mind the register.'),
+    ('system', 'Define the test split of this dataset. Answer only with the name of the file with test split. Mind the register.'),
     ('human', '{detailed_description}')
 ])
 """INPUT:
@@ -182,5 +182,4 @@ analyze_predictions = ChatPromptTemplate([
                 '<metrics_description/>'
                 '</output>'
                )
-    
 ])

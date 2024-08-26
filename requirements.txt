@@ -1,5 +1,8 @@
 # Fedot
 fedot>=0.7.3.2
+## Topological features
+giotto_tda==0.6.0
+ripser==0.6.4
 
 # Data things.
 # If you don't have some data, I don't know what you are doing here.
@@ -9,6 +12,7 @@ scipy~=1.12.0
 
 # Pandas optional dependencies.
 tabulate>=0.8.9
+numpy~=1.24.4
 
 # Supported llms things
 # Transformers (not film series)
@@ -26,3 +30,24 @@ tenacity~=8.5.0
 # LangChain. Bugs love this place. Pls keep the latest versions. (even if it released yesterday)
 langchain>=0.2.12
 langchain-community>=0.2.11
+langchain-openai~=0.1.22
+
+# Web Interface
+streamlit~=1.37.1
+streamlit-extras~=0.4.7
+
+# Models
+openai~=1.41.0
+
+#pydantic
+typing_extensions~=4.12.2
+pydantic~=2.8.2
+
+#asyncio
+asyncio~=3.4.3
+
+#jupyter
+ipython~=8.26.0
+
+# draw graphs
+graphviz~=0.20.3
