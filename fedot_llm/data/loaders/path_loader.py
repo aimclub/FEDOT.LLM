@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Optional
 
 import arff
 import pandas as pd
@@ -10,7 +10,7 @@ from fedot_llm.data.data import Dataset, Split
 
 class PathDatasetLoader:
     @staticmethod
-    def load(path: Union[Path, str], with_metadata: bool = False):
+    def load(path: Union[Path, str], with_metadata: bool = False, ignore_files: Optional[Union[Path, str]] = None):
         """
         Load Dataset a folder with dataset objects
 
@@ -65,7 +65,7 @@ class PathDatasetLoader:
         else:
             # Loading all splits in folder
             splits = []
-            files = [x for x in path.glob('**/*') if x.is_file()]
+            files = [x for x in path.glob('**/*') if x.is_file() and x not in ignore_files]
             for file in files:
                 file_path = file.absolute()
                 split_name = file.name.split(".")[0]

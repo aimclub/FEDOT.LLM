@@ -9,7 +9,8 @@ from fedot_llm.output.base import BaseFedotAIOutput
 
 
 class JupyterFedotAIOutput(BaseFedotAIOutput):
-    def __init__(self):
+    def __init__(self, finish_event_name: str = 'master'):
+        self.finish_event_name = finish_event_name
         self.logger = logging.getLogger(__name__)
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -56,5 +57,5 @@ class JupyterFedotAIOutput(BaseFedotAIOutput):
                 messages += event['data'].get('chunk', '')
 
             display(Markdown(display_str + messages))
-            if event['name'] == 'master' and event['event'] == 'on_chain_end':
+            if event['name'] == self.finish_event_name and event['event'] == 'on_chain_end':
                 return event['data']['output']

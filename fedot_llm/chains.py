@@ -406,6 +406,6 @@ class ChainBuilder:
             | RunnablePassthrough.assign(train_split_columns=lambda input: list(input['train_split'].data.columns))
             | RunnablePassthrough.assign(
                 categorize=(itemgetter("train_split_columns") | RunnableLambda(
-                    self.categorize_runnable)).with_config({"run_name": "categorize_runnable"})
+                    self.__categorize_runnable)).with_config({"run_name": "categorize_runnable"})
             )
         )
