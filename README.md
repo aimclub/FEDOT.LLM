@@ -22,7 +22,7 @@ FEDOT.LLM is an LLM-based prototype for next-generation AutoML. It combines the 
 
 ## How to Use
 
-FEDOT.LLM provides a high-level API with simple interface through FedotAI class. It can be used to start the whole pipeline of dataset analysis and making predictions using FEDOT.
+FEDOT.LLM provides a high-level API with simple interface through FedotAI class. It can be used to start the whole pipeline of LLM-powered dataset analysis and making predictions using FEDOT.
 
 To use the API, follow these steps:
 
@@ -32,9 +32,9 @@ To use the API, follow these steps:
    ```
 
 2. Initialize the FedotAI object. The required parameters are the following: 
-* path to folder containing dataset files
-* chat model to use (currently ollama and custom request based models are supported)
-* output type ('jupyter' for live updated status report and 'debug' for feed of all langchain events)
+* `dataset` path to folder containing dataset files or pre-loaded dataset object
+* `model` chat model to use (currently ollama and custom request based models are supported)
+* `output` output type ('jupyter' for live updated status report and 'debug' for a feed of all langchain events)
 
 To acquire predictions, use the `predict` method with a string description of the dataset and associated task in an arbitrary form.
    ```
