@@ -32,12 +32,11 @@ To use the API, follow these steps:
    ```
 
 2. Initialize the FedotAI object. The required parameters are the following: 
-* path to dataset 
+* path to folder containing dataset files
 * chat model to use (currently ollama and custom request based models are supported)
 * output type ('jupyter' for live updated status report and 'debug' for feed of all langchain events)
 
-To acquire predictions, use the predict method with a description of dataset and task in an arbitrary form.
-
+To acquire predictions, use the `predict` method with a string description of the dataset and associated task in an arbitrary form.
    ```
    fedot_ai =  FedotAI(
          dataset=dataset_path,
@@ -51,7 +50,6 @@ To acquire predictions, use the predict method with a description of dataset and
 ## Examples and demo
 
 You can use the example notebooks in the `examples/by_datasets/` directory to get started. For instance, to run the [Health_Insurance](datasets/Health_Insurance) dataset example:
-
    ```
    jupyter notebook examples/by_datasets/health_insurance.ipynb
    ```
@@ -60,6 +58,7 @@ You can also use the Streamlit web interface for a more interactive experience. 
     ```
     streamlit run streamlit-app.py
     ```
+
 For more information on how to setup and run Streamlit app see [`STREAMLIT_README.md`](STREAMLIT_README.md).
 
 ## Development
