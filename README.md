@@ -36,7 +36,7 @@ To use the API, follow these steps:
 * `model` chat model to use (currently ollama and custom request based models are supported)
 * `output` output type ('jupyter' for live updated status report and 'debug' for a feed of all langchain events)
 
-To acquire predictions, use the `predict` method with a string description of the dataset and associated task in an arbitrary form.
+   To acquire predictions, use the `predict` method with a string description of the dataset and associated task in an arbitrary form.
    ```
    fedot_ai =  FedotAI(
          dataset=dataset_path,
@@ -55,9 +55,9 @@ You can use the example notebooks in the `examples/by_datasets/` directory to ge
    ```
 
 You can also use the Streamlit web interface for a more interactive experience. To run it:
-    ```
-    streamlit run streamlit-app.py
-    ```
+   ```
+   streamlit run streamlit-app.py
+   ```
 
 For more information on how to setup and run Streamlit app see [`STREAMLIT_README.md`](STREAMLIT_README.md).
 
