@@ -32,11 +32,11 @@ To use the API, follow these steps:
    ```
 
 2. Initialize the FedotAI object. The required parameters are the following: 
-   * `dataset` path to folder containing dataset files or pre-loaded dataset object
-   * `model` chat model to use (currently ollama and custom request based models are supported)
-   * `output` output type ('jupyter' for live updated status report and 'debug' for a feed of all langchain events)
+* `dataset` path to folder containing dataset files or pre-loaded dataset object
+* `model` chat model to use (currently ollama and custom request based models are supported)
+* `output` output type ('jupyter' for live updated status report and 'debug' for a feed of all langchain events)
 
-   To acquire predictions, use the `predict` method with a string description of the dataset and associated task in an arbitrary form.
+To acquire predictions, use the `predict` method with a string description of the dataset and associated task in an arbitrary form.
    ```
    fedot_ai =  FedotAI(
          dataset=dataset_path,
