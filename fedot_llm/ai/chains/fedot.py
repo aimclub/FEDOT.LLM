@@ -38,7 +38,11 @@ class FedotPredictChain(BaseRunnableChain):
     
     Examples
     ----
-    >>> FedotPredictChain().invoke({"train": pd.DataFrame('train.csv'), "test": pd.DataFrame('test.csv'), "target": 'target', "task_type": 'classification'})
+    >>> import pandas as pd
+    >>> FedotPredictChain().invoke({"train": pd.DataFrame('train.csv'),
+                                    "test": pd.DataFrame('test.csv'),
+                                    "target": 'target',
+                                    "task_type": 'classification'})
     {'predictions': ndarray, 'auto_model': Fedot, 'best_pipeline': Pipeline}
     """
     

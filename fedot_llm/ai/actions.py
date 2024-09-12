@@ -1,8 +1,10 @@
 from __future__ import annotations
-from pydantic import BaseModel, Field
-from typing_extensions import Literal, Dict, Any, List, Union, Optional, Callable, TypeVar
-from fedot_llm.ai.chains.base import BaseRunnableChain
+
 from langchain_core.runnables.schema import StreamEvent
+from pydantic import BaseModel, Field
+from typing_extensions import Literal, Dict, Any, List, Callable
+
+from fedot_llm.ai.chains.base import BaseRunnableChain
 
 ActionState = Literal['Waiting', 'Running', 'Streaming', 'Completed']
 
@@ -80,4 +82,3 @@ class Actions(BaseModel):
                 if event['data'] and 'chunk' in event['data']:
                     for hook in on_stream_hooks:
                         hook(event, self.records[name])
-

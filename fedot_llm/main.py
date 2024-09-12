@@ -1,39 +1,34 @@
 from dataclasses import dataclass, field
-from typing import Any, Dict, Literal, Optional, Union
+from typing import Callable
+from typing import List
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.runnables import Runnable
+from langchain_core.runnables.schema import StreamEvent
 
+from fedot_llm.ai.agents.supervisor import SupervisorAgent
+from fedot_llm.ai.memory import LongTermMemory
 from fedot_llm.data import Dataset
-from fedot_llm.output import BaseFedotAIOutput, ConsoleFedotAIOutput, JupyterFedotAIOutput
-from fedot_llm.data.loaders import PathDatasetLoader
-from fedot_llm.ai.chains.ready_chains.predict import PredictChain
 
 
 @dataclass
 class FedotAI():
     dataset: Dataset
     model: BaseChatModel
-    second_model: Optional[BaseChatModel] = None
-    output: Optional[Union[BaseFedotAIOutput, Literal['jupyter', 'debug']]] = None
-        
-    async def predict(self, dataset_description, visualize=True):
-        if isinstance(self.dataset, str):
-            raise ValueError("Dataset is not loaded")
-        chain = PredictChain(self.model, self.dataset)
-        chain_input = {"dataset_description": dataset_description}
-        predictions = await self.__start_chain(chain, chain_input)
-        return predictions
+    memory: LongTermMemory = field(default_factory=LongTermMemory)
+    entry_point: Runnable = field(init=False)
+    handlers: List[Callable[[StreamEvent], None]] = field(default_factory=list)
 
-    async def __start_chain(self, chain: Runnable, chain_input: Dict[str, Any]):
-        if self.output:
-            if isinstance(self.output, str):
-                match self.output:
-                    case "jupyter":
-                        self.output = JupyterFedotAIOutput()
-                    case "debug":
-                        self.output = ConsoleFedotAIOutput()
-            if isinstance(self.output, BaseFedotAIOutput):
-                return await self.output._chain_call(chain=chain, chain_input=chain_input)
-            else:
-                raise ValueError("Unsupported output type")
+    def __post_init__(self):
+        self.entry_point = SupervisorAgent(llm=self.model, memory=self.memory, dataset=self.dataset).as_graph
+
+    async def ask(self, message: str):
+        async for event in self.entry_point.astream_events({"messages": [("user", message)]}, version="v2"):
+            for handler in self.handlers:
+                handler(event)
+
+    def reg_handler(self, handler: Callable[[StreamEvent], None]):
+        self.handlers.append(handler)
+
+    def unreg_handler(self, handler: Callable[[StreamEvent], None]):
+        self.handlers.remove(handler)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing_extensions import List, Optional, Union, Set, Literal, Dict
+from typing_extensions import List, Optional, Union, Set, Literal, Dict, cast
 import graphviz
 from web.common.graphviz_typing import GraphAttr, NodeAttr, EdgeAttr
 
@@ -39,13 +39,13 @@ class GraphvizBuilder:
 
     def update_node(self, node: Node, attrs: NodeAttr):
         if node.attrs:
-            node.attrs = {**node.attrs, **attrs}
+            node.attrs = cast(NodeAttr, {**node.attrs, **attrs})
         else:
             node.attrs = attrs
 
     def update_edge(self, edge: Edge, attrs: EdgeAttr):
         if edge.attrs:
-            edge.attrs = {**edge.attrs, **attrs}
+            edge.attrs = cast(EdgeAttr, {**edge.attrs, **attrs})
         else:
             edge.attrs = attrs
 

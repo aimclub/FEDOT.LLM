@@ -1,12 +1,15 @@
 from langchain_core.language_models.chat_models import BaseChatModel
 
-from fedot_llm.ai.chains.base import BaseRunnableChain, ChainPassthrough, ChainAddStrKey, ChainMapToClassName, ChainAddKey
+from fedot_llm.ai.chains.base import (
+    BaseRunnableChain, ChainPassthrough,
+    ChainMapToClassName, ChainAddKey)
 from fedot_llm.ai.chains.metainfo.dataset.define_dataset import \
     DefineDatasetChain
 from fedot_llm.ai.chains.metainfo.splits.define_splits import DefineSplitsChain
 from fedot_llm.ai.chains.metainfo.task import DefineTaskChain
 from fedot_llm.data import Dataset
 from langchain_core.runnables import RunnablePick, RunnableLambda
+
 
 class DefineMetaInfo(BaseRunnableChain):
     """Define meta information of the task and dataset
@@ -47,11 +50,12 @@ class DefineMetaInfo(BaseRunnableChain):
                           }
     }
     """
+
     def __init__(self, model: BaseChatModel, dataset: Dataset):
         self.chain = (
-            ChainMapToClassName(DefineDatasetChain(model, dataset))
-            | ChainAddKey("dataset_detailed_description", RunnableLambda(lambda _: dataset.detailed_description))
-            | ChainPassthrough(DefineSplitsChain(model, dataset))
-            | ChainPassthrough(DefineTaskChain(model, dataset))
-            | RunnablePick(['DefineDatasetChain', 'DefineSplitsChain', 'DefineTaskChain'])
+                ChainMapToClassName(DefineDatasetChain(model, dataset))
+                | ChainAddKey("dataset_detailed_description", RunnableLambda(lambda _: dataset.detailed_description))
+                | ChainPassthrough(DefineSplitsChain(model, dataset))
+                | ChainPassthrough(DefineTaskChain(model, dataset))
+                | RunnablePick(['DefineDatasetChain', 'DefineSplitsChain', 'DefineTaskChain'])
         )

@@ -14,6 +14,7 @@ DATASET_DESCRIPTION_TEMPLATE = ChatPromptTemplate([
 """INPUT: 
 - dataset_description -- user input big description of dataset"""
 
+
 class DatasetDescriptionChain(BaseRunnableChain):
     """Make a short description of the dataset
     
@@ -39,9 +40,9 @@ class DatasetDescriptionChain(BaseRunnableChain):
     >>> DatasetDescriptionChain(model, dataset).invoke({"dataset_description": "This is a long dataset description"})
     'This is a sort dataset description'
     """
-    
+
     def __init__(self, model: BaseChatModel, dataset: Dataset):
-        self.chain = ( DATASET_DESCRIPTION_TEMPLATE
-                        | model
-                        | StrOutputParser()
-                        | (lambda x: setattr(dataset, "description", x) or x))
+        self.chain = (DATASET_DESCRIPTION_TEMPLATE
+                      | model
+                      | StrOutputParser()
+                      | (lambda x: setattr(dataset, "description", x) or x))
