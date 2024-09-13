@@ -9,6 +9,7 @@ from langchain_core.runnables.schema import StreamEvent
 from fedot_llm.ai.agents.supervisor import SupervisorAgent
 from fedot_llm.ai.memory import LongTermMemory
 from fedot_llm.data import Dataset
+from langchain_core.messages import HumanMessage
 
 
 @dataclass
@@ -23,7 +24,7 @@ class FedotAI():
         self.entry_point = SupervisorAgent(llm=self.model, memory=self.memory, dataset=self.dataset).as_graph
 
     async def ask(self, message: str):
-        async for event in self.entry_point.astream_events({"messages": [("user", message)]}, version="v2"):
+        async for event in self.entry_point.astream_events({"messages": [HumanMessage(content=message)]}, version="v2"):
             for handler in self.handlers:
                 handler(event)
 

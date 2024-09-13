@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-import logging
-
 from langchain.chat_models.base import BaseChatModel
 from langchain_core.prompts import PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 
 from fedot_llm.ai.agents.researcher.state import GraphState
-
-logger = logging.getLogger(__name__)
 
 
 def is_docs_relevant(state: GraphState):
@@ -21,15 +17,15 @@ def is_docs_relevant(state: GraphState):
     Returns:
         str: Decision on whether to rewrite_question or generate an answer.
     """
-    logger.info("Assess graded documents")
+    # logger.info("Assess graded documents")
     filtered_documents = state["documents"]
 
     if not filtered_documents:
-        logger.info("Decision: all documents are not relevant to question, transform query")
+        # logger.info("Decision: all documents are not relevant to question, transform query")
         return "rewrite_question"
     else:
         # We have relevant documents, so generate answer
-        logger.info("Decision: generate")
+        # logger.info("Decision: generate")
         return "generate"
 
 
@@ -113,7 +109,7 @@ class CheckHallucinationAndAnswerEdge:
         Returns:
             str: Decision on whether to rewrite_question or generate an answer.
         """
-        logger.debug("Check hallucinations")
+        # logger.debug("Check hallucinations")
         question = state["question"]
         documents = state["documents"]
         generation = state["generation"]
@@ -125,18 +121,18 @@ class CheckHallucinationAndAnswerEdge:
 
         # Check hallucination
         if grade == "yes":
-            logger.debug("Decision: generation is grounded in documents")
+            # logger.debug("Decision: generation is grounded in documents")
             # Check question-answering
-            logger.debug("Grade generation vs question")
+            # logger.debug("Grade generation vs question")
             score = self.GradeAnswer.parse_obj(
                 self.answer_grader_chain.invoke({"question": question, "generation": generation.answer}))
             grade = score.score
             if grade == "yes":
-                logger.debug("Decision: generation addresses question")
+                # logger.debug("Decision: generation addresses question")
                 return "useful"
             else:
-                logger.debug("Decision: generation does not address question")
+                # logger.debug("Decision: generation does not address question")
                 return "not useful"
         else:
-            logger.debug("Decision: generation is not grounded in documents, re-try")
+            # logger.debug("Decision: generation is not grounded in documents, re-try")
             return "not supported"

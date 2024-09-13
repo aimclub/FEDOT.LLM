@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Optional, Callable
 
 from langchain.chat_models.base import BaseChatModel
@@ -7,8 +6,6 @@ from langchain_core.prompts import PromptTemplate
 from fedot_llm.ai.agents.prebuild.nodes import AgentNode
 from fedot_llm.ai.agents.researcher.models import RewriteQuestion
 from fedot_llm.ai.agents.researcher.state import GraphState
-
-logger = logging.getLogger(__name__)
 
 RE_WRITE_PROMPT = PromptTemplate(
     template="""You a question re-writer that converts an input question to a better version that is optimized \n 
@@ -34,7 +31,7 @@ class RewriteQuestionNode(AgentNode):
         Returns:
             state (dict): Updated question key with a re-phrased question
         """
-        logger.info("Transform query")
+        # logger.info("Transform query")
         question = state["question"]
         documents = state['documents']
 

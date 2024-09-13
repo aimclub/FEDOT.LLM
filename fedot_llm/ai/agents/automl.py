@@ -11,14 +11,17 @@ class AutoMLAgent:
     def __init__(self, llm: BaseChatModel, dataset: Dataset):
         self.llm = llm
         self.dataset = dataset
+        self.as_graph = self.create_graph()
+        
+    def run(self, dataset_description: str):
+        return self.as_graph.invoke({"dataset_description": dataset_description})
 
     @property
     def as_tool(self):
-        @tool()
+        @tool("AutoMLAgent")
         def automl(dataset_description: Annotated[str, "Description of the dataset and task to be performed"]):
             """Uses AutoML to create a model that performs classification, regression, or time series tasks."""
-            return PredictChain(model=self.llm, dataset=self.dataset).invoke(
-                {"dataset_description": dataset_description})
+            return self.run(dataset_description)
 
         return automl
 

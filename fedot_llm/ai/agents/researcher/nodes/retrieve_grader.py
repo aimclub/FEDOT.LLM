@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Optional, Callable
 
 from langchain.chat_models.base import BaseChatModel
@@ -8,8 +7,6 @@ from langchain_core.prompts import PromptTemplate
 from fedot_llm.ai.agents.prebuild.nodes import AgentNode
 from fedot_llm.ai.agents.researcher.models import GradeDocuments
 from fedot_llm.ai.agents.researcher.state import GraphState
-
-logger = logging.getLogger(__name__)
 
 RETRIEVAL_GRADER_PROMPT = PromptTemplate(
     template="""You are a grader assessing relevance of a retrieved document to a user question. \n 
@@ -39,7 +36,7 @@ class RetrievalGraderNode(AgentNode):
         Returns:
             state (dict): Updated documents key with only filtered relevant documents
         """
-        logger.info("Check document relevance to question")
+        # logger.info("Check document relevance to question")
         question = state["question"]
         documents = state["documents"]
 
@@ -53,9 +50,9 @@ class RetrievalGraderNode(AgentNode):
             ))
             grade = score.score
             if grade == 'yes':
-                logger.info("Grade: document relevant")
+                # logger.info("Grade: document relevant")
                 filtered_docs.append(d)
             else:
-                logger.info("Grade: document not relevant")
+                # logger.info("Grade: document not relevant")
                 continue
         return {"documents": filtered_docs, "question": question}

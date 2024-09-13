@@ -1,7 +1,7 @@
-import logging
 from dataclasses import dataclass, field, InitVar
 from pathlib import Path
 from typing import Callable
+from chromadb.config import Settings
 
 import chromadb
 from chromadb.api import ClientAPI
@@ -15,7 +15,7 @@ from typing_extensions import NamedTuple
 
 from fedot_llm.ai.agents.load import load_fedot_docs
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 CHROMA_PATH = "chroma"
 
@@ -83,7 +83,8 @@ class LongTermMemory:
     _cached_collections: Dict[str, Collection] = field(default_factory=dict)
 
     def __post_init__(self):
-        self.client = chromadb.PersistentClient(path=str(self.persistent_path))
+        self.client = chromadb.PersistentClient(path=str(self.persistent_path),
+                                                settings=Settings(anonymized_telemetry=False))
         self.load_resources()
 
     def load_resources(self):
@@ -91,9 +92,9 @@ class LongTermMemory:
             if not self.is_collection_exists(resource.collection_name):
                 self.create_collection(resource.collection_name)
                 self.add_documents(resource.collection_name, resource.loader())
-            else:
-                logger.info(
-                    f"Collection: '{resource.collection_name}' already exists in Chroma. Skipping document load.")
+            # else:
+            #     logger.info(
+            #         f"Collection: '{resource.collection_name}' already exists in Chroma. Skipping document load.")
 
     def is_collection_exists(self, collection_name: str):
         return Collection.is_exists(collection_name, self.client)

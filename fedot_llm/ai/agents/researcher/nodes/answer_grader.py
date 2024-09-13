@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Optional
 
 from langchain.chat_models.base import BaseChatModel
@@ -8,7 +7,6 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 from fedot_llm.ai.agents.prebuild.nodes import ConditionalNode
 from fedot_llm.ai.agents.researcher.state import GraphState
 
-logger = logging.getLogger(__name__)
 
 
 class GradeAnswer(BaseModel):

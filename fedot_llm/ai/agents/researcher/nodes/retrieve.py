@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Callable
 
 from langchain.vectorstores.base import VectorStoreRetriever
@@ -6,7 +5,6 @@ from langchain.vectorstores.base import VectorStoreRetriever
 from fedot_llm.ai.agents.prebuild.nodes import AgentNode
 from fedot_llm.ai.agents.researcher.state import GraphState
 
-logger = logging.getLogger(__name__)
 
 
 class RetrieveNode(AgentNode):
@@ -24,7 +22,7 @@ class RetrieveNode(AgentNode):
         Returns:
             state (dict): New key added to state, documents, that contains retrieved documents
         """
-        logger.debug("Retrieve documents")
+        # logger.debug("Retrieve documents")
         question = state["question"]
 
         # Retrieval

@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Optional
 from typing import Callable
 
@@ -8,8 +7,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from fedot_llm.ai.agents.prebuild.nodes import AgentNode
 from fedot_llm.ai.agents.researcher.models import GenerateWithCitations
 from fedot_llm.ai.agents.researcher.state import GraphState
-
-logger = logging.getLogger(__name__)
 
 GENERATE_PROMPT = ChatPromptTemplate([
     ('system', """You are DocBot, a helpful assistant that is an expert at helping users with the documentation. \n
@@ -76,7 +73,7 @@ class GenerateNode(AgentNode):
         super().__init__(chain=self.chain, name=name, tags=tags)
 
     def _process(self, state: GraphState, chain_invoke: Callable) -> Any:
-        logger.info("Generate answer")
+        # logger.info("Generate answer")
         question = state["question"]
         documents = state["documents"]
 

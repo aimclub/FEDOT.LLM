@@ -45,15 +45,14 @@ class FedotPredictChain(BaseRunnableChain):
                                     "task_type": 'classification'})
     {'predictions': ndarray, 'auto_model': Fedot, 'best_pipeline': Pipeline}
     """
-    
-    @staticmethod
-    def predict(input):
+
+    def predict(self, input):
         auto_model = Fedot(problem=input['task_type'],
-                            timeout=1,
-                            cv_folds=10,
-                            with_tuning=True,
-                            metric=['roc_auc', 'accuracy'],
-                            n_jobs=-1)
+                            timeout=self.timeout,
+                            cv_folds=self.cv_folds,
+                            with_tuning=self.with_tuning,
+                            metric=self.metric,
+                            n_jobs=self.n_jobs)
         best_pipeline = auto_model.fit(
             features=input['train'], target=input['target_column'])
         predictions = auto_model.predict(features=input['test'])

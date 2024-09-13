@@ -27,17 +27,17 @@ class ResearcherAgent:
     def __init__(self, llm: BaseChatModel, memory: LongTermMemory):
         self.llm = llm
         self.memory = memory
-        self.graph = self.create_graph()
+        self.as_graph = self.create_graph()
 
     def run(self, question: str):
-        return self.graph.invoke({"question": question})
+        return (self.as_graph | RunnablePick("answer")).invoke({"question": question})
 
     @property
     def as_tool(self):
         """Research answer to the question about Fedot AutoML Framework
         """
 
-        @tool
+        @tool("ResearcherAgent")
         def research(question: Annotated[str, "Question to research"]):
             """Research answer to the question about Fedot AutoML Framework"""
             return self.run(question)
