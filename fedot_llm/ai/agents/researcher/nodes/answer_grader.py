@@ -2,11 +2,10 @@ from typing import Any, Optional
 
 from langchain.chat_models.base import BaseChatModel
 from langchain_core.prompts import PromptTemplate
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 
 from fedot_llm.ai.agents.prebuild.nodes import ConditionalNode
-from fedot_llm.ai.agents.researcher.state import GraphState
-
+from fedot_llm.ai.agents.researcher.state import ResearcherAgentState
 
 
 class GradeAnswer(BaseModel):
@@ -36,7 +35,7 @@ class AnswerGraderCondNode(ConditionalNode):
         self.structured_llm = llm.with_structured_output(GradeAnswer)
         self.chain = ANSWER_PROMPT | self.structured_llm.bind(temperature=0)
 
-    def condition(self, state: GraphState) -> Any:
+    def condition(self, state: ResearcherAgentState) -> Any:
         """
         Determine whether the generated answer is useful to resolve a question.
 
@@ -48,7 +47,7 @@ class AnswerGraderCondNode(ConditionalNode):
         question = state["question"]
         generation = state["generation"]
 
-        score = GradeAnswer.parse_obj(self.chain.invoke(
+        score = GradeAnswer.model_validate(self.chain.invoke(
             {"generation": generation.answer, "question": question}
         ))
         grade = score.score

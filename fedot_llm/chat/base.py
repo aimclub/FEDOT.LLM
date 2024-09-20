@@ -1,7 +1,8 @@
-import langchain.chat_models as cm
-from langchain.chat_models.base import _ConfigurableModel
 from typing import Optional, Union, Tuple, List, Literal, Any, overload
+
+import langchain.chat_models as cm
 from langchain.chat_models.base import BaseChatModel
+from langchain.chat_models.base import _ConfigurableModel
 
 
 @overload

@@ -14,6 +14,7 @@ DATASET_GOAL_TEMPLATE = ChatPromptTemplate([
 """INPUT: 
 - dataset_description -- user input big description of dataset"""
 
+
 class DatasetGoalChain(BaseRunnableChain):
     """Define dataset goal
     
@@ -39,6 +40,7 @@ class DatasetGoalChain(BaseRunnableChain):
     >>> DatasetGoalChain(model, dataset).invoke({"dataset_description": "This is a dataset description"})
     'This is a dataset goal'
     """
+
     def __init__(self, model: BaseChatModel, dataset: Dataset, **kwargs):
         self.chain = ((DATASET_GOAL_TEMPLATE
                        | model

@@ -6,7 +6,7 @@ from langchain_core.prompts import PromptTemplate
 
 from fedot_llm.ai.agents.prebuild.nodes import AgentNode
 from fedot_llm.ai.agents.researcher.models import GradeDocuments
-from fedot_llm.ai.agents.researcher.state import GraphState
+from fedot_llm.ai.agents.researcher.state import ResearcherAgentState
 
 RETRIEVAL_GRADER_PROMPT = PromptTemplate(
     template="""You are a grader assessing relevance of a retrieved document to a user question. \n 
@@ -26,7 +26,7 @@ class RetrievalGraderNode(AgentNode):
         self.chain = RETRIEVAL_GRADER_PROMPT | self.structured_llm.bind(temperature=0)
         super().__init__(chain=self.chain, name=name, tags=tags)
 
-    def _process(self, state: GraphState, chain_invoke: Callable) -> Any:
+    def _process(self, state: ResearcherAgentState, chain_invoke: Callable) -> Any:
         """
         Determine whether the retrieved documents are relevant to the question.
 
@@ -45,7 +45,7 @@ class RetrievalGraderNode(AgentNode):
         for d in documents:
             if not isinstance(d, Document):
                 raise ValueError("Document must be an instance of Document")
-            score = GradeDocuments.parse_obj(chain_invoke(
+            score = GradeDocuments.model_validate(chain_invoke(
                 {"question": question, "document": d.page_content}
             ))
             grade = score.score

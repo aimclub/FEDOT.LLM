@@ -1,24 +1,23 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
 
+import logging
+import random
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from hashlib import sha256
 
 from dataclasses_json import dataclass_json
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.schema import StreamEvent
 from typing_extensions import (List, Optional,
                                TypeAlias, TypedDict, Union, Dict)
-from enum import Enum
 
 from fedot_llm.ai.actions import Actions, Action
-
-from web.backend.utils.graphviz_builder import GraphvizBuilder, Node, Edge
 from fedot_llm.ai.chains.analyze import AnalyzeFedotResultChain
-
-from hashlib import sha256
-from datetime import datetime
-import logging
-import random
-from web.common.colors import BSColors, STColors, AdditionalColors
+from web.backend.utils.graphviz_builder import GraphvizBuilder, Node, Edge
+from web.common.colors import BSColors, STColors
 
 
 class ResponseState(Enum):
@@ -55,7 +54,7 @@ class BaseResponse:
         else:
             return f"{self.__class__.__name__}{sha256(f'{self.__class__.__name__}{date}{random.random()}'.encode()).hexdigest()}"
 
-    def handler(self, event: StreamEvent) -> Optional[BaseResponse]:
+    def handler(self, _: StreamEvent) -> Optional[BaseResponse]:
         """Method that return stage handler"""
         return self
 
@@ -144,46 +143,54 @@ def trim_string(input_string: str, max_length: int):
         return input_string[:max_length - 3] + '...'
 
 
-@dataclass_json
-@dataclass
-class ProgressResponse(BaseResponse, UIElement):
-    records: Dict[Action, str] = field(init=False, default_factory=dict)
-    name: str = field(init=False, default='progress')
-    state: Optional[ResponseState] = field(init=False, default=None)
-    content: Optional[str] = field(init=False, default=None)
-    stream: bool = field(init=False, default=False)
+class MessagesHandler(BaseResponse):
 
-    def __post_init__(self):
-        super().__post_init__()
+    def message_handler(self, response: Response):
+        subscribe_events = ['SupervisorAgent', 'ResearcherAgent', 'AutoMLAgent']
+        content = []
+        message_idx = set()
 
-    def register_hooks(self, response: Response, actions: Actions) -> None:
-        def on_change_hook(event: StreamEvent, action: Action) -> None:
-            nonlocal self, response
-            content = ''
-            if action.state == 'Waiting':
-                content += f":gray[:material/pending:] {action}\n\n"
-            elif action.state == 'Running' or action.state == 'Streaming':
-                content += f":orange[:material/sprint:] {action}\n\n"
-            elif action.state == 'Completed':
-                content += (f":green[:material/check:]  {action} "
-                            f"```{trim_string(str(event['data']['output']), 40)}```\n\n")
+        def handler(event: StreamEvent):
+            nonlocal subscribe_events, content
+            event_name = event.get('name', '')
+            data = event.get('data', {})
+            new_messages = []
+            if event_name in subscribe_events:
+                if data:
+                    output = data.get('output', None)
+                    if output is not None:
+                        if isinstance(output, dict):
+                            messages = output.get('messages', None)
+                            if messages is not None:
+                                if isinstance(messages, list):
+                                    for message in messages:
+                                        if isinstance(message, AIMessage) or isinstance(message, HumanMessage):
+                                            if message.id not in message_idx:
+                                                message_idx.add(message.id)
+                                                new_messages.append(message)
+                                else:
+                                    if isinstance(messages, AIMessage) or isinstance(messages, HumanMessage):
+                                        if messages.id not in message_idx:
+                                            message_idx.add(messages.id)
+                                            new_messages.append(messages)
+                                for message in new_messages:
+                                    if isinstance(message, AIMessage):
+                                        content.append("---\n\n**Supervisor**")
+                                        content.append(message.content)
+                                    if isinstance(message, HumanMessage):
+                                        if message.name:
+                                            content.append(f"---\n\n**{message.name}**")
+                                            content.append(message.content)
 
-            if any([item.state == 'Running' for item in actions.records.values()]):
-                self.state = ResponseState.RUNNING
+                            if len(new_messages) > 0:
+                                response.append(BaseResponse(id=self.id,
+                                                             name=self.name,
+                                                             state=self.state,
+                                                             content='\n\n'.join(content),
+                                                             stream=self.stream))
 
-            if all([item.state == 'Completed' for item in actions.records.values()]):
-                self.state = ResponseState.COMPLETE
-
-            self.records[action] = content
-            response.append(BaseResponse(id=self.id,
-                                         name=self.name,
-                                         state=self.state,
-                                         content=''.join(self.records.values()),
-                                         stream=self.stream))
-
-        for action in actions.records.values():
-            action.on_change.append(on_change_hook)
-            self.records[action] = f":gray[:material/pending:] {action}\n\n"
+        return handler
+    
 
 
 @dataclass_json
@@ -207,7 +214,7 @@ class AnalyzeResponse(BaseResponse, UIElement):
                                                  content=event['data']['chunk'],
                                                  stream=self.stream))
 
-        def on_change_hook(event: StreamEvent, action: Action) -> None:
+        def on_change_hook(_: StreamEvent, action: Action) -> None:
             if action.state == 'Running':
                 self.state = ResponseState.RUNNING
             if action.state == 'Completed':
@@ -227,7 +234,7 @@ class AnalyzeResponse(BaseResponse, UIElement):
 @dataclass
 class PipeLineResponse(BaseResponse, UIElement):
     graph: GraphvizBuilder = field(init=False)
-    name: Optional[str] = field(init=False, default='pipeline')
+    name: Optional[str] = field(init=False, default='graph')
     state: Optional[ResponseState] = field(init=False, default=None)
     stream: bool = field(init=False, default=False)
 
@@ -260,7 +267,7 @@ class PipeLineResponse(BaseResponse, UIElement):
             'type': 'graphviz'
         }
 
-        def on_change_hook(event: StreamEvent, action: Action) -> None:
+        def on_change_hook(_: StreamEvent, action: Action) -> None:
             nonlocal content
             if action.state in ['Running', 'Completed']:
                 if action.state == 'Running':
@@ -285,7 +292,6 @@ class PipeLineResponse(BaseResponse, UIElement):
 
         for action in actions.records.values():
             action.on_change.append(on_change_hook)
-
 
 
 def get_logger_handler():

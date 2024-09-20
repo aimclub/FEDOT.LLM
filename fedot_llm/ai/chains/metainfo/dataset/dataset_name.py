@@ -1,8 +1,9 @@
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 from langchain_core.language_models.chat_models import BaseChatModel
-from fedot_llm.data import Dataset
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+
 from fedot_llm.ai.chains.base import BaseRunnableChain
+from fedot_llm.data import Dataset
 
 DATASET_NAME_TEMPLATE = ChatPromptTemplate([
     ('system', 'Define a concisethe name of this dataset. Answer only with the name.'),
@@ -37,9 +38,9 @@ class DatasetNameChain(BaseRunnableChain):
     >>> DatasetNameChain(model, dataset).invoke({"dataset_description": "This is a dataset description"})
     'dataset_name'
     """
-    
+
     def __init__(self, model: BaseChatModel, dataset: Dataset):
-        self.chain = ( DATASET_NAME_TEMPLATE
-                       | model
-                       | StrOutputParser()
-                       | (lambda x: setattr(dataset, "name", x) or x))
+        self.chain = (DATASET_NAME_TEMPLATE
+                      | model
+                      | StrOutputParser()
+                      | (lambda x: setattr(dataset, "name", x) or x))

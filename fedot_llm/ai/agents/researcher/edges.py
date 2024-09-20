@@ -2,17 +2,17 @@ from __future__ import annotations
 
 from langchain.chat_models.base import BaseChatModel
 from langchain_core.prompts import PromptTemplate
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 
-from fedot_llm.ai.agents.researcher.state import GraphState
+from fedot_llm.ai.agents.researcher.state import ResearcherAgentState
 
 
-def is_docs_relevant(state: GraphState):
+def is_docs_relevant(state: ResearcherAgentState):
     """
     Determine if the retrieved documents are relevant to the given question.
 
     Args:
-        state (GraphState): The current state of the graph containing the question and documents.
+        state (ResearcherAgentState): The current state of the graph containing the question and documents.
 
     Returns:
         str: Decision on whether to rewrite_question or generate an answer.
@@ -39,8 +39,7 @@ class CheckHallucinationAndAnswerEdge:
     Attributes:
         HALLUCINATION_PROMPT (PromptTemplate): A template for prompting the LLM
             to check for hallucinations.
-        GradeHallucination (BaseModel): A Pydantic model for structured output
-            of the hallucination check.
+
 
     Methods:
         __init__(self, llm: BaseChatModel): Initialize the edge with a language model.
@@ -88,23 +87,23 @@ class CheckHallucinationAndAnswerEdge:
 
     @property
     def hallucination_chain(self):
-        self.structured_llm = self.llm.with_structured_output(self.GradeHallucination)
-        return self.HALLUCINATION_PROMPT | self.structured_llm.bind(temperature=0)
+        structured_llm = self.llm.with_structured_output(self.GradeHallucination)
+        return self.HALLUCINATION_PROMPT | structured_llm.bind(temperature=0)
 
     @property
     def answer_grader_chain(self):
-        self.structured_llm = self.llm.with_structured_output(self.GradeAnswer)
-        return self.ANSWER_PROMPT | self.structured_llm.bind(temperature=0)
+        structured_llm = self.llm.with_structured_output(self.GradeAnswer)
+        return self.ANSWER_PROMPT | structured_llm.bind(temperature=0)
 
     def __init__(self, llm: BaseChatModel):
         self.llm = llm
 
-    def is_hallucination_and_answer(self, state: GraphState):
+    def is_hallucination_and_answer(self, state: ResearcherAgentState):
         """
         Determine if the generated answer is a hallucination and if it answers the question.
 
         Args:
-            state (GraphState): The current state of the graph containing the question and documents.
+            state (ResearcherAgentState): The current state of the graph containing the question and documents.
 
         Returns:
             str: Decision on whether to rewrite_question or generate an answer.
@@ -114,7 +113,7 @@ class CheckHallucinationAndAnswerEdge:
         documents = state["documents"]
         generation = state["generation"]
 
-        score = self.GradeHallucination.parse_obj(self.hallucination_chain.invoke(
+        score = self.GradeHallucination.model_validate(self.hallucination_chain.invoke(
             {"documents": documents, "generation": generation.answer}
         ))
         grade = score.score
@@ -124,7 +123,7 @@ class CheckHallucinationAndAnswerEdge:
             # logger.debug("Decision: generation is grounded in documents")
             # Check question-answering
             # logger.debug("Grade generation vs question")
-            score = self.GradeAnswer.parse_obj(
+            score = self.GradeAnswer.model_validate(
                 self.answer_grader_chain.invoke({"question": question, "generation": generation.answer}))
             grade = score.score
             if grade == "yes":

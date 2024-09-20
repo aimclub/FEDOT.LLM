@@ -1,4 +1,5 @@
 from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.runnables import RunnablePick, RunnableLambda
 
 from fedot_llm.ai.chains.base import (
     BaseRunnableChain, ChainPassthrough,
@@ -8,7 +9,6 @@ from fedot_llm.ai.chains.metainfo.dataset.define_dataset import \
 from fedot_llm.ai.chains.metainfo.splits.define_splits import DefineSplitsChain
 from fedot_llm.ai.chains.metainfo.task import DefineTaskChain
 from fedot_llm.data import Dataset
-from langchain_core.runnables import RunnablePick, RunnableLambda
 
 
 class DefineMetaInfo(BaseRunnableChain):

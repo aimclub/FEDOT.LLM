@@ -1,9 +1,10 @@
+from typing import Any, AsyncIterator, Iterator
+
 from langchain_core.callbacks import CallbackManagerForChainRun, AsyncCallbackManagerForChainRun
-from langchain_core.runnables import RunnableConfig, patch_config
 from langchain_core.runnables import Runnable, RunnablePassthrough, RunnableLambda, RunnableParallel
+from langchain_core.runnables import RunnableConfig, patch_config
 from langchain_core.runnables.utils import Input, Output
 from typing_extensions import Optional, cast
-from typing import Any, AsyncIterator, Iterator
 
 
 class BaseRunnableChain(Runnable[Input, Output]):

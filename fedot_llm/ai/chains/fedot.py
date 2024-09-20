@@ -1,6 +1,8 @@
-from fedot_llm.ai.chains.base import BaseRunnableChain
 from fedot.api.main import Fedot
 from langchain_core.runnables import RunnableLambda
+
+from fedot_llm.ai.chains.base import BaseRunnableChain
+
 
 class FedotPredictChain(BaseRunnableChain):
     """Run a Fedot AutoML on the input data
@@ -48,24 +50,26 @@ class FedotPredictChain(BaseRunnableChain):
 
     def predict(self, input):
         auto_model = Fedot(problem=input['task_type'],
-                            timeout=self.timeout,
-                            cv_folds=self.cv_folds,
-                            with_tuning=self.with_tuning,
-                            metric=self.metric,
-                            n_jobs=self.n_jobs)
+                           timeout=self.timeout,
+                           cv_folds=self.cv_folds,
+                           with_tuning=self.with_tuning,
+                           metric=self.metric,
+                           n_jobs=self.n_jobs)
         best_pipeline = auto_model.fit(
             features=input['train'], target=input['target_column'])
         predictions = auto_model.predict(features=input['test'])
         return {'predictions': predictions, 'auto_model': auto_model, 'best_pipeline': best_pipeline}
-        
-    def __init__(self, seed=42, timeout=1, cv_folds=10, with_tuning=True, metric=['roc_auc', 'accuracy'], n_jobs=-1):
+
+    def __init__(self, seed=42, timeout=1, cv_folds=10, with_tuning=True, metric=None, n_jobs=-1):
+        if metric is None:
+            metric = ['roc_auc', 'accuracy']
         self.seed = seed
         self.timeout = timeout
         self.cv_folds = cv_folds
         self.with_tuning = with_tuning
         self.metric = metric
         self.n_jobs = n_jobs
-         
+
         self.chain = (
             RunnableLambda(self.predict)
         )

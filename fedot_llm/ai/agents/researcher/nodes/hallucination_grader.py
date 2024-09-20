@@ -2,10 +2,11 @@ from typing import Any, Optional
 
 from langchain.chat_models.base import BaseChatModel
 from langchain_core.prompts import PromptTemplate
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 
 from fedot_llm.ai.agents.prebuild.nodes import ConditionalNode
-from fedot_llm.ai.agents.researcher.state import GraphState
+from fedot_llm.ai.agents.researcher.state import ResearcherAgentState
+
 
 class GradeHallucination(BaseModel):
     """Binary score for hallucination check on generated answer."""
@@ -30,7 +31,7 @@ class HallucinationGraderCondNode(ConditionalNode):
         self.is_hallucination_chain = HALLUCINATION_PROMPT | self.structured_llm.bind(temperature=0)
         super().__init__(name=name, tags=tags)
 
-    def condition(self, state: GraphState) -> Any:
+    def condition(self, state: ResearcherAgentState) -> Any:
         """
         Determine whether the generated answer is a hallucination.
 
@@ -46,7 +47,7 @@ class HallucinationGraderCondNode(ConditionalNode):
             {"documents": documents, "generation": generation.answer}
         )
 
-        score = GradeHallucination.parse_obj(score)
+        score = GradeHallucination.model_validate(score)
         grade = score.score
         if grade == "yes":
             return "correct"

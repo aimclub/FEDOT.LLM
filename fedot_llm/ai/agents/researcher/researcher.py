@@ -1,13 +1,10 @@
-from typing import Annotated, Callable
+from typing import Annotated
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.runnables import RunnablePick
-from langchain_core.tools import BaseTool
 from langchain_core.tools import tool
-from langchain_ollama import ChatOllama
 from langgraph.graph import END, StateGraph
 
-from fedot_llm.ai.agents.load import load_fedot_docs
 from fedot_llm.ai.agents.researcher.edges import is_docs_relevant
 from fedot_llm.ai.agents.researcher.nodes.answer_grader import AnswerGraderCondNode
 from fedot_llm.ai.agents.researcher.nodes.generate import GenerateNode
@@ -19,7 +16,7 @@ from fedot_llm.ai.agents.researcher.nodes.retrieve import RetrieveNode
 from fedot_llm.ai.agents.researcher.nodes.retrieve_grader import RetrievalGraderNode
 from fedot_llm.ai.agents.researcher.nodes.rewrite_question import RewriteQuestionNode
 from fedot_llm.ai.agents.researcher.nodes.should_continue import ShouldContinueCondNode
-from fedot_llm.ai.agents.researcher.state import GraphState
+from fedot_llm.ai.agents.researcher.state import ResearcherAgentState
 from fedot_llm.ai.memory import LongTermMemory
 
 
@@ -45,7 +42,7 @@ class ResearcherAgent:
         return research
 
     def create_graph(self):
-        workflow = StateGraph(GraphState)
+        workflow = StateGraph(ResearcherAgentState)
 
         # Add nodes
         workflow.add_node("retrieve",

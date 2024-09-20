@@ -1,5 +1,5 @@
 import streamlit as st
-from langchain_community.chat_models import ChatOllama
+from langchain_ollama import ChatOllama
 from langchain_openai.chat_models.base import ChatOpenAI
 from streamlit_extras.grid import grid, GridDeltaGenerator
 
@@ -54,7 +54,7 @@ def _render_file_previews():
 
 def _initialize_fedot_backend():
     st.session_state.fedot_backend = FedotAIBackend(
-        fedotAI=FedotAI(
+        fedot_ai=FedotAI(
             dataset=st.session_state.dataset,
             model=st.session_state.model
         )
@@ -85,10 +85,6 @@ def set_openai_model(form_grid: GridDeltaGenerator, params: dict):
 
     if not openai_api_key:
         st.warning("Please enter your OpenAI API key!", icon="⚠")
-        return
-
-    if not openai_api_key.startswith("sk-"):
-        form_grid.warning("Incorrect OpenAI API key!", icon="⚠")
         return
 
     params['api_key'] = openai_api_key

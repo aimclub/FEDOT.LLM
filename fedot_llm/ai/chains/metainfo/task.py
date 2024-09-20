@@ -7,21 +7,22 @@ from fedot_llm.ai.chains.base import BaseRunnableChain
 from fedot_llm.data import Dataset
 
 DEFINE_TARGET_TEMPLATE = ChatPromptTemplate([
-    ('system',  'Your task is to return the target column of the dataset. '
-                'Only answer with a column name.'),
-    ('human',   '{dataset_detailed_description}'),
-    ('ai',      'Target column:\n')
+    ('system', 'Your task is to return the target column of the dataset. '
+               'Only answer with a column name.'),
+    ('human', '{dataset_detailed_description}'),
+    ('ai', 'Target column:\n')
 ])
 """INPUT:
 - dataset_detailed_description: property of the dataset object"""
 
 DEFINE_TASK_TYPE_TEMPLATE = ChatPromptTemplate([
-    ('system',  'Your task is to define whether the task is regression or classification.'
-                'Only answer with a task type'),
-    ('human',   '{dataset_detailed_description}')
+    ('system', 'Your task is to define whether the task is regression or classification.'
+               'Only answer with a task type'),
+    ('human', '{dataset_detailed_description}')
 ])
 """INPUT:
 - dataset_detailed_description: property of the dataset object"""
+
 
 class DefineTargetColumnChain(BaseRunnableChain):
     """Define target column
@@ -53,6 +54,7 @@ class DefineTargetColumnChain(BaseRunnableChain):
                 | (lambda x: x.strip().strip(r",.\'\"“”‘’`´"))
                 | (lambda x: setattr(dataset, "target_name", x) or x)
         )
+
 
 class DefineTaskTypeChain(BaseRunnableChain):
     """Define target column
@@ -89,6 +91,7 @@ class DefineTaskTypeChain(BaseRunnableChain):
                 | (lambda x: setattr(dataset, "task_type", x) or x)
         )
 
+
 class DefineTaskChain(BaseRunnableChain):
     """Define target column and task type
     
@@ -114,6 +117,7 @@ class DefineTaskChain(BaseRunnableChain):
     >>> DefineTaskMetadescription(model, dataset).invoke({"dataset_detailed_description": dataset.detailed_description})
     {'target_column': 'target_column', 'task_type': 'classification'}
     """
+
     def __init__(self, model: BaseChatModel, dataset: Dataset):
         self.chain = RunnableParallel({
             "target_column": DefineTargetColumnChain(model, dataset),

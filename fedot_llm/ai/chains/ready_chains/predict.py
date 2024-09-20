@@ -1,13 +1,14 @@
-from fedot_llm.ai.chains.base import BaseRunnableChain, ChainAddKey
-from langchain_core.language_models.chat_models import BaseChatModel
-from fedot_llm.data import Dataset
-from fedot_llm.ai.chains.metainfo import DefineMetaInfo
-from fedot_llm.ai.chains.fedot import FedotPredictChain
-from fedot_llm.ai.chains.analyze import AnalyzeFedotResultChain
-from fedot_llm.ai.chains.preprocessing.split_data import SplitDataChain
-from fedot_llm.ai.chains.dataset_utils import LoadSplitDataChain
-from langchain_core.runnables import RunnablePick
 from golem.core.dag.graph_utils import graph_structure
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.runnables import RunnablePick
+
+from fedot_llm.ai.chains.analyze import AnalyzeFedotResultChain
+from fedot_llm.ai.chains.base import BaseRunnableChain, ChainAddKey
+from fedot_llm.ai.chains.dataset_utils import LoadSplitDataChain
+from fedot_llm.ai.chains.fedot import FedotPredictChain
+from fedot_llm.ai.chains.metainfo import DefineMetaInfo
+from fedot_llm.ai.chains.preprocessing.split_data import SplitDataChain
+from fedot_llm.data import Dataset
 
 
 class PredictChain(BaseRunnableChain):
@@ -40,36 +41,36 @@ class PredictChain(BaseRunnableChain):
 
     def __init__(self, model: BaseChatModel, dataset: Dataset):
         self.chain = (
-            DefineMetaInfo(model=model, dataset=dataset)
-            # -------split data-------------------
-            | ChainAddKey(
-                "data_splits",
-                ChainAddKey(
-                    "data",
+                DefineMetaInfo(model=model, dataset=dataset)
+                # -------split data-------------------
+                | ChainAddKey(
+                    "data_splits",
                     ChainAddKey(
-                        "split",
-                        RunnablePick("DefineSplitsChain") | RunnablePick("train"),
+                        "data",
+                        ChainAddKey(
+                            "split",
+                            RunnablePick("DefineSplitsChain") | RunnablePick("train"),
+                        )
+                        | LoadSplitDataChain(dataset=dataset),
                     )
-                    | LoadSplitDataChain(dataset=dataset),
+                    | SplitDataChain(),
                 )
-                | SplitDataChain(),
-            )
-            # ------------------------------------
-            | {
-                "train": RunnablePick("data_splits") | RunnablePick("train"),
-                "test": RunnablePick("data_splits") | RunnablePick("test"),
-                "task_type": RunnablePick("DefineTaskChain")
-                | RunnablePick("task_type"),
-                "target_column": RunnablePick("DefineTaskChain")
-                | RunnablePick("target_column"),
-            }
-            | FedotPredictChain()
-            # ------------------------------------
-            | {
-                "parameters": RunnablePick("best_pipeline")
-                | (lambda input: graph_structure(input)),
-                "metrics": RunnablePick("auto_model")
-                | (lambda input: input.get_metrics()),
-            }
-            | AnalyzeFedotResultChain(model)
+                # ------------------------------------
+                | {
+                    "train": RunnablePick("data_splits") | RunnablePick("train"),
+                    "test": RunnablePick("data_splits") | RunnablePick("test"),
+                    "task_type": RunnablePick("DefineTaskChain")
+                                 | RunnablePick("task_type"),
+                    "target_column": RunnablePick("DefineTaskChain")
+                                     | RunnablePick("target_column"),
+                }
+                | FedotPredictChain()
+                # ------------------------------------
+                | {
+                    "parameters": RunnablePick("best_pipeline")
+                                  | (lambda input: graph_structure(input)),
+                    "metrics": RunnablePick("auto_model")
+                               | (lambda input: input.get_metrics()),
+                }
+                | AnalyzeFedotResultChain(model)
         )

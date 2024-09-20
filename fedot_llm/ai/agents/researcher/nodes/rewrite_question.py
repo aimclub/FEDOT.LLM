@@ -5,7 +5,7 @@ from langchain_core.prompts import PromptTemplate
 
 from fedot_llm.ai.agents.prebuild.nodes import AgentNode
 from fedot_llm.ai.agents.researcher.models import RewriteQuestion
-from fedot_llm.ai.agents.researcher.state import GraphState
+from fedot_llm.ai.agents.researcher.state import ResearcherAgentState
 
 RE_WRITE_PROMPT = PromptTemplate(
     template="""You a question re-writer that converts an input question to a better version that is optimized \n 
@@ -22,7 +22,7 @@ class RewriteQuestionNode(AgentNode):
         self.chain = RE_WRITE_PROMPT | self.structured_llm
         super().__init__(chain=self.chain, name=name, tags=tags)
 
-    def _process(self, state: GraphState, chain_invoke: Callable) -> Any:
+    def _process(self, state: ResearcherAgentState, chain_invoke: Callable) -> Any:
         """
         Transform the query to produce a better question.
 
@@ -36,5 +36,5 @@ class RewriteQuestionNode(AgentNode):
         documents = state['documents']
 
         # Re-write question
-        better_question = RewriteQuestion.parse_obj(chain_invoke({"question": question})).question
+        better_question = RewriteQuestion.model_validate(chain_invoke({"question": question})).question
         return {"documents": documents, "question": better_question}

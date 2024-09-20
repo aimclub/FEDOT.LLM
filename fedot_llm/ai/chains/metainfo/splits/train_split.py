@@ -41,7 +41,6 @@ class DatasetTrainSplitChain(BaseRunnableChain):
     >>> DatasetTrainSplitChain(model, dataset).invoke({"dataset_detailed_description": dataset.detailed_description})
     'train'
     """
-    
 
     def __init__(self, model: BaseChatModel, dataset: Dataset):
         self.chain = (

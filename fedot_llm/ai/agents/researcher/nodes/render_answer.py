@@ -2,10 +2,11 @@ from typing import Any, Optional, Callable
 from typing import List
 
 from langchain.chat_models.base import BaseChatModel
+from langchain_core.messages import HumanMessage
 
 from fedot_llm.ai.agents.prebuild.nodes import AgentNode
 from fedot_llm.ai.agents.researcher.models import Citation
-from fedot_llm.ai.agents.researcher.state import GraphState
+from fedot_llm.ai.agents.researcher.state import ResearcherAgentState
 
 
 class RenderAnswerNode(AgentNode):
@@ -13,7 +14,7 @@ class RenderAnswerNode(AgentNode):
         self.chain = llm.bind(temperature=0)
         super().__init__(chain=self.chain, name=name, tags=tags)
 
-    def _process(self, state: GraphState, chain_invoke: Callable) -> Any:
+    def _process(self, state: ResearcherAgentState, chain_invoke: Callable) -> Any:
         """
         Render the answer.
         """
@@ -22,4 +23,5 @@ class RenderAnswerNode(AgentNode):
         citations: List[Citation] = generation.citations
         for citation in citations:
             answer = answer.replace(f"[{citation.number}]", f"[\\[{citation.number}\\]]({citation.url})")
-        return state | {"answer": answer}
+
+        return state | {'messages': [HumanMessage(content=answer, name="ResearcherAgent")]}

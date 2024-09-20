@@ -1,6 +1,7 @@
+from langchain_core.runnables import RunnableLambda
+
 from fedot_llm.ai.chains.base import BaseRunnableChain
 from fedot_llm.data.data import Dataset
-from langchain_core.runnables import RunnableLambda
 
 
 class LoadSplitDataChain(BaseRunnableChain):

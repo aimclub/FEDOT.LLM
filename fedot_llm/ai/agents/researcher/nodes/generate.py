@@ -6,7 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from fedot_llm.ai.agents.prebuild.nodes import AgentNode
 from fedot_llm.ai.agents.researcher.models import GenerateWithCitations
-from fedot_llm.ai.agents.researcher.state import GraphState
+from fedot_llm.ai.agents.researcher.state import ResearcherAgentState
 
 GENERATE_PROMPT = ChatPromptTemplate([
     ('system', """You are DocBot, a helpful assistant that is an expert at helping users with the documentation. \n
@@ -72,12 +72,12 @@ class GenerateNode(AgentNode):
             temperature=0).with_retry()
         super().__init__(chain=self.chain, name=name, tags=tags)
 
-    def _process(self, state: GraphState, chain_invoke: Callable) -> Any:
+    def _process(self, state: ResearcherAgentState, chain_invoke: Callable) -> Any:
         # logger.info("Generate answer")
         question = state["question"]
         documents = state["documents"]
 
         # RAG generation
         generation = chain_invoke({"context": documents, "question": question})
-        generation = GenerateWithCitations.parse_obj(generation)
+        generation = GenerateWithCitations.model_validate(generation)
         return {"documents": documents, "question": question, "generation": generation}

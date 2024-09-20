@@ -19,7 +19,7 @@ class PathDatasetLoader:
             with_metadata: Whether Dataset should be loading metadata.json file contained in folder. Defaults to false.
 
         """
-        
+
         if isinstance(path, str):
             path = Path(path)
 

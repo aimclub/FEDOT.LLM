@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field, InitVar
 from pathlib import Path
 from typing import Callable
-from chromadb.config import Settings
 
 import chromadb
 from chromadb.api import ClientAPI
+from chromadb.config import Settings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
@@ -20,13 +20,13 @@ from fedot_llm.ai.agents.load import load_fedot_docs
 CHROMA_PATH = "chroma"
 
 
-class Resource(NamedTuple):
+class MemoryResource(NamedTuple):
     collection_name: str
     loader: Callable[[], List[Document]]
 
 
-resources: List[Resource] = [
-    Resource("FedotDocs", load_fedot_docs)
+resources: List[MemoryResource] = [
+    MemoryResource("FedotDocs", load_fedot_docs)
 ]
 
 
@@ -61,7 +61,7 @@ class Collection:
         try:
             client.get_collection(collection_name)
             return True
-        except Exception:
+        except ValueError:
             return False
 
     def get_retriever(self):

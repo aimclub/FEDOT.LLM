@@ -1,9 +1,8 @@
-import os
 import random
-from functools import lru_cache
-from typing import Dict, List, Optional
 from dataclasses import dataclass, InitVar, field
+from functools import lru_cache
 from pathlib import Path
+from typing import Dict, List, Optional
 
 import pandas as pd
 
@@ -203,12 +202,12 @@ class Dataset:
         return self.__task_type
 
     @task_type.setter
-    def task_type(self, type: str) -> None:
-        if type not in ["regression", "classification"]:
+    def task_type(self, task_type: str) -> None:
+        if task_type not in ["regression", "classification"]:
             raise ValueError(
-                f"Task type must be either 'regression' or 'classification', but got '{type}'"
+                f"Task type must be either 'regression' or 'classification', but got '{task_type}'"
             )
-        self.__task_type = type
+        self.__task_type = task_type
 
     @property
     def detailed_description(self) -> str:
@@ -233,8 +232,8 @@ class Dataset:
         first_line = "".join(first_line)
 
         introduction_lines = [
-            first_line,
-        ] + split_description_lines
+                                 first_line,
+                             ] + split_description_lines
 
         if self.is_train():
             column_descriptions = self.train_split.column_descriptions
@@ -243,7 +242,7 @@ class Dataset:
                     "Below is the type (numeric or string), unique value count and ratio for each column, and few examples of values:",
                     "\n".join(
                         [f"{key}: {value}" for key,
-                            value in column_descriptions.items()]
+                        value in column_descriptions.items()]
                     ),
                 ]
 

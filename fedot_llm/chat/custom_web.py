@@ -14,7 +14,7 @@ from langchain_core.outputs import ChatGeneration, ChatResult
 class ChatCustomWeb(BaseChatModel):
     model: Optional[str] = 'llama3'
     base_url: str = 'http://10.32.2.2:8672'
-    
+
     timeout: Optional[int] = None
     """Timeout for the request stream"""
 
@@ -28,7 +28,6 @@ class ChatCustomWeb(BaseChatModel):
     ) -> List[Dict[str, Union[str, List[str]]]]:
         chat_messages: List = []
         for message in messages:
-            role = ""
             if isinstance(message, HumanMessage):
                 role = "user"
             elif isinstance(message, AIMessage):
@@ -39,7 +38,6 @@ class ChatCustomWeb(BaseChatModel):
                 raise ValueError(
                     "Received unsupported message type for Ollama.")
 
-            content = ""
             if isinstance(message.content, str):
                 content = message.content
             else:
