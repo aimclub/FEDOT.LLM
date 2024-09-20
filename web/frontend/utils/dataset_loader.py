@@ -9,7 +9,7 @@ class StreamlitDatasetLoader:
         for file in files:
             if file.name.split('.')[-1] == 'csv':
                 dataframe = pd.read_csv(file)
-                split_name = file.name.split('.')[0]
+                split_name = file.name
                 split = Split(name=split_name, data=dataframe)
                 splits.append(split)
         if len(splits) > 0:

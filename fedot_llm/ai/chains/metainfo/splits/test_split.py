@@ -47,6 +47,6 @@ class DatasetTestSplitChain(BaseRunnableChain):
                 TEST_SPLIT_TEMPLATE
                 | model
                 | StrOutputParser()
-                | (lambda name: name.split(".")[0].strip().strip(r",.\'\"“”‘’`´"))
+                | (lambda name: name.strip().strip(r",\'\"“”‘’`´"))
                 | (lambda name: set_split(str(name), "test", dataset) or name)
         )

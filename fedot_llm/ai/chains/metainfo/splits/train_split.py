@@ -47,6 +47,6 @@ class DatasetTrainSplitChain(BaseRunnableChain):
                 TRAIN_SPLIT_TEMPLATE
                 | model
                 | StrOutputParser()
-                | (lambda name: name.split(".")[0].strip().strip(r",.\'\"“”‘’`´"))
+                | (lambda name: name.strip().strip(r",\'\"“”‘’`´"))
                 | (lambda name: set_split(str(name), "train", dataset) or name)
         )
