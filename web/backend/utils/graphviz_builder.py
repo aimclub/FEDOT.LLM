@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing_extensions import List, Optional, Union, Set, Literal, Dict, cast
+
 import graphviz
+from typing_extensions import List, Optional, Union, Literal, Dict, cast
+
 from web.common.graphviz_typing import GraphAttr, NodeAttr, EdgeAttr
 
 
@@ -27,10 +29,12 @@ class Edge:
 
 @dataclass
 class GraphvizBuilder:
+    name: str
     graph_type: Literal['digraph', 'graph'] = 'digraph'
     graph_attr: Optional[GraphAttr] = field(default=None)
     edge_attr: Optional[EdgeAttr] = field(default=None)
     node_attr: Optional[NodeAttr] = field(default=None)
+    subgraphs: List[GraphvizBuilder] = field(default_factory=list)
     nodes: Dict[str, Node] = field(default_factory=dict)
     edges: List[Edge] = field(default_factory=list)
 
@@ -54,9 +58,14 @@ class GraphvizBuilder:
 
     def compile(self) -> Union[graphviz.Digraph, graphviz.Graph]:
         if self.graph_type == 'digraph':
-            graph = graphviz.Digraph(graph_attr=self.graph_attr, edge_attr=self.edge_attr, node_attr=self.node_attr)
+            graph = graphviz.Digraph(name=f"cluster_{self.name}", graph_attr=self.graph_attr, edge_attr=self.edge_attr,
+                                     node_attr=self.node_attr)
         else:
             graph = graphviz.Graph(graph_attr=self.graph_attr, edge_attr=self.edge_attr, node_attr=self.node_attr)
+
+        for subgraph_item in self.subgraphs:
+            new_subgraph = subgraph_item.compile()
+            graph.subgraph(graph=new_subgraph)
 
         for node in self.nodes.values():
             if node.attrs is None:

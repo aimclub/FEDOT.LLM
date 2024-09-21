@@ -1,4 +1,6 @@
 import streamlit as st
+# import os
+# from dotenv import load_dotenv
 
 
 def init_page():
@@ -20,8 +22,6 @@ def init_session_state():
         st.session_state.model = None
     if "dataset" not in st.session_state.keys():
         st.session_state.dataset = None
-    # if "fedot_ai" not in st.session_state.keys():
-    #     st.session_state.fedot_ai = None
     if "messages" not in st.session_state:
         st.session_state.messages = [
             {"role": "assistant",
@@ -35,6 +35,15 @@ def init_session_state():
         st.session_state.model_name = None
     if 'prev_graph' not in st.session_state.keys():
         st.session_state.prev_graph = None
+
+    # def _set_env(var: str):
+    #     if not os.environ.get(var):
+    #         print(f"No {var} in env")
+    #
+    # load_dotenv()
+    # _set_env("LANGSMITH_API_KEY")
+    # os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    # os.environ["LANGCHAIN_PROJECT"] = "FEDOT.LLM"
 
 
 def init_session():

@@ -190,7 +190,6 @@ class MessagesHandler(BaseResponse):
                                                              stream=self.stream))
 
         return handler
-    
 
 
 @dataclass_json
@@ -205,6 +204,7 @@ class AnalyzeResponse(BaseResponse, UIElement):
         super().__post_init__()
 
     def register_hooks(self, response: Response, actions: Actions) -> None:
+
         def on_stream_hook(event: StreamEvent, action: Action) -> None:
             if action.state == 'Streaming':
                 if 'data' in event and 'chunk' in event['data']:
@@ -228,6 +228,102 @@ class AnalyzeResponse(BaseResponse, UIElement):
         if AnalyzeFedotResultChain.__name__ in actions.records:
             actions.records[AnalyzeFedotResultChain.__name__].on_stream.append(on_stream_hook)
             actions.records[AnalyzeFedotResultChain.__name__].on_change.append(on_change_hook)
+
+
+@dataclass
+class GraphResponse(BaseResponse):
+    name: Optional[str] = field(init=False, default='graph')
+    state: Optional[ResponseState] = field(init=False, default=None)
+    stream: bool = field(init=False, default=False)
+
+    def __post_init__(self):
+        self.content = {
+            'data': None,
+            'type': 'graphviz'
+        }
+        super().__post_init__()
+
+    @staticmethod
+    def init_default_graph(name: str = ''):
+        if name == '__start__':
+            label = ''
+        else:
+            label = name
+        return GraphvizBuilder(
+            name=name,
+            graph_type='digraph',
+            graph_attr={
+                'bgcolor': 'transparent',
+                'label': label,
+                'rankdir': 'LR',
+            },
+            edge_attr={
+                'color': BSColors.SECONDARY.value
+            },
+            node_attr={
+                'shape': 'box',
+                'color': STColors.SECONDARY.value,
+                'fontcolor': STColors.TEXT.value,
+                'style': 'filled'
+            }
+        )
+
+    def graph_handler(self, response: Response):
+        content: TypedContentResponse = {
+            'data': None,
+            'type': 'graphviz'
+        }
+        nesting_graphs: List[GraphvizBuilder] = []
+
+        def handler(event: StreamEvent):
+            nonlocal content
+            event_name = event['name']
+            event_state = event['event']
+            if event_metadata := event.get("metadata", None):
+                if langgraph_node := event_metadata.get("langgraph_node", None):
+                    langgraph_step = event_metadata["langgraph_step"]
+                    ns = event_metadata["checkpoint_ns"].split(":")[0]
+                    if len(nesting_graphs) == 0:
+                        new_graph = self.init_default_graph(ns)
+                        nesting_graphs.append(new_graph)
+                    elif ns != nesting_graphs[-1].name:
+                        if len(nesting_graphs) < 3 or ns != nesting_graphs[-2].name:
+                            new_graph = self.init_default_graph(ns)
+                            nesting_graphs[-1].subgraphs.append(new_graph)
+                            nesting_graphs.append(new_graph)
+                        else:
+                            nesting_graphs.pop()
+
+                    if langgraph_node == event_name and (event_name != '__start__' or ns == '__start__'):
+                        if event_state == "on_chain_start":
+                            new_node = Node(name=event_name, attrs={'label': event_name,
+                                                                    'color': BSColors.PRIMARY.value})
+                            if len(nesting_graphs[-1].edges) > 0:
+                                prev_node = nesting_graphs[-1].edges[-1].dst
+                                nesting_graphs[-1].add_edge(Edge(src=prev_node, dst=new_node))
+                            elif len(nesting_graphs[-1].edges) == 0 and len(nesting_graphs[-1].nodes) == 1:
+                                prev_node = list(nesting_graphs[-1].nodes.values())[0]
+                                nesting_graphs[-1].add_edge(Edge(src=prev_node, dst=new_node))
+                            elif len(nesting_graphs) > 1:
+                                if len(nesting_graphs[-2].edges) > 0:
+                                    prev_node = nesting_graphs[-2].edges[-1].dst
+                                    nesting_graphs[-2].add_edge(Edge(src=prev_node, dst=new_node))
+                                if len(nesting_graphs[-2].edges) == 0 and len(nesting_graphs[-2].nodes) == 1:
+                                    prev_node = list(nesting_graphs[-2].nodes.values())[0]
+                                    nesting_graphs[-2].add_edge(Edge(src=prev_node, dst=new_node))
+                            nesting_graphs[-1].add_node(new_node)
+                        elif event_state == "on_chain_end":
+                            nesting_graphs[-1].add_node(Node(name=event_name, attrs={'label': event_name,
+                                                                                     'color': BSColors.SUCCESS.value}))
+                        content['data'] = nesting_graphs[0].compile().source
+
+                        response.append(BaseResponse(id=self.id,
+                                                     name=self.name,
+                                                     state=self.state,
+                                                     content=content,
+                                                     stream=self.stream))
+
+        return handler
 
 
 @dataclass_json
