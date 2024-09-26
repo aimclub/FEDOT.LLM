@@ -41,13 +41,15 @@ class GraphvizBuilder:
     def add_node(self, node: Node):
         self.nodes[node.name] = node
 
-    def update_node(self, node: Node, attrs: NodeAttr):
+    @staticmethod
+    def update_node(node: Node, attrs: NodeAttr):
         if node.attrs:
             node.attrs = cast(NodeAttr, {**node.attrs, **attrs})
         else:
             node.attrs = attrs
 
-    def update_edge(self, edge: Edge, attrs: EdgeAttr):
+    @staticmethod
+    def update_edge(edge: Edge, attrs: EdgeAttr):
         if edge.attrs:
             edge.attrs = cast(EdgeAttr, {**edge.attrs, **attrs})
         else:

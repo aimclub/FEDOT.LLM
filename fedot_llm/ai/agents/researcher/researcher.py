@@ -6,16 +6,16 @@ from langchain_core.tools import tool
 from langgraph.graph import END, StateGraph
 
 from fedot_llm.ai.agents.researcher.edges import is_docs_relevant
-from fedot_llm.ai.agents.researcher.nodes.answer_grader import AnswerGraderCondNode
-from fedot_llm.ai.agents.researcher.nodes.generate import GenerateNode
-from fedot_llm.ai.agents.researcher.nodes.hallucination_grader import (
+from fedot_llm.ai.agents.researcher.nodes import (
+    AnswerGraderCondNode,
+    GenerateNode,
     HallucinationGraderCondNode,
+    RenderAnswerNode,
+    RetrievalGraderNode,
+    RetrieveNode,
+    RewriteQuestionNode,
+    ShouldContinueCondNode,
 )
-from fedot_llm.ai.agents.researcher.nodes.render_answer import RenderAnswerNode
-from fedot_llm.ai.agents.researcher.nodes.retrieve import RetrieveNode
-from fedot_llm.ai.agents.researcher.nodes.retrieve_grader import RetrievalGraderNode
-from fedot_llm.ai.agents.researcher.nodes.rewrite_question import RewriteQuestionNode
-from fedot_llm.ai.agents.researcher.nodes.should_continue import ShouldContinueCondNode
 from fedot_llm.ai.agents.researcher.state import ResearcherAgentState
 from fedot_llm.ai.memory import LongTermMemory
 
@@ -46,7 +46,7 @@ class ResearcherAgent:
 
         # Add nodes
         workflow.add_node("retrieve",
-                          RetrieveNode(retriever=self.memory.get_collection("docs").get_retriever()))
+                          RetrieveNode(retriever=self.memory.get_collection("FedotDocs").get_retriever()))
         workflow.add_node("retrieve_grader", RetrievalGraderNode(llm=self.llm))
         workflow.add_node("generate", GenerateNode(llm=self.llm))
         answer_grader = AnswerGraderCondNode(llm=self.llm)

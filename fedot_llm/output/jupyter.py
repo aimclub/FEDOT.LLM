@@ -25,7 +25,7 @@ class JupyterOutput:
         ])
         records: Dict[Action, str] = {}
 
-        def on_change_hook(event: StreamEvent, action: Action) -> None:
+        def on_change_hook(_: StreamEvent, action: Action) -> None:
             nonlocal records
             content = ''
             if action.state == 'Waiting':
@@ -88,7 +88,7 @@ class JupyterOutput:
         return handler
 
     def display_handler(self):
-        def handler(event: StreamEvent):
+        def handler(_: StreamEvent):
             if self.display_content:
                 clear_output(wait=True)
                 for content in self.display_content:
