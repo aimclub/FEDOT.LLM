@@ -32,20 +32,47 @@ To use the API, follow these steps:
    ```
 
 2. Initialize the FedotAI object. The required parameters are the following: 
-* `dataset` native `fedot_llm.data.data.Dataset` object containing dataset files (can be initialized from a specified path to a dataset)
-* `model` chat model to use (currently ollama and custom request based models are supported)
-* `output` output type ('jupyter' for live updated status report and 'debug' for a feed of all langchain events)
 
-To acquire predictions, use the `predict` method with a string description of the dataset and associated task in an arbitrary form.
-   ```
-   fedot_ai =  FedotAI(
-         dataset=PathDatasetLoader.load(dataset_path),
-         model=init_chat_model(
-                           model="llama3.1",
-                           model_provider='ollama'),
-         output='jupyter')
-   predictions = await fedot_ai.predict(description)
-   ```
+* The `dataset` is a native `fedot_llm.data.data.Dataset` object that contains the dataset files. It can be initialized using specific loaders, such as the `PathDatasetLoader`.
+
+* The `model` is the chat model you want to use. You can use any chat model class from the `langchain` library. However, for the best experience, we recommend using models like gpt4o-mini or higher.
+
+* `handlers` is a list of output handlers to use. You can create your own output handler or use the pre-existing ones. For instance, `JupyterOutput` contains handlers for Jupyter notebooks. You can subscribe to all of them using `JupyterOutput().subscribe`.
+
+To acquire predictions, use the `ask` method with a string description of the dataset and associated task in an arbitrary form.
+```python
+# Import necessary modules and classes
+from langchain_openai import ChatOpenAI
+from pathlib import Path
+from fedot_llm.data.loaders import PathDatasetLoader
+from fedot_llm.main import FedotAI
+from fedot_llm.output.jupyter import JupyterOutput
+
+# Initialize the ChatOpenAI model
+# Note: Make sure to set the OPENAI_TOKEN environment variable
+llm = ChatOpenAI(model='gpt-4o-mini', base_url='https://models.inference.ai.azure.com', api_key=os.environ['OPENAI_TOKEN'])
+
+# Set the path to the dataset
+# Load the dataset using PathDatasetLoader
+dataset_path = Path(module_path) / 'datasets' / 'Health_Insurance'
+dataset = PathDatasetLoader.load(dataset_path)
+
+# Define the task description for the model
+msg="""Create a model that perform this task:
+Our client is an insurance company that has provided health insurance to its customers.
+They are interested in whether the policyholders (customers) from last year
+will also be interested in the car insurance provided by the company."""
+
+# Initialize FedotAI with the dataset, language model, and output handlers
+fedot_ai = FedotAI(dataset=dataset, 
+                model=llm,
+                handlers=JupyterOutput().subscribe)
+
+# Asynchronously process the task using FedotAI
+# The loop continues until the task is completed
+async for _ in fedot_ai.ask(message=msg):
+    continue`
+```
 
 ## Examples and demo
 
