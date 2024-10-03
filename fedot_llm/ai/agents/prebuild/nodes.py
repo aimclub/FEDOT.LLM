@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Callable, Any
 
 from langchain_core.runnables import Runnable
-from langgraph.utils import RunnableCallable
+from langgraph.utils.runnable import RunnableCallable
 
 
 class AgentNode(RunnableCallable, ABC):
