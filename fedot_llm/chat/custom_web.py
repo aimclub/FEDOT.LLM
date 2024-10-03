@@ -1,19 +1,20 @@
-from typing import List, Optional, Any, Dict, Union, Literal, Tuple
+import json
+from typing import List, Optional, Any, Dict, Union
+
+import requests
 from langchain_core.callbacks import (
     CallbackManagerForLLMRun,
 )
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, \
+    SystemMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
-import requests
-import json
-
-        
 
 
 class ChatCustomWeb(BaseChatModel):
     model: Optional[str] = 'llama3'
     base_url: str = 'http://10.32.2.2:8672'
+
     timeout: Optional[int] = None
     """Timeout for the request stream"""
 
@@ -23,11 +24,10 @@ class ChatCustomWeb(BaseChatModel):
         return "chat-custom-web"
 
     def _convert_messages_to_custom_web_messages(
-        self, messages: List[BaseMessage]
+            self, messages: List[BaseMessage]
     ) -> List[Dict[str, Union[str, List[str]]]]:
         chat_messages: List = []
         for message in messages:
-            role = ""
             if isinstance(message, HumanMessage):
                 role = "user"
             elif isinstance(message, AIMessage):
@@ -38,7 +38,6 @@ class ChatCustomWeb(BaseChatModel):
                 raise ValueError(
                     "Received unsupported message type for Ollama.")
 
-            content = ""
             if isinstance(message.content, str):
                 content = message.content
             else:
@@ -55,10 +54,10 @@ class ChatCustomWeb(BaseChatModel):
         return chat_messages
 
     def _create_chat(
-        self,
-        messages: List[BaseMessage],
-        stop: Optional[List[str]] = None,
-        **kwargs: Any,
+            self,
+            messages: List[BaseMessage],
+            stop: Optional[List[str]] = None,
+            **kwargs: Any,
     ) -> Dict:
         payload = {
             "model": self.model,
@@ -86,11 +85,11 @@ class ChatCustomWeb(BaseChatModel):
         return json.loads(response.text)
 
     def _generate(
-        self,
-        messages: List[BaseMessage],
-        stop: Optional[List[str]] = None,
-        run_manager: Optional[CallbackManagerForLLMRun] = None,
-        **kwargs: Any,
+            self,
+            messages: List[BaseMessage],
+            stop: Optional[List[str]] = None,
+            run_manager: Optional[CallbackManagerForLLMRun] = None,
+            **kwargs: Any,
     ) -> ChatResult:
         response = self._create_chat(messages, stop, **kwargs)
         chat_generation = ChatGeneration(

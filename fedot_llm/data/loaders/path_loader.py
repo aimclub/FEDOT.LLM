@@ -19,7 +19,7 @@ class PathDatasetLoader:
             with_metadata: Whether Dataset should be loading metadata.json file contained in folder. Defaults to false.
 
         """
-        
+
         if isinstance(path, str):
             path = Path(path)
 
@@ -68,7 +68,7 @@ class PathDatasetLoader:
             files = [x for x in path.glob('**/*') if x.is_file()]
             for file in files:
                 file_path = file.absolute()
-                split_name = file.name.split(".")[0]
+                split_name = file.name
                 if file.name.split(".")[-1] == "csv":
                     data = pd.read_csv(file_path)
                     split = Split(data=data, path=file_path, name=split_name)

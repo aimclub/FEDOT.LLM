@@ -1,9 +1,10 @@
+from typing import Any, AsyncIterator, Iterator
+
 from langchain_core.callbacks import CallbackManagerForChainRun, AsyncCallbackManagerForChainRun
-from langchain_core.runnables import RunnableConfig, patch_config
 from langchain_core.runnables import Runnable, RunnablePassthrough, RunnableLambda, RunnableParallel
+from langchain_core.runnables import RunnableConfig, patch_config
 from langchain_core.runnables.utils import Input, Output
 from typing_extensions import Optional, cast
-from typing import Any, AsyncIterator, Coroutine, Iterator
 
 
 class BaseRunnableChain(Runnable[Input, Output]):
@@ -146,7 +147,8 @@ class BaseRunnableChain(Runnable[Input, Output]):
         final: Input
         got_first_val = False
         async for ichunk in input:
-            # By definitions, RunnableLambdas consume all input before emitting output.
+            # By definitions, RunnableLambdas consume all input
+            # before emitting output.
             # If the input is not addable, then we'll assume that we can
             # only operate on the last chunk.
             # So we'll iterate until we get to the last chunk!

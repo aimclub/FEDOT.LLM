@@ -41,13 +41,12 @@ class DatasetTrainSplitChain(BaseRunnableChain):
     >>> DatasetTrainSplitChain(model, dataset).invoke({"dataset_detailed_description": dataset.detailed_description})
     'train'
     """
-    
 
     def __init__(self, model: BaseChatModel, dataset: Dataset):
         self.chain = (
                 TRAIN_SPLIT_TEMPLATE
                 | model
                 | StrOutputParser()
-                | (lambda name: name.split(".")[0].strip().strip(r",.\'\"“”‘’`´"))
+                | (lambda name: name.strip().strip(r",\'\"“”‘’`´"))
                 | (lambda name: set_split(str(name), "train", dataset) or name)
         )

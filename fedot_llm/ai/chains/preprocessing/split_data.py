@@ -1,4 +1,3 @@
-
 from langchain_core.runnables import RunnableLambda
 from sklearn.model_selection import train_test_split
 
@@ -32,10 +31,13 @@ class SplitDataChain(BaseRunnableChain):
     >>> SplitDataChain().invoke({"data": pd.DataFrame('data.csv')})
     {'train': '1,2,3,4,5', 'test': '6,7,8,9,10'}
     """
+
     def process(self, input):
-        new_train, new_test = train_test_split(input['data'], train_size=self.train_size, random_state=self.random_state)
+        new_train, new_test = train_test_split(input['data'], train_size=self.train_size,
+                                               random_state=self.random_state)
         return {'train': new_train, 'test': new_test}
-    def __init__(self, train_size:float = 0.8, random_state:int = 42):
+
+    def __init__(self, train_size: float = 0.8, random_state: int = 42):
         self.train_size = train_size
         self.random_state = random_state
         self.chain = (

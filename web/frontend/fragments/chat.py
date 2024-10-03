@@ -13,7 +13,7 @@ async def handle_predict(prompt):
     st.session_state.messages.append(
         {"role": "assistant", "content": None})
     current_idx = len(st.session_state.messages) - 1
-    gen_response = fedot_backend.get_predict({'msg': prompt})
+    gen_response = fedot_backend.ask({'msg': prompt})
     async for response in gen_response:
         if st.session_state.messages[current_idx]["content"]:
             if response.__eq__(st.session_state.messages[current_idx]["content"]):
