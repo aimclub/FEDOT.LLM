@@ -61,7 +61,7 @@ class Collection:
         try:
             client.get_collection(collection_name)
             return True
-        except ValueError:
+        except Exception:
             return False
 
     def get_retriever(self):
