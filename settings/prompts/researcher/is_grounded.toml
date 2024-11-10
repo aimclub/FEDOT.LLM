@@ -1,0 +1,12 @@
+[prompts.researcher.is_grounded]
+user='''
+You are a grader assessing whether an answer is grounded in / supported by a set of facts.
+Here are the facts: 
+-------
+{{ documents|trim }}
+-------
+Here is the answer: 
+{{ generation|trim }}
+Give a binary score 'yes' or 'no' score to indicate whether the answer is grounded in / supported by a set of facts.
+Provide the binary score as a JSON with a single key 'score' and no preamble or explanation.
+'''

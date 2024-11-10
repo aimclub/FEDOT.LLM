@@ -1,0 +1,35 @@
+import streamlit as st
+import pandas as pd
+
+# TODO: this function is for deploying an evaluated model with the Streamlit Python library
+pipeline = prepare_model_for_deployment()
+    
+# Define the predict_new_data function to predict new data from the user
+def predict_new_data(...):
+    # InputData is a class from FEDOT library
+    # InputData can be created using the following methods:
+    # - from_numpy(features_array: np.ndarray, target_array: np.ndarray, task:str='classification')
+    # - from_numpy_time_series(features_array: np.ndarray)
+    # - from_dataframe(features_df: pd.DataFrame, target_df: pd.DataFrame)
+    # - from_csv(file_path:Union[os.PathLike, str])
+    # - from_csv_time_series(file_path:Union[os.PathLike, str])
+    # - from_csv_multi_time_series(file_path:Union[os.PathLike, str])
+    # - from_image(images:Union[str, np.ndarray]=None, labels:Union[str, np.ndarray]=None)
+    # - from_json_files(files_path:str, fields_to_use:List)
+    input_data = InputData.from_...(...)
+    # OutputData is a class from FEDOT library
+    # OutputData returned by pipeline.predict() method
+    # OutputData has `predict: np.ndarray` attribute which contains predictions
+    output_data:OutputData = pipeline.predict(input_data=input_data)
+    return ...
+
+st.title(...)
+
+st.header(...)
+st.{input widget}(...)
+...
+
+if st.button(...):
+    input_data = ...
+    prediction = predict_new_data(input_data)
+    st...{Prediction: prediction }

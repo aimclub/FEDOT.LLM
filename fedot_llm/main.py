@@ -1,39 +1,38 @@
-from dataclasses import dataclass, field
-from typing import Any, Dict, Literal, Optional, Union
 
-from langchain_core.language_models.chat_models import BaseChatModel
+from typing import Callable, List
+
+from pydantic import BaseModel, Field, ConfigDict, model_validator
+from langchain_core.messages import HumanMessage
 from langchain_core.runnables import Runnable
+from langchain_core.runnables.schema import StreamEvent
+from typing_extensions import Any, AsyncIterator
 
+from fedot_llm.agents.supervisor.supervisor import SupervisorAgent
+from fedot_llm.agents.memory import LongTermMemory
 from fedot_llm.data import Dataset
-from fedot_llm.output import BaseFedotAIOutput, ConsoleFedotAIOutput, JupyterFedotAIOutput
-from fedot_llm.data.loaders import PathDatasetLoader
-from fedot_llm.ai.chains.ready_chains.predict import PredictChain
+from fedot_llm.llm.inference import AIInference
 
-
-@dataclass
-class FedotAI():
+class FedotAI(BaseModel):
     dataset: Dataset
-    model: BaseChatModel
-    second_model: Optional[BaseChatModel] = None
-    output: Optional[Union[BaseFedotAIOutput, Literal['jupyter', 'debug']]] = None
-        
-    async def predict(self, dataset_description, visualize=True):
-        if isinstance(self.dataset, str):
-            raise ValueError("Dataset is not loaded")
-        chain = PredictChain(self.model, self.dataset)
-        chain_input = {"dataset_description": dataset_description}
-        predictions = await self.__start_chain(chain, chain_input)
-        return predictions
+    inference: AIInference = Field(default_factory=AIInference)
+    memory: LongTermMemory = Field(default_factory=LongTermMemory)
+    entry_point: Runnable = Field(default=None)
+    handlers: List[Callable[[StreamEvent], None]] = Field(default_factory=list)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    async def __start_chain(self, chain: Runnable, chain_input: Dict[str, Any]):
-        if self.output:
-            if isinstance(self.output, str):
-                match self.output:
-                    case "jupyter":
-                        self.output = JupyterFedotAIOutput()
-                    case "debug":
-                        self.output = ConsoleFedotAIOutput()
-            if isinstance(self.output, BaseFedotAIOutput):
-                return await self.output._chain_call(chain=chain, chain_input=chain_input)
-            else:
-                raise ValueError("Unsupported output type")
+    @model_validator(mode='after')
+    def set_entry_point(self) -> Any:
+        self.entry_point = SupervisorAgent(
+            inference=self.inference,
+            memory=self.memory
+        ).create_graph()
+        return self
+
+    async def ask(self, message: str) -> AsyncIterator[Any]:
+        async for event in self.entry_point.astream_events(
+            {"messages": [HumanMessage(content=message)], "dataset": self.dataset},
+            version="v2"
+        ):
+            for handler in self.handlers:
+                handler(event)
+            yield event

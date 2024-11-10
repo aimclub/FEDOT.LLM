@@ -188,3 +188,8 @@ saved_pipelines/
 # MacOS
 .DS_Store
 
+#Chroma
+chroma/
+
+_experiments/
+

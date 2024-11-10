@@ -1,15 +1,14 @@
-import zipfile
-import json
 import os
-import pandas as pd
-from scipy.io import arff
+import zipfile
+
 
 def unzip_archive(zip_name, extract_to):
     with zipfile.ZipFile(zip_name, 'r') as zipf:
         zipf.extractall(extract_to)
 
     print(f"{zip_name} extracted to {extract_to} successfully.")
-        
+
+
 def zip_archive(folder_path, zip_name):
     # Create a ZipFile object
     with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as zipf:

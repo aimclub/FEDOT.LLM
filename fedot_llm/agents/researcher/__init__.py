@@ -1,0 +1,1 @@
+from fedot_llm.agents.researcher.researcher import ResearcherAgent

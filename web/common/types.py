@@ -1,24 +1,22 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
 
-from dataclasses import dataclass, field
-
-from dataclasses_json import dataclass_json
-from langchain_core.runnables.schema import StreamEvent
-from typing_extensions import (List, Optional,
-                               TypeAlias, TypedDict, Union, Dict)
-from enum import Enum
-
-from fedot_llm.ai.actions import Actions, Action
-
-from web.backend.utils.graphviz_builder import GraphvizBuilder, Node, Edge
-from fedot_llm.ai.chains.analyze import AnalyzeFedotResultChain
-
-from hashlib import sha256
-from datetime import datetime
 import logging
 import random
-from web.common.colors import BSColors, STColors, AdditionalColors
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from hashlib import sha256
+from typing_extensions import ClassVar, Dict, List, Optional, Set, TypeAlias, Union, TypedDict
+
+from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.runnables.schema import StreamEvent
+from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
+
+from web.backend.utils.graphviz_builder import Edge, GraphvizBuilder, Node
+from web.common.colors import BSColors, STColors
+
+ResponseContent: TypeAlias = Union[None, str,
+                                   List['BaseResponse'], 'BaseResponse', 'TypedContentResponse']
 
 
 class ResponseState(Enum):
@@ -35,27 +33,32 @@ class TypedContentResponse(TypedDict):
     type: str
 
 
-@dataclass_json
-@dataclass
-class BaseResponse:
-    id: Optional[str] = None
+class BaseResponse(BaseModel):
+    id: Optional[str] = Field(default=None)
     state: Optional[ResponseState] = None
     name: Optional[str] = None
     content: ResponseContent = None
     stream: bool = False
 
-    def __post_init__(self):
-        if not self.id:
+    model_config = ConfigDict(populate_by_name=True)
+
+    @model_validator(mode='after')
+    def set_id(self) -> BaseResponse:
+        if self.id is None:
             self.id = self.new_id(self.name)
+        return self
 
-    def new_id(self, name: Optional[str] = ''):
+    @classmethod
+    def new_id(cls, name: Optional[str] = '') -> str:
         date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        random_part = sha256(
+            f'{cls.__name__}{date}{random.random()}'.encode()).hexdigest()
         if name:
-            return f"{name}{self.__class__.__name__}{sha256(f'{self.__class__.__name__}{date}{random.random()}'.encode()).hexdigest()}"
+            return f"{name}{cls.__name__}{random_part}"
         else:
-            return f"{self.__class__.__name__}{sha256(f'{self.__class__.__name__}{date}{random.random()}'.encode()).hexdigest()}"
+            return f"{cls.__name__}{random_part}"
 
-    def handler(self, event: StreamEvent) -> Optional[BaseResponse]:
+    def handler(self, _: StreamEvent) -> Optional[BaseResponse]:
         """Method that return stage handler"""
         return self
 
@@ -69,7 +72,8 @@ class BaseResponse:
             raise ValueError("Cannot add objects with different ids")
 
         if isinstance(self.content, List) and isinstance(other.content, List):
-            self_content_dict = {item.id: item for item in self.content}
+            self_content_dict = {
+                item.id: item for item in self.content if isinstance(item, BaseResponse)}
             for new_item in other.content:
                 if new_item.id in self_content_dict:
                     self_content_dict[new_item.id] += new_item
@@ -78,7 +82,7 @@ class BaseResponse:
         elif isinstance(self.content, str) and isinstance(other.content, str):
             self.content = self.content + other.content if other.stream else other.content
         elif isinstance(self.content, Dict) and isinstance(other.content, Dict):
-            self.content = self.content | other.content
+            self.content = {**self.content, **other.content}
         elif isinstance(self.content, BaseResponse) and isinstance(other.content, BaseResponse):
             self.content += other.content
         else:
@@ -103,8 +107,10 @@ class BaseResponse:
             if len(self.content) != len(other.content):
                 return False
 
-            self_content_dict = {item.id: item for item in self.content}
-            other_content_dict = {item.id: item for item in other.content}
+            self_content_dict = {
+                item.id: item for item in self.content if isinstance(item, BaseResponse)}
+            other_content_dict = {
+                item.id: item for item in other.content if isinstance(item, BaseResponse)}
 
             if self_content_dict.keys() != other_content_dict.keys():
                 return False
@@ -130,117 +136,96 @@ class Response:
         return self.root
 
 
-class UIElement(ABC):
-
-    @abstractmethod
-    def register_hooks(self, response: Response, actions: Actions) -> None:
-        """Method that register actions hooks"""
+def trim_string(input_string: str, max_length: int) -> str:
+    return input_string if len(input_string) <= max_length else input_string[:max_length - 3] + '...'
 
 
-def trim_string(input_string: str, max_length: int):
-    if len(input_string) <= max_length:
-        return input_string
-    else:
-        return input_string[:max_length - 3] + '...'
+class MessagesHandler(BaseResponse):
+    SUBSCRIBE_EVENTS: ClassVar[List[str]] = [
+        'SupervisorAgent', 'ResearcherAgent', 'AutoMLAgent']
+    SEPARATOR: ClassVar[str] = "---\n\n"
+
+    def message_handler(self, response: Response) -> callable:
+        content: List[str] = []
+        message_idx: Set[str] = set()
+
+        def process_event(event: StreamEvent) -> None:
+            if event['name'] not in self.SUBSCRIBE_EVENTS or not event.get('data'):
+                return
+
+            output = event['data'].get('output')
+            if not isinstance(output, dict):
+                return
+
+            messages = output.get('messages')
+            if messages is None:
+                return
+
+            new_messages = self._process_messages(messages, message_idx)
+            self._update_content(new_messages, content)
+
+            if new_messages:
+                self._append_response(response, content)
+
+        return process_event
+
+    @staticmethod
+    def _process_messages(messages: Union[List, AIMessage, HumanMessage], message_idx: Set[str]) -> List[Union[AIMessage, HumanMessage]]:
+        new_messages = []
+        if isinstance(messages, list):
+            for message in messages:
+                if isinstance(message, (AIMessage, HumanMessage)) and message.id not in message_idx:
+                    message_idx.add(message.id)
+                    new_messages.append(message)
+        elif isinstance(messages, (AIMessage, HumanMessage)) and messages.id not in message_idx:
+            message_idx.add(messages.id)
+            new_messages.append(messages)
+        return new_messages
+
+    @classmethod
+    def _update_content(cls, new_messages: List[Union[AIMessage, HumanMessage]], content: List[str]) -> None:
+        for message in new_messages:
+            if isinstance(message, AIMessage):
+                content.append(f"{cls.SEPARATOR}**Supervisor**")
+                content.append(message.content)
+            elif isinstance(message, HumanMessage) and message.name:
+                content.append(f"{cls.SEPARATOR}**{message.name}**")
+                content.append(message.content)
+
+    def _append_response(self, response: Response, content: List[str]) -> None:
+        response.append(BaseResponse(
+            id=self.id,
+            name=self.name,
+            state=self.state,
+            content='\n\n'.join(content),
+            stream=self.stream
+        ))
 
 
-@dataclass_json
-@dataclass
-class ProgressResponse(BaseResponse, UIElement):
-    records: Dict[Action, str] = field(init=False, default_factory=dict)
-    name: str = field(init=False, default='progress')
-    state: Optional[ResponseState] = field(init=False, default=None)
-    content: Optional[str] = field(init=False, default=None)
-    stream: bool = field(init=False, default=False)
+class GraphResponse(BaseResponse):
+    name: Optional[str] = Field(default='graph', init=False)
+    state: Optional['ResponseState'] = Field(default=None, init=False)
+    stream: bool = Field(default=False, init=False)
 
-    def __post_init__(self):
-        super().__post_init__()
+    @field_validator('content', mode='before')
+    @classmethod
+    def set_content(cls, v: Optional[ResponseContent]) -> TypedContentResponse:
+        if v is None:
+            return {
+                'data': None,
+                'type': 'graphviz'
+            }
+        return v
 
-    def register_hooks(self, response: Response, actions: Actions) -> None:
-        def on_change_hook(event: StreamEvent, action: Action) -> None:
-            nonlocal self, response
-            content = ''
-            if action.state == 'Waiting':
-                content += f":gray[:material/pending:] {action}\n\n"
-            elif action.state == 'Running' or action.state == 'Streaming':
-                content += f":orange[:material/sprint:] {action}\n\n"
-            elif action.state == 'Completed':
-                content += (f":green[:material/check:]  {action} "
-                            f"```{trim_string(str(event['data']['output']), 40)}```\n\n")
-
-            if any([item.state == 'Running' for item in actions.records.values()]):
-                self.state = ResponseState.RUNNING
-
-            if all([item.state == 'Completed' for item in actions.records.values()]):
-                self.state = ResponseState.COMPLETE
-
-            self.records[action] = content
-            response.append(BaseResponse(id=self.id,
-                                         name=self.name,
-                                         state=self.state,
-                                         content=''.join(self.records.values()),
-                                         stream=self.stream))
-
-        for action in actions.records.values():
-            action.on_change.append(on_change_hook)
-            self.records[action] = f":gray[:material/pending:] {action}\n\n"
-
-
-@dataclass_json
-@dataclass
-class AnalyzeResponse(BaseResponse, UIElement):
-    name: Optional[str] = field(init=False, default=None)
-    state: Optional[ResponseState] = field(init=False, default=None)
-    content: Optional[str] = field(init=False, default=None)
-    stream: bool = field(init=False, default=True)
-
-    def __post_init__(self):
-        super().__post_init__()
-
-    def register_hooks(self, response: Response, actions: Actions) -> None:
-        def on_stream_hook(event: StreamEvent, action: Action) -> None:
-            if action.state == 'Streaming':
-                if 'data' in event and 'chunk' in event['data']:
-                    response.append(BaseResponse(id=self.id,
-                                                 name=self.name,
-                                                 state=self.state,
-                                                 content=event['data']['chunk'],
-                                                 stream=self.stream))
-
-        def on_change_hook(event: StreamEvent, action: Action) -> None:
-            if action.state == 'Running':
-                self.state = ResponseState.RUNNING
-            if action.state == 'Completed':
-                self.state = ResponseState.COMPLETE
-            response.append(BaseResponse(id=self.id,
-                                         name=self.name,
-                                         state=self.state,
-                                         content=None,
-                                         stream=self.stream))
-
-        if AnalyzeFedotResultChain.__name__ in actions.records:
-            actions.records[AnalyzeFedotResultChain.__name__].on_stream.append(on_stream_hook)
-            actions.records[AnalyzeFedotResultChain.__name__].on_change.append(on_change_hook)
-
-
-@dataclass_json
-@dataclass
-class PipeLineResponse(BaseResponse, UIElement):
-    graph: GraphvizBuilder = field(init=False)
-    name: Optional[str] = field(init=False, default='pipeline')
-    state: Optional[ResponseState] = field(init=False, default=None)
-    stream: bool = field(init=False, default=False)
-
-    def __post_init__(self):
-        self.content = {
-            'data': None,
-            'type': 'graphviz'
-        }
-        super().__post_init__()
-        self.graph = GraphvizBuilder(
+    @staticmethod
+    def init_default_graph(name: str = '') -> GraphvizBuilder:
+        label = '' if name == '__start__' else name
+        return GraphvizBuilder(
+            name=name,
             graph_type='digraph',
             graph_attr={
                 'bgcolor': 'transparent',
+                'label': label,
                 'rankdir': 'LR',
             },
             edge_attr={
@@ -254,54 +239,70 @@ class PipeLineResponse(BaseResponse, UIElement):
             }
         )
 
-    def register_hooks(self, response: Response, actions: Actions) -> None:
+    def graph_handler(self, response: Response):
         content: TypedContentResponse = {
             'data': None,
             'type': 'graphviz'
         }
+        nesting_graphs: List[GraphvizBuilder] = []
 
-        def on_change_hook(event: StreamEvent, action: Action) -> None:
+        def handler(event: StreamEvent):
             nonlocal content
-            if action.state in ['Running', 'Completed']:
-                if action.state == 'Running':
-                    new_node = Node(name=action.id, attrs={'label': action.name,
-                                                           'color': BSColors.PRIMARY.value})
-                    if len(self.graph.edges) > 0:
-                        prev_node = self.graph.edges[-1].dst
-                        self.graph.add_edge(Edge(src=prev_node, dst=new_node))
-                    elif len(self.graph.edges) == 0 and len(self.graph.nodes) == 1:
-                        prev_node = list(self.graph.nodes.values())[0]
-                        self.graph.add_edge(Edge(src=prev_node, dst=new_node))
-                    self.graph.add_node(new_node)
-                if action.state == 'Completed':
-                    self.graph.add_node(Node(name=action.id, attrs={'label': action.name,
-                                                                    'color': BSColors.SUCCESS.value}))
-                content['data'] = self.graph.compile().source.replace('\n\t', ' ')
-                response.append(BaseResponse(id=self.id,
-                                             name=self.name,
-                                             state=self.state,
-                                             content=content,
-                                             stream=self.stream))
+            event_name = event['name']
+            event_state = event['event']
+            event_metadata = event.get("metadata", None)
+            if event_metadata:
+                langgraph_node = event_metadata.get("langgraph_node", None)
+                if langgraph_node:
+                    ns = event_metadata.get("langgraph_checkpoint_ns", None)
+                    if ns:
+                        ns = ns.split(":")[0]
+                    if not nesting_graphs:
+                        new_graph = self.init_default_graph(ns)
+                        nesting_graphs.append(new_graph)
+                    elif ns != nesting_graphs[-1].name:
+                        if len(nesting_graphs) < 3 or ns != nesting_graphs[-2].name:
+                            new_graph = self.init_default_graph(ns)
+                            nesting_graphs[-1].subgraphs.append(new_graph)
+                            nesting_graphs.append(new_graph)
+                        else:
+                            nesting_graphs.pop()
 
-        for action in actions.records.values():
-            action.on_change.append(on_change_hook)
+                    if langgraph_node == event_name and (event_name != '__start__' or ns == '__start__'):
+                        if event_state == "on_chain_start":
+                            new_node = Node(name=event_name, attrs={'label': str(event_name),
+                                                                    'color': BSColors.PRIMARY.value})
+                            if nesting_graphs[-1].edges:
+                                prev_node = nesting_graphs[-1].edges[-1].dst
+                                nesting_graphs[-1].add_edge(
+                                    Edge(src=prev_node, dst=new_node))
+                            elif not nesting_graphs[-1].edges and len(nesting_graphs[-1].nodes) == 1:
+                                prev_node = next(
+                                    iter(nesting_graphs[-1].nodes.values()))
+                                nesting_graphs[-1].add_edge(
+                                    Edge(src=prev_node, dst=new_node))
+                            elif len(nesting_graphs) > 1:
+                                if nesting_graphs[-2].edges:
+                                    prev_node = nesting_graphs[-2].edges[-1].dst
+                                    nesting_graphs[-2].add_edge(
+                                        Edge(src=prev_node, dst=new_node))
+                                if not nesting_graphs[-2].edges and len(nesting_graphs[-2].nodes) == 1:
+                                    prev_node = next(
+                                        iter(nesting_graphs[-2].nodes.values()))
+                                    nesting_graphs[-2].add_edge(
+                                        Edge(src=prev_node, dst=new_node))
+                            nesting_graphs[-1].add_node(new_node)
+                        elif event_state == "on_chain_end":
+                            nesting_graphs[-1].add_node(Node(name=event_name, attrs={'label': str(event_name),
+                                                                                     'color': BSColors.SUCCESS.value}))
+                        content['data'] = nesting_graphs[0].compile().source
 
+                        response.append(BaseResponse(
+                            id=self.id,
+                            name=self.name,
+                            state=self.state,
+                            content=content,
+                            stream=self.stream
+                        ))
 
-
-def get_logger_handler():
-    logger = logging.getLogger(__name__)
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler = logging.FileHandler(
-        filename='events.log', mode='w', encoding='utf-8')
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-    logger.setLevel(logging.DEBUG)
-
-    def handler(event: StreamEvent) -> None:
-        logger.debug(event)
-
-    return handler
-
-
-ResponseContent: TypeAlias = Union[None, str, List[BaseResponse], BaseResponse, TypedContentResponse]
+        return handler
