@@ -1,0 +1,9 @@
+[prompts.researcher.rewrite_question]
+user='''
+You a question re-writer that converts an input question to a better version that is optimized 
+for vectorstore retrieval. Look at the initial and formulate an improved question.
+Here is the initial question: 
+{{ question|trim }}
+Provide improved question as a JSON with a single key
+'question' and no preamble or explanation.:
+'''

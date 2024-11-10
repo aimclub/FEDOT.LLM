@@ -1,6 +1,6 @@
 import streamlit as st
-# import os
-# from dotenv import load_dotenv
+import os
+from dotenv import load_dotenv
 
 
 def init_page():
@@ -36,14 +36,14 @@ def init_session_state():
     if 'prev_graph' not in st.session_state.keys():
         st.session_state.prev_graph = None
 
-    # def _set_env(var: str):
-    #     if not os.environ.get(var):
-    #         print(f"No {var} in env")
-    #
-    # load_dotenv()
-    # _set_env("LANGSMITH_API_KEY")
-    # os.environ["LANGCHAIN_TRACING_V2"] = "true"
-    # os.environ["LANGCHAIN_PROJECT"] = "FEDOT.LLM"
+    def _set_env(var: str):
+        if not os.environ.get(var):
+            print(f"No {var} in env")
+    
+    load_dotenv()
+    _set_env("LANGSMITH_API_KEY")
+    os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    os.environ["LANGCHAIN_PROJECT"] = "FEDOT.LLM"
 
 
 def init_session():

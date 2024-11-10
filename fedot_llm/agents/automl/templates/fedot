@@ -1,0 +1,19 @@
+### FEDOT ###
+# FEDOT AutoML framework for training the mode
+model = Fedot(problem={%problem%},
+        timeout={%timeout%},
+        seed={%seed%},
+        cv_folds={%cv_folds%},
+        preset={%preset%},
+        metric={%metric%},
+        with_tuning=True,
+        show_progress=True)
+
+model.fit(features=train_data, target=target) # this is the training step, after this step variable ‘model‘ will be a trained model
+
+# Save the pipeline
+pipeline = model.current_pipeline
+pipeline.save(path=PIPELINE_PATH, create_subdir=False, is_datetime_in_path=False)
+
+return model
+### FEDOT ###
