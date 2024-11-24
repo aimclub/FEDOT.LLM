@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Literal, Optional, Union, List
+from typing import Literal, Optional, Union
+from fedot.core.repository.tasks import TaskTypesEnum
 from enum import Enum
-
+from settings.config_loader import get_settings
 
 class ProblemType(str, Enum):
     CLASSIFICATION = 'classification'
@@ -20,11 +21,11 @@ class PresetType(str, Enum):
 
 
 class ClassificationMetricsEnum(str, Enum):
-    ROCAUC = 'roc_auc'
+    # ROCAUC = 'roc_auc'
     precision = 'precision'
-    f1 = 'f1'
-    logloss = 'neg_log_loss'
-    ROCAUC_penalty = 'roc_auc_pen'
+    # f1 = 'f1'
+    # logloss = 'neg_log_loss'
+    # ROCAUC_penalty = 'roc_auc_pen'
     accuracy = 'accuracy'
 
 
@@ -54,10 +55,10 @@ class TimeSeriesForecastingMetricsEnum(str, Enum):
 class FedotConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    problem: ProblemType = Field(...,
+    problem: TaskTypesEnum = Field(...,
                                  description='Name of the modelling problem to solve')
     timeout: float = Field(
-        1, description="Time for model design (in minutes): None or -1 means infinite time.")
+        get_settings().config.fedot_timeout, description="Time for model design (in minutes)")
     seed: Optional[int] = Field(None, description="Seed for random generation")
     cv_folds: Optional[int] = Field(
         None, description="Number of folds for cross-validation")
@@ -74,8 +75,7 @@ class FedotConfig(BaseModel):
             "automl -> A special preset with only AutoML libraries such as TPOT and H2O as operations"
         )
     )
-    metrics: List[Union[ClassificationMetricsEnum, RegressionMetricsEnum, TimeSeriesForecastingMetricsEnum]
-                  ] = Field(..., description="Choose all relevant to problem metrics of model quality assessment")
+    metric: Union[ClassificationMetricsEnum, RegressionMetricsEnum, TimeSeriesForecastingMetricsEnum] = Field(..., description="Choose relevant to problem metric of model quality assessment.")
     predict_method: Literal['predict', 'predict_proba', 'forecast'] = Field(...,
                                                                             description="Method for prediction: predict - for classification and regression, predict_proba - for classification, forecast - for time series forecasting")
 

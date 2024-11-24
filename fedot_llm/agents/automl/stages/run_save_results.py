@@ -1,4 +1,4 @@
-from fedot_llm.agents.automl.state import AutoMLAgentState
+from fedot_llm.agents.automl.automl import AutoMLAgentState
 from settings.config_loader import get_settings
 from pathlib import Path
 import shutil
@@ -16,8 +16,8 @@ def run_save_results(state: AutoMLAgentState):
             f.write(solution['code'])
         logger.info(f"Saved solution to {result_dir / 'solution.py'}")
 
-    pipeline_path = Path(get_settings()['config']['output_dir']) / "_pipelines"
+    pipeline_path = Path(get_settings()['config']['output_dir']) / "pipeline"
     if pipeline_path.exists():
         shutil.copytree(pipeline_path, result_dir /
-                        "_pipelines", dirs_exist_ok=True)
-        logger.info(f"Saved pipelines to {result_dir / '_pipelines'}")
+                        "pipeline", dirs_exist_ok=True)
+        logger.info(f"Saved pipelines to {result_dir / 'pipeline'}")

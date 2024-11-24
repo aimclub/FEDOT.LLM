@@ -5,24 +5,11 @@ user='''
 You're a machine learning expert.
 You are given a machine learning problem.
 <problem_reflection>
-{{reflection}}
+{reflection}
 </problem_reflection>
 
 <dataset-description>
-<dataset-splits>
-{% for split in dataset.splits -%}
-<dataset-split>
-<split-name>
-{{split.name}}
-</split-name>
-<features>:
-{% for col in split.data.columns -%}
-- {{ col }}
-{% endfor -%}
-</features>
-</dataset-split>
-{% endfor -%}
-<dataset-splits>
+{dataset_description}
 </dataset-description>
 Your goal is to define the optimal parameters for an automatic machine learning model fitting framework.
 Make sure to fully address the problem goals, rules and constraints.

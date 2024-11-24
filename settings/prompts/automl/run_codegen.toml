@@ -4,6 +4,10 @@ You are a helpful intelligent assistant. Now please help solve the following mac
 # About Dataset
 [Task]
 {user_instruction}
+[Path to Dataset]
+{dataset_path}
+[Files]
+{files}
 [solution.py] 
 ```python
 {skeleton} 
@@ -11,7 +15,7 @@ You are a helpful intelligent assistant. Now please help solve the following mac
 Start the python code with "```python".
 Please ensure the completeness of the code so that it can be run without additional modifications.
 
-1. You are obliged **NOT DELETE ### COMMENTS**.
+1. You are obliged **NOT DELETE ANY COMMENTS**.
 2. You can't change the code between ### comment ### code ### comment ###. This code will be regenerated.
 3. You **can't use methods and attributes of Fedot framemork classes (Fedot, Pipeline)**, except those **already used** in the code or **provided in the comments**. 
 4. You are obliged to write code in the 'USER CODE' sections. The rest of the code will be regenerated when the project is restarted. 

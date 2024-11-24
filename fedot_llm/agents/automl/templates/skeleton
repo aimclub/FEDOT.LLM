@@ -1,29 +1,29 @@
-##### DO NOT REMOVE #####
+### UNMODIFIABLE IMPORT BEGIN ###
 import random
 from pathlib import Path
-import gradio as gr
 import numpy as np
-import pandas as pd
-
+from typing import Tuple
 from fedot.api.main import Fedot
 from fedot.core.pipelines.pipeline import Pipeline
-##### DO NOT REMOVE #####
+from fedot.core.data.data import InputData
+from fedot.core.repository.tasks import Task
+from fedot.core.repository.tasks import TaskTypesEnum # classification, regression, ts_forecasting.
+from automl import train_model, evaluate_model
+### UNMODIFIABLE IMPORT END ###
 # USER CODE BEGIN IMPORTS #
-from sklearn.metrics import accuracy_score, f1_score
 from sklearn.model_selection import train_test_split
+import pandas as pd
 # USER CODE END IMPORTS #
-
-# TODO: import other required library here, including libraries for datasets and (pretrained) models like HuggingFace and Kaggle APIs.
-# If the required module is not found, you can directly install it by running ‘pip install your_module‘.
 
 SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 
-### DO NOT CHANGE THE FOLLOWING CODE ###
+### UNMODIFIABLE CODE BEGIN ###
 DATASET_PATH = Path("_experiments/datasets") # path for saving and loading dataset(s)
-PIPELINE_PATH = Path("_pipelines/pipeline") # path for saving and loading pipelines
-### DO NOT CHANGE THE FOLLOWING CODE ###
+PIPELINE_PATH = Path("pipeline") # path for saving and loading pipelines
+MODEL_PERFORMANCE = {} # dictionary to store the model performance
+### UNMODIFIABLE CODE END ###
 
 # USER CODE BEGIN LOAD_DATA #
 def load_data():
@@ -31,135 +31,46 @@ def load_data():
     return ...
 # USER CODE END LOAD_DATA #
 
-# Data transformation
-# TODO: if applicable, define the transform_data function here
-# TODO: 1. encode categorical features
-# TODO: 2. normalize numerical features
-# USER CODE BEGIN TRANSFORM #
-def transform_data(data):
-    # TODO: this function is for transforming a dataset
-    return data
-# USER CODE END TRANSFORM #
-# USER CODE BEGIN TRAIN #
-def train_model(train_loader):
-    # TODO: this function is for model training loop and optimization on ’train’ and ’valid’ datasets
-    
-    train_data: np.ndarray | pd.DataFrame = ...
-    target: str | np.ndarray | pd.Series = ...
-    # USER CODE END TRAIN #
-    ### DO NOT CHANGE THE FOLLOWING CODE ###
-    <%%fedot%%>
-    ### DO NOT CHANGE THE FOLLOWING CODE ###
-# USER CODE BEGIN EVALUATE #
-def evaluate_model(model, test_loader):
-    # In this task, we use Accuracy and F1 metrics to evaluate the text classification performance.
-    test_split: np.ndarray | pd.DataFrame = ...
-    ### DO NOT CHANGE THE FOLLOWING CODE ###
-    y_pred: np.ndarray = model.{%predict_method%}
-    ### DO NOT CHANGE THE FOLLOWING CODE ###
-    # The ‘performance_scores‘ should be in dictionary format having metric names as the dictionary keys
+def transform_data(data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
+    # TODO: this function is for transforming the data into a format that can be used for training the model
+    # TODO: Only dropping columns is allowed, all other dataset transformations are STRICTLY FORBIDDEN
+    return features, target
 
-    # TODO: the first part of this function is for evaluating a trained or fine-tuned model on the ’test’ dataset with respect to the relevant downstream task’s performance metrics
-
-    # Define the ‘y_true‘ for ground truth and ‘y_pred‘ for the predicted classes here.
-    performance_scores = {
-        'ACC': accuracy_score(y_true, y_pred),
-        'F1': f1_score(y_true, y_pred)
-        }
-    
-    # TODO: the second part of this function is for measuring a trained model complexity on a samples with respect to the relevant complexity metrics, such as inference time and model size
- 
-    # Should return model’s performance scores
-    return performance_scores
-# USER CODE END EVALUATE #
-
-def prepare_model_for_deployment():
-    # Should return the deployment-ready model
-    # Load the pipeline
-    model = Fedot(problem='classification')
-    model.load(PIPELINE_PATH)
-    return model
-    
-# USER CODE BEGIN DEPLOY #
-def deploy_model(test=False):
-    # TODO: this function is for deploying an evaluated model with the Gradio Python library
-    model = prepare_model_for_deployment()
-    
-    # Define the predict_new_data function to predict new data from the user
-    def predict_new_data(...):
-        transformed_data = transform_data(...)
-        prediction = model.{%predict_method%}
-        # Convert to original labels
-        return ...
-    
-    # gr.inputs.* is deprecated, use gr.* instead
-    # Common inputs: 
-    # - gr.Number,
-    # - gr.Dataframe,
-    # - gr.Image,
-    # - gr.Audio,
-    # - gr.Video,
-    # - gr.Textbox,
-    # - gr.Checkbox,
-    # - gr.Dropdown,
-    # - gr.Slider,
-    # - gr.CheckboxGroup,
-    # - gr.Radio,
-    # - gr.ColorPicker,
-    # - gr.File,
-    # - gr.Button,
-    # - gr.ClearButton,
-    # - gr.State,
-    # - gr.HTML,
-    iface = gr.Interface(fn=predict_new_data,
-                         inputs=[...],
-                         outputs=...,
-                         title=...)
-    
-    # Should return the url endpoint generated by the Gradio library
-    if test:
-        # TODO: write unit test for the predict_new_data function
-        # TODO: Check mock data is in the same format as the inputs data
-        dataset = load_data() 
-        sample_train_data = ...
-       assert predict_new_data(sample_train_data) #TODO: insert the mock data here
-    else:
-        iface.launch(share=False, prevent_thread_lock=False)
-# USER CODE END DEPLOY #
-
-# The main function to orchestrate the data loading, data preprocessing, feature engineering, model training, model preparation, model deployment, and model evaluation
+# The main function to orchestrate the data loading, feature engineering, model training and model evaluation
 def create_model():
     """
-    Function to execute the text classification pipeline.
+    Function to execute the ML pipeline.
     """
     # USER CODE BEGIN CREATE MODEL #
-    # TODO: Step 1. Retrieve or load a dataset from hub (if available) or user’s local storage (if given), start path from the DATASET_PATH
+    # TODO: Step 1. Retrieve or load a dataset from hub (if available) or user’s local storage, start path from the DATASET_PATH
     dataset = load_data()
     
-    # TODO: Step 2. Create a train-valid-test split of the data by splitting the ‘dataset‘ into train_loader, valid_loader, and test_loader.
-    # Here, the train_loader contains 80% of the ‘dataset‘ and the test_loader contains 20% of the ‘dataset‘.
-    train_data, test_data = (None, None) # corresponding to 80%, 20% of ‘dataset‘
+    # TODO: Step 2. Create a train-test split of the data by splitting the ‘dataset‘ into train_data and test_data.
+    # Here, the train_data contains 80% of the ‘dataset‘ and the test_data contains 20% of the ‘dataset‘.
+    train_data, test_data = train_test_split(dataset, test_size=0.2, random_state=SEED) # corresponding to 80%, 20% of ‘dataset‘
     
-    # TODO: Step 3. With the split dataset, run data preprocessing and feature engineering ( if applicable) using the "transform_data" function you defined
-    train_data = transform_data(train_data)
-    test_data = transform_data(test_data)
+    train_features, train_target = transform_data(train_data)
+    test_features, test_target = transform_data(test_data)
     
-    # TODO: Step 4. Define required model. You may retrieve model from available hub or library along with pretrained weights (if any).
-    # If pretrained or predefined model is not available, please create the model according to the given user’s requirements below using PyTorch and relevant libraries.
     
-    model = None
+    # TODO: Step 3. Train AutoML model. AutoML performs feature engineering and model training.
+    model = train_model(train_features: np.ndarray, train_target: np.ndarray)
     
-    # TODO: Step 5. train the retrieved/loaded model using the defined "train_model" function
-    # TODO: on top of the model training, please run hyperparamter optimization based on the suggested hyperparamters and their values before proceeding to the evaluation step to ensure model’s optimality
-    
-    model = train_model()
-    
-    # TODO: evaluate the trained model using the defined "evaluate_model" function model_performance, model_complexity = evaluate_model()
-    model_performance = evaluate_model()
+    # TODO: Step 4. evaluate the trained model using the defined "evaluate_model" function model_performance, model_complexity = evaluate_model()
+    model_performance = evaluate_model(model, test_features: np.ndarray, test_target: np.ndarray)
     # USER CODE END CREATE MODEL # 
     return model_performance
 
 
-### DO NOT CHANGE THE FOLLOWING CODE ###
-<%%main%%>
-### DO NOT CHANGE THE FOLLOWING CODE ###
+### UNMODIFIABLE CODE BEGIN ###
+def main():
+    """ 
+    Main function to execute the text classification pipeline.
+    """
+    global MODEL_PERFORMANCE
+    MODEL_PERFORMANCE = create_model()
+    print("Model Performance on Test Set:", MODEL_PERFORMANCE)
+        
+if __name__ == "__main__":
+    main()
+### UNMODIFIABLE CODE END ###

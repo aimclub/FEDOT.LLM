@@ -34,7 +34,6 @@ class ExecutionResult:
     program_status: ProgramStatus = ProgramStatus.kUnknown
     sandbox_result: str = ''
     trace: str = None
-    local_vars: dict = None
     global_vars: dict = None
     
 def filter_picklable(d):

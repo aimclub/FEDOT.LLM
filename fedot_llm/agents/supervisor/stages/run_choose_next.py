@@ -3,7 +3,7 @@ from fedot_llm.llm.inference import AIInference
 from settings.config_loader import get_settings
 from fedot_llm.agents.supervisor.structured import ChooseNext
 from fedot_llm.agents.utils import render
-
+from langfuse.decorators import observe
 
 def run_choose_next(state: SupervisorState, inference: AIInference):
     messages = state["messages"]

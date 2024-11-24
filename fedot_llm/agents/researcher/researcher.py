@@ -56,4 +56,4 @@ class ResearcherAgent(Agent):
         )
         workflow.add_edge("rewrite_question", "retrieve")
         workflow.add_edge("render_answer", END)
-        return workflow.compile()
+        return workflow.compile().with_config(config={"run_name": "ResearcherAgent"})

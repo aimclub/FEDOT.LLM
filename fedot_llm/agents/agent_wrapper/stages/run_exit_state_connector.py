@@ -8,4 +8,4 @@ def run_exit_state_connector(state: FedotLLMAgentState, agent: Agent):
     if isinstance(agent, ResearcherAgent):
         return state | {'messages': [HumanMessage(content=state['answer'], name="ResearcherAgent")]}
     elif isinstance(agent, AutoMLAgent):
-        return state | {'messages': [HumanMessage(content=state['solution'], name="AutoMLAgent")]}
+        return state | {'messages': [HumanMessage(content=state['solutions'][-1]['code'], name="AutoMLAgent")]}

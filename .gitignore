@@ -191,5 +191,7 @@ saved_pipelines/
 #Chroma
 chroma/
 
+# AutoMLAgent
+exec_out/
 _experiments/
-
+results/

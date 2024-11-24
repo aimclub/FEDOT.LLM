@@ -1,3 +1,11 @@
+def prepare_model_for_deployment():
+    # Should return the deployment-ready model
+    # Load the pipeline
+    model = Fedot(problem='classification')
+    model.load(PIPELINE_PATH)
+    return model
+    
+# USER CODE BEGIN DEPLOY #
 def deploy_model(test=False):
     # TODO: this function is for deploying an evaluated model with the Gradio Python library
     model = prepare_model_for_deployment()
@@ -5,7 +13,7 @@ def deploy_model(test=False):
     # Define the predict_new_data function to predict new data from the user
     def predict_new_data(...):
         transformed_data = transform_data(...)
-        prediction: np.ndarray = model_predict(model, features: np.ndarray)
+        prediction = model.{%predict_method%}
         # Convert to original labels
         return ...
     
@@ -42,3 +50,4 @@ def deploy_model(test=False):
        assert predict_new_data(sample_train_data) #TODO: insert the mock data here
     else:
         iface.launch(share=False, prevent_thread_lock=False)
+# USER CODE END DEPLOY #

@@ -24,13 +24,14 @@ class FedotAI(BaseModel):
     def set_entry_point(self) -> Any:
         self.entry_point = SupervisorAgent(
             inference=self.inference,
-            memory=self.memory
+            memory=self.memory,
+            dataset=self.dataset
         ).create_graph()
         return self
 
     async def ask(self, message: str) -> AsyncIterator[Any]:
         async for event in self.entry_point.astream_events(
-            {"messages": [HumanMessage(content=message)], "dataset": self.dataset},
+            {"messages": [HumanMessage(content=message)]},
             version="v2"
         ):
             for handler in self.handlers:

@@ -4,7 +4,7 @@ from typing import Union
 from scipy.io.arff import loadarff
 import pandas as pd
 
-from fedot_llm.data.data import Dataset, Split
+from fedot_llm.agents.automl.data.data import Dataset, Split
 
 
 class PathDatasetLoader:
@@ -26,7 +26,7 @@ class PathDatasetLoader:
         splits = []
         if path.is_dir():
             files = [x for x in path.glob('**/*') if x.is_file()]
-        else :
+        else:
             files = [path]
         for file in files:
             file_path = file.absolute()
@@ -41,5 +41,9 @@ class PathDatasetLoader:
                     data=pd.DataFrame(raw_data[0]), name=split_name
                 )
                 splits.append(split)
+            if file.name.split(".")[-1] in ['xls', 'xlsx', 'xlsm', 'xlsb', 'odf', 'ods', 'odt']:
+                raw_data = pd.read_excel(file_path)
+                split = Split(data=raw_data, name=split_name)
+                splits.append(split)
 
-        return Dataset(splits=splits, path=path.resolve())
+        return Dataset(splits=splits, path=path)

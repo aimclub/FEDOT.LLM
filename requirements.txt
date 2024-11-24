@@ -20,14 +20,14 @@ tenacity~=8.5.0
 
 # LangChain.
 langchain==0.3.7
-langchain-core==0.3.15
-langchain-community==0.3.5
-langchain-openai==0.2.6
-langgraph==0.2.45
-langchain-text-splitters
-langchain-ollama
-langchain-nomic
-langchain-chroma
+langchain-core==0.3.19
+langchain-community==0.3.7
+langchain-openai==0.2.9
+langgraph==0.2.53
+langchain-text-splitters==0.3.2
+langchain-ollama==0.2.0
+langchain-nomic==0.1.4
+langchain-chroma==0.1.4
 
 # Web Interface
 streamlit~=1.37.1
@@ -49,3 +49,5 @@ chromadb
 watchdog
 loguru
 autoflake
+langfuse
+gradio
