@@ -113,7 +113,7 @@ class BaseResponse:
 
 @dataclass
 class Response:
-    root: BaseResponse = BaseResponse()
+    root: BaseResponse = field(default_factory=BaseResponse)
     context: List[BaseResponse] = field(default_factory=list)
 
     def clean(self):
