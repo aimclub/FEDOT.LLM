@@ -56,7 +56,6 @@ def _initialize_fedot_backend():
     st.session_state.fedot_backend = FedotAIBackend(
         fedot_ai=FedotAI(
             dataset=st.session_state.dataset,
-            model=st.session_state.model
         )
     )
 

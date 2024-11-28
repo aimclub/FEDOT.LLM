@@ -1,0 +1,13 @@
+input_data = InputData.from_numpy(test_features, test_target.values, task='classification')
+y_pred = model.predict(features=input_data)
+### DO NOT CHANGE THE FOLLOWING CODE ###
+# The ‘performance_scores‘ should be in dictionary format having metric names as the dictionary keys
+
+# Define the ‘y_true‘ for ground truth and ‘y_pred‘ for the predicted classes here.
+# performance_scores = {
+#     'ACC': accuracy_score(test_target, y_pred),
+#     'F1': f1_score(test_target, y_pred, average='micro')
+# }
+
+# Should return model’s performance scores
+return model.get_metrics()

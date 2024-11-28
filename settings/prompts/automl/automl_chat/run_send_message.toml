@@ -1,0 +1,26 @@
+[prompts.automl.automl_chat.run_send_message]
+user='''
+You are an expert in ML. You always write clearly and concisely.
+You've created an ML model to solve the problem:
+```
+{description}
+```
+Send a messenger message with a report of your findings.
+Characteristics of the resulting ML model:
+Metrics: {metrics}
+Pipeline: 
+```
+{pipeline}
+```
+Code:
+```python
+{code}
+```
+1. Be concise. 
+2. Structure your text using bullet points where appropriate.
+3. Use Markdown formatting.
+4. Use tables.
+5. Don't talk about empty values.
+6. Style is Twitter post.
+7. Do not suggest next steps.
+'''

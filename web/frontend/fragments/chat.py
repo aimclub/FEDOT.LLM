@@ -20,7 +20,7 @@ async def handle_predict(prompt):
                 continue
         else:
             st.session_state.messages[current_idx]["content"] = BaseResponse(
-                response.id)
+                id=response.id)
 
         st.session_state.messages[current_idx]["content"] += response
         with st.container():
