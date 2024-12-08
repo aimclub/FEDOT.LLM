@@ -17,7 +17,7 @@ FEDOT.LLM is an LLM-based prototype for next-generation AutoML. It combines the 
 
 2. Install dependencies:
    ```
-   pip install -r requirements.txt
+   pip install -e .
    ```
 
 ## How to Use
@@ -28,7 +28,7 @@ To use the API, follow these steps:
 
 1. Import FedotAI class
    ```
-   from fedot_llm.main import FedotAI
+   from fedotllm.main import FedotAI
    ```
 
 2. Initialize the FedotAI object. The required parameters are the following: 
@@ -44,9 +44,9 @@ To acquire predictions, use the `ask` method with a string description of the da
 # Import necessary modules and classes
 from langchain_openai import ChatOpenAI
 from pathlib import Path
-from fedot_llm.data.loaders import PathDatasetLoader
-from fedot_llm.main import FedotAI
-from fedot_llm.output.jupyter import JupyterOutput
+from fedotllm.data.loaders import PathDatasetLoader
+from fedotllm.main import FedotAI
+from fedotllm.output.jupyter import JupyterOutput
 
 # Initialize the ChatOpenAI model
 # Note: Make sure to set the OPENAI_TOKEN environment variable
