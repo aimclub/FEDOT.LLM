@@ -1,47 +1,13 @@
-from dataclasses import dataclass, field
 from typing import List, Dict
-
+from pydantic import BaseModel, Field, ConfigDict
 from IPython.display import display, Markdown, DisplayObject, clear_output
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.schema import StreamEvent
 
-from fedot_llm.ai.actions import Actions, Action
-from fedot_llm.ai.chains.analyze import AnalyzeFedotResultChain
-from fedot_llm.ai.chains.fedot import FedotPredictChain
-from fedot_llm.ai.chains.metainfo import DefineDatasetChain, DefineSplitsChain, DefineTaskChain
 
-
-@dataclass
-class JupyterOutput:
-    display_content: List[DisplayObject] = field(default_factory=list)
-
-    def automl_progress_handler(self):
-        actions: Actions = Actions([
-            Action.from_chain(DefineDatasetChain),
-            Action.from_chain(DefineSplitsChain),
-            Action.from_chain(DefineTaskChain),
-            Action.from_chain(FedotPredictChain),
-            Action.from_chain(AnalyzeFedotResultChain)
-        ])
-        records: Dict[Action, str] = {}
-
-        def on_change_hook(_: StreamEvent, action: Action) -> None:
-            nonlocal records
-            content = ''
-            if action.state == 'Waiting':
-                content += f"- [] {action}"
-            elif action.state == 'Running' or action.state == 'Streaming':
-                content += f"- () {action}"
-            elif action.state == 'Completed':
-                content += f"- [X] {action}"
-            records[action] = content
-            self.display_content.append(Markdown('\n\n'.join(records.values())))
-
-        for action in actions.records.values():
-            action.on_change.append(on_change_hook)
-            records[action] = f"- [] {action}\n\n"
-
-        return actions.handler
+class JupyterOutput(BaseModel):
+    display_content: List[DisplayObject] = Field(default_factory=list)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def messages_handler(self):
         subscribe_events = ['SupervisorAgent', 'ResearcherAgent', 'AutoMLAgent']
@@ -99,4 +65,4 @@ class JupyterOutput:
 
     @property
     def subscribe(self):
-        return [self.automl_progress_handler(), self.messages_handler(), self.display_handler()]
+        return [self.messages_handler(), self.display_handler()]

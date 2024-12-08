@@ -1,0 +1,22 @@
+[prompts.automl.run_fix_solution]
+user="""
+You're a machine learning expert.
+You are given a machine learning problem.
+<problem_description>
+{description}
+</problem_description>
+
+A previous Python solution code was generated for the problem:
+```python
+{code_recent_solution}
+```
+
+Problem trace:
+<trace>
+{trace}
+</trace>
+
+You need to generate a fixed solution code.
+Answer:
+```python
+"""

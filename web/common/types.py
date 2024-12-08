@@ -6,16 +6,17 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from hashlib import sha256
+from typing_extensions import ClassVar, Dict, List, Optional, Set, TypeAlias, Union, TypedDict
 
-from dataclasses_json import dataclass_json
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.schema import StreamEvent
-from typing_extensions import (List, Optional,
-                               TypeAlias, TypedDict, Union, Dict,
-                               Set)
+from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
 
-from web.backend.utils.graphviz_builder import GraphvizBuilder, Node, Edge
+from web.backend.utils.graphviz_builder import Edge, GraphvizBuilder, Node
 from web.common.colors import BSColors, STColors
+
+ResponseContent: TypeAlias = Union[None, str,
+                                   List['BaseResponse'], 'BaseResponse', 'TypedContentResponse']
 
 
 class ResponseState(Enum):
@@ -32,25 +33,30 @@ class TypedContentResponse(TypedDict):
     type: str
 
 
-@dataclass_json
-@dataclass
-class BaseResponse:
-    id: Optional[str] = None
+class BaseResponse(BaseModel):
+    id: Optional[str] = Field(default=None)
     state: Optional[ResponseState] = None
     name: Optional[str] = None
     content: ResponseContent = None
     stream: bool = False
 
-    def __post_init__(self):
-        if not self.id:
-            self.id = self.new_id(self.name)
+    model_config = ConfigDict(populate_by_name=True)
 
-    def new_id(self, name: Optional[str] = ''):
+    @model_validator(mode='after')
+    def set_id(self) -> BaseResponse:
+        if self.id is None:
+            self.id = self.new_id(self.name)
+        return self
+
+    @classmethod
+    def new_id(cls, name: Optional[str] = '') -> str:
         date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        random_part = sha256(
+            f'{cls.__name__}{date}{random.random()}'.encode()).hexdigest()
         if name:
-            return f"{name}{self.__class__.__name__}{sha256(f'{self.__class__.__name__}{date}{random.random()}'.encode()).hexdigest()}"
+            return f"{name}{cls.__name__}{random_part}"
         else:
-            return f"{self.__class__.__name__}{sha256(f'{self.__class__.__name__}{date}{random.random()}'.encode()).hexdigest()}"
+            return f"{cls.__name__}{random_part}"
 
     def handler(self, _: StreamEvent) -> Optional[BaseResponse]:
         """Method that return stage handler"""
@@ -66,7 +72,8 @@ class BaseResponse:
             raise ValueError("Cannot add objects with different ids")
 
         if isinstance(self.content, List) and isinstance(other.content, List):
-            self_content_dict = {item.id: item for item in self.content}
+            self_content_dict = {
+                item.id: item for item in self.content if isinstance(item, BaseResponse)}
             for new_item in other.content:
                 if new_item.id in self_content_dict:
                     self_content_dict[new_item.id] += new_item
@@ -75,7 +82,7 @@ class BaseResponse:
         elif isinstance(self.content, str) and isinstance(other.content, str):
             self.content = self.content + other.content if other.stream else other.content
         elif isinstance(self.content, Dict) and isinstance(other.content, Dict):
-            self.content = self.content | other.content
+            self.content = {**self.content, **other.content}
         elif isinstance(self.content, BaseResponse) and isinstance(other.content, BaseResponse):
             self.content += other.content
         else:
@@ -100,8 +107,10 @@ class BaseResponse:
             if len(self.content) != len(other.content):
                 return False
 
-            self_content_dict = {item.id: item for item in self.content}
-            other_content_dict = {item.id: item for item in other.content}
+            self_content_dict = {
+                item.id: item for item in self.content if isinstance(item, BaseResponse)}
+            other_content_dict = {
+                item.id: item for item in other.content if isinstance(item, BaseResponse)}
 
             if self_content_dict.keys() != other_content_dict.keys():
                 return False
@@ -127,16 +136,14 @@ class Response:
         return self.root
 
 
-def trim_string(input_string: str, max_length: int):
-    if len(input_string) <= max_length:
-        return input_string
-    else:
-        return input_string[:max_length - 3] + '...'
+def trim_string(input_string: str, max_length: int) -> str:
+    return input_string if len(input_string) <= max_length else input_string[:max_length - 3] + '...'
 
 
 class MessagesHandler(BaseResponse):
-    SUBSCRIBE_EVENTS = ['SupervisorAgent', 'ResearcherAgent', 'AutoMLAgent']
-    SEPARATOR = "---\n\n"
+    SUBSCRIBE_EVENTS: ClassVar[List[str]] = [
+        'SupervisorAgent', 'ResearcherAgent', 'AutoMLAgent']
+    SEPARATOR: ClassVar[str] = "---\n\n"
 
     def message_handler(self, response: Response) -> callable:
         content: List[str] = []
@@ -163,8 +170,7 @@ class MessagesHandler(BaseResponse):
         return process_event
 
     @staticmethod
-    def _process_messages(messages: Union[List, AIMessage, HumanMessage], message_idx: Set[str]) -> List[
-        Union[AIMessage, HumanMessage]]:
+    def _process_messages(messages: Union[List, AIMessage, HumanMessage], message_idx: Set[str]) -> List[Union[AIMessage, HumanMessage]]:
         new_messages = []
         if isinstance(messages, list):
             for message in messages:
@@ -196,25 +202,24 @@ class MessagesHandler(BaseResponse):
         ))
 
 
-@dataclass
 class GraphResponse(BaseResponse):
-    name: Optional[str] = field(init=False, default='graph')
-    state: Optional[ResponseState] = field(init=False, default=None)
-    stream: bool = field(init=False, default=False)
+    name: Optional[str] = Field(default='graph', init=False)
+    state: Optional['ResponseState'] = Field(default=None, init=False)
+    stream: bool = Field(default=False, init=False)
 
-    def __post_init__(self):
-        self.content = {
-            'data': None,
-            'type': 'graphviz'
-        }
-        super().__post_init__()
+    @field_validator('content', mode='before')
+    @classmethod
+    def set_content(cls, v: Optional[ResponseContent]) -> TypedContentResponse:
+        if v is None:
+            return {
+                'data': None,
+                'type': 'graphviz'
+            }
+        return v
 
     @staticmethod
-    def init_default_graph(name: str = ''):
-        if name == '__start__':
-            label = ''
-        else:
-            label = name
+    def init_default_graph(name: str = '') -> GraphvizBuilder:
+        label = '' if name == '__start__' else name
         return GraphvizBuilder(
             name=name,
             graph_type='digraph',
@@ -245,10 +250,14 @@ class GraphResponse(BaseResponse):
             nonlocal content
             event_name = event['name']
             event_state = event['event']
-            if event_metadata := event.get("metadata", None):
-                if langgraph_node := event_metadata.get("langgraph_node", None):
-                    ns = event_metadata["checkpoint_ns"].split(":")[0]
-                    if len(nesting_graphs) == 0:
+            event_metadata = event.get("metadata", None)
+            if event_metadata:
+                langgraph_node = event_metadata.get("langgraph_node", None)
+                if langgraph_node:
+                    ns = event_metadata.get("langgraph_checkpoint_ns", None)
+                    if ns:
+                        ns = ns.split(":")[0]
+                    if not nesting_graphs:
                         new_graph = self.init_default_graph(ns)
                         nesting_graphs.append(new_graph)
                     elif ns != nesting_graphs[-1].name:
@@ -263,48 +272,37 @@ class GraphResponse(BaseResponse):
                         if event_state == "on_chain_start":
                             new_node = Node(name=event_name, attrs={'label': str(event_name),
                                                                     'color': BSColors.PRIMARY.value})
-                            if len(nesting_graphs[-1].edges) > 0:
+                            if nesting_graphs[-1].edges:
                                 prev_node = nesting_graphs[-1].edges[-1].dst
-                                nesting_graphs[-1].add_edge(Edge(src=prev_node, dst=new_node))
-                            elif len(nesting_graphs[-1].edges) == 0 and len(nesting_graphs[-1].nodes) == 1:
-                                prev_node = list(nesting_graphs[-1].nodes.values())[0]
-                                nesting_graphs[-1].add_edge(Edge(src=prev_node, dst=new_node))
+                                nesting_graphs[-1].add_edge(
+                                    Edge(src=prev_node, dst=new_node))
+                            elif not nesting_graphs[-1].edges and len(nesting_graphs[-1].nodes) == 1:
+                                prev_node = next(
+                                    iter(nesting_graphs[-1].nodes.values()))
+                                nesting_graphs[-1].add_edge(
+                                    Edge(src=prev_node, dst=new_node))
                             elif len(nesting_graphs) > 1:
-                                if len(nesting_graphs[-2].edges) > 0:
+                                if nesting_graphs[-2].edges:
                                     prev_node = nesting_graphs[-2].edges[-1].dst
-                                    nesting_graphs[-2].add_edge(Edge(src=prev_node, dst=new_node))
-                                if len(nesting_graphs[-2].edges) == 0 and len(nesting_graphs[-2].nodes) == 1:
-                                    prev_node = list(nesting_graphs[-2].nodes.values())[0]
-                                    nesting_graphs[-2].add_edge(Edge(src=prev_node, dst=new_node))
+                                    nesting_graphs[-2].add_edge(
+                                        Edge(src=prev_node, dst=new_node))
+                                if not nesting_graphs[-2].edges and len(nesting_graphs[-2].nodes) == 1:
+                                    prev_node = next(
+                                        iter(nesting_graphs[-2].nodes.values()))
+                                    nesting_graphs[-2].add_edge(
+                                        Edge(src=prev_node, dst=new_node))
                             nesting_graphs[-1].add_node(new_node)
                         elif event_state == "on_chain_end":
                             nesting_graphs[-1].add_node(Node(name=event_name, attrs={'label': str(event_name),
                                                                                      'color': BSColors.SUCCESS.value}))
                         content['data'] = nesting_graphs[0].compile().source
 
-                        response.append(BaseResponse(id=self.id,
-                                                     name=self.name,
-                                                     state=self.state,
-                                                     content=content,
-                                                     stream=self.stream))
+                        response.append(BaseResponse(
+                            id=self.id,
+                            name=self.name,
+                            state=self.state,
+                            content=content,
+                            stream=self.stream
+                        ))
 
         return handler
-
-
-def get_logger_handler():
-    logger = logging.getLogger(__name__)
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler = logging.FileHandler(
-        filename='events.log', mode='w', encoding='utf-8')
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-    logger.setLevel(logging.DEBUG)
-
-    def handler(event: StreamEvent) -> None:
-        logger.debug(event)
-
-    return handler
-
-
-ResponseContent: TypeAlias = Union[None, str, List[BaseResponse], BaseResponse, TypedContentResponse]
