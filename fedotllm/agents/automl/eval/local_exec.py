@@ -2,7 +2,6 @@ import contextlib
 import faulthandler
 import io
 import multiprocessing
-from multiprocessing.connection import Connection
 import os
 import pickle
 import platform
@@ -13,10 +12,9 @@ import tempfile
 import traceback
 from dataclasses import dataclass
 from enum import Enum
+from multiprocessing.connection import Connection
 from pathlib import Path
 from typing import Optional
-
-from autoflake import fix_code
 
 
 class TimeoutException(Exception):
@@ -36,11 +34,13 @@ class ExecutionResult:
     stderr: str = ''
     program_status: ProgramStatus = ProgramStatus.kUnknown
     sandbox_result: str = ''
-    trace: str = None
-    global_vars: dict = None
-    
+    trace: Optional[str] = None
+    global_vars: Optional[dict] = None
+
+
 def filter_picklable(d):
     return {k: v for k, v in d.items() if is_picklable(v)}
+
 
 def is_picklable(obj):
     try:
@@ -97,8 +97,8 @@ class Tee:
 def execute_code(code,
                  timeout,
                  sandbox=True,
-                 globals: dict = {},
-                 argv: list = [],
+                 in_glob=None,
+                 argv=None,
                  output_dir: Optional[Path] = None,
                  vaults: Optional[list[Path]] = None,
                  show_progress=True):
@@ -109,20 +109,27 @@ def execute_code(code,
         code (str): The code to execute.
         timeout (int): Maximum execution time in seconds.
         sandbox (bool): Whether to execute in a sandboxed environment.
-        globals (dict): Global variables to use in the code. Defaults to {}.
+        in_glob (dict): Global variables to use in the code. Defaults to {}.
+        argv: Command-line arguments to pass to the code. Defaults to None.
+        output_dir: Directory to store output files. Defaults to None.
         vaults (list[Path], optional): List of paths to vaults to include. Defaults to None.
         show_progress (bool, optional): Whether to display execution progress. Defaults to True.
 
     Returns:
         ExecutionResult: The result of the execution.
     """
+    if argv is None:
+        argv = []
+    if in_glob is None:
+        in_glob = {}
+
     if sandbox:
         manager = multiprocessing.Manager()
         result = manager.list()
         pipes = (multiprocessing.Pipe(), multiprocessing.Pipe()
                  ) if show_progress else None
 
-        process_args = (code, timeout, result, globals, argv, output_dir,
+        process_args = (code, timeout, result, in_glob, argv, output_dir,
                         vaults, (pipes[0][1], pipes[1][1]) if pipes else None)
         process = multiprocessing.Process(
             target=unsafe_execute, args=process_args)
@@ -157,15 +164,15 @@ def execute_code(code,
 
         # Wait for the process to finish or timeout
         print(
-            f"Waiting for process cleanup with timeout {timeout if timeout < 5*60 else 5*60}...")
-        process.join(timeout=timeout if timeout < 5*60 else 5*60)
+            f"Waiting for process cleanup with timeout {timeout if timeout < 5 * 60 else 5 * 60}...")
+        process.join(timeout=timeout if timeout < 5 * 60 else 5 * 60)
         if process.is_alive():
             process.kill()
 
-        result = list(result)
+        result = result._getvalue()
     else:
         result = []
-        unsafe_execute(code, timeout, result, globals)
+        unsafe_execute(code, timeout, result, in_glob)
 
     return result[0] if result else None
 
@@ -174,15 +181,20 @@ SCRIPT_NAME = 'solution.py'
 
 
 def unsafe_execute(
-    code: str,
-    timeout: int,
-    result: list,
-    globals: dict = {},
-    argv: list = [],
-    output_dir: Path = None,
-    vaults: list[Path] = None,
-    pipes: Optional[tuple[Connection, Connection]] = None
+        code: str,
+        timeout: int,
+        result: list,
+        in_glob=None,
+        argv=None,
+        output_dir: Optional[Path] = None,
+        vaults: Optional[list[Path]] = None,
+        pipes: Optional[tuple[Connection, Connection]] = None
 ):
+    if argv is None:
+        argv = []
+    if in_glob is None:
+        in_glob = {}
+
     with create_tempdir(vaults, output_dir):
         # These system calls are needed when cleaning up tempdir.
         import os
@@ -194,9 +206,9 @@ def unsafe_execute(
             # Disable functionalities that can make destructive changes to the test.
             # reliability_guard()
             exec_globals = {
-                '__name__': '__main__',
-                '__file__': SCRIPT_NAME,
-            } | globals
+                               '__name__': '__main__',
+                               '__file__': SCRIPT_NAME,
+                           } | in_glob
             exec_result = ExecutionResult()
             tracing = io.StringIO()
             tracing.seek(0)
@@ -205,8 +217,8 @@ def unsafe_execute(
             try:
                 with swallow_io(pipes=pipes) as (stdout_stream, stderr_stream):
                     with time_limit(timeout):
-                        exec(compile(fix_code(code),
-                             SCRIPT_NAME, "exec"), exec_globals)
+                        exec(compile(code,
+                                     SCRIPT_NAME, "exec"), exec_globals)
                 exec_result.program_status = ProgramStatus.kSuccess
             except TimeoutException:
                 exec_result.program_status = ProgramStatus.kTimeout
@@ -251,6 +263,7 @@ def time_limit(seconds):
     """
     Sets a timer to raise a TimeoutException after the specified number of seconds.
     """
+
     def signal_handler(signum, frame):
         raise TimeoutException("Timed out!")
 
@@ -302,7 +315,7 @@ def swallow_io(input_stream=None, binary=False, pipes: Optional[tuple[Connection
 
 
 @contextlib.contextmanager
-def create_tempdir(vaults: list[Path] = None, output_dir: Path = None):
+def create_tempdir(vaults: Optional[list[Path]] = None, output_dir: Optional[Path] = None):
     """
     Creates a temporary directory and optionally links vaults to it.
     """
@@ -377,8 +390,8 @@ def reliability_guard(maximum_memory_bytes=None):
     from interfering with the test (e.g. fork bomb, killing other processes,
     removing filesystem files, etc.)
     WARNING
-    This function is NOT a security sandbox. Untrusted code, including, model-
-    generated code, should not be blindly executed outside of one. See the
+    This function is NOT a security sandbox. Untrusted code, including, model-generated
+    code, should not be blindly executed outside of one. See the
     Codex paper for more information about OpenAI's code sandbox, and proceed
     with caution.
     """
@@ -452,3 +465,7 @@ def reliability_guard(maximum_memory_bytes=None):
     sys.modules["resource"] = None
     sys.modules["psutil"] = None
     sys.modules["tkinter"] = None
+
+
+if __name__ == '__main__':
+    pass

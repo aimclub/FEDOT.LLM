@@ -1,5 +1,6 @@
-from agents.state import FedotLLMAgentState
 from enum import Enum
+
+from fedotllm.agents.state import FedotLLMAgentState
 
 
 class NextAgent(str, Enum):

@@ -1,5 +1,5 @@
 [prompts.researcher.is_grounded]
-user='''
+user = '''
 You are a grader assessing whether an answer is grounded in / supported by a set of facts.
 Here are the facts: 
 -------

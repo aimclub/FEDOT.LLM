@@ -1,11 +1,10 @@
-from web.frontend.utils.utils import load_dataset
-from web.backend.app import FedotAIBackend
 import streamlit as st
-from langchain_ollama import ChatOllama
-from langchain_openai.chat_models.base import ChatOpenAI
 from streamlit_extras.grid import grid, GridDeltaGenerator
 
-from main import FedotAI
+from fedotllm.settings.config_loader import get_settings
+from fedotllm.web.backend.app import FedotAIBackend
+from fedotllm.web.common.types import InitModel
+from fedotllm.web.frontend.utils.utils import load_dataset
 
 
 @st.dialog("Preview", width="large")
@@ -49,107 +48,62 @@ def _render_file_previews():
                 use_container_width=True
             )
 
-        _initialize_fedot_backend()
-
-
-def _initialize_fedot_backend():
-    st.session_state.fedot_backend = FedotAIBackend(
-        fedot_ai=FedotAI(
-            dataset=st.session_state.dataset,
-        )
-    )
-
 
 def set_model(form_grid: GridDeltaGenerator):
     name = st.session_state.model_name_input
-    provider = st.session_state.model_provider_input.lower()
-
     if not name:
         form_grid.warning('No name provided', icon="⚠")
         return
-
-    params = {'model': name, 'temperature': 0.0}
-
-    if provider == 'openai':
-        set_openai_model(form_grid, params)
-    elif provider == 'ollama':
-        set_ollama_model(form_grid, params)
-    else:
-        form_grid.error("Unknown provider", icon="⚠")
-
-
-def set_openai_model(form_grid: GridDeltaGenerator, params: dict):
-    openai_api_key = st.session_state.openai_api_key
+    api_key = st.session_state.api_key
     base_url = st.session_state.base_url
-
-    if not openai_api_key:
-        st.warning("Please enter your OpenAI API key!", icon="⚠")
-        return
-
-    params['api_key'] = openai_api_key
+    params = {'name': name}
+    if api_key:
+        params['api_key'] = api_key
     if base_url:
         params['base_url'] = base_url
 
+    fedotai_backend: FedotAIBackend = st.session_state.fedotai_backend
     try:
-        st.session_state.model = ChatOpenAI(**params)
-        st.session_state.model_name = st.session_state.model.model_name
+        model = InitModel.model_construct(**params)
+        fedotai_backend.init_model(model)
         st.toast(
-            f"Successfully set up a model:\n {st.session_state.model_name}",
+            f"Successfully set up a model:\n {st.session_state.model_name_input}",
             icon="✅")
+        st.session_state.model = model
     except ValueError as e:
         form_grid.warning(str(e), icon="⚠")
 
 
-def set_ollama_model(form_grid: GridDeltaGenerator, params: dict):
-    try:
-        st.session_state.model = ChatOllama(**params)
-        st.session_state.model_name = st.session_state.model.model
-        st.toast(
-            f"Successfully set up a model:\n {st.session_state.model_name}",
-            icon="✅")
-    except ValueError as e:
-        form_grid.warning(str(e), icon="⚠")
-
-
-def on_provider_selected(grid: GridDeltaGenerator):
-    provider = st.session_state.model_provider_input
-    match provider:
-        case 'Ollama':
-            grid.text_input("model", placeholder="llama3.1",
-                            key="model_name_input",
-                            disabled=bool(st.session_state.model))
-        case 'OpenAI':
-            grid.text_input("model", placeholder="gpt-3.5-turbo",
-                            key="model_name_input",
-                            disabled=bool(st.session_state.model))
-            grid.text_input("token", placeholder="Your openai token",
-                            key="openai_api_key",
-                            disabled=bool(st.session_state.model),
-                            type='password')
-            grid.text_input("base url", placeholder="Optional base url",
-                            key="base_url",
-                            disabled=bool(st.session_state.model),
-                            help="Base URL for API requests. Only specify if using a proxy or service emulator.")
+def set_chat_model():
+    if not st.session_state.model:
+        form_grid = grid(1, 1, 1, 1, 1, vertical_align='bottom')
+        st.text_input("model", placeholder="gpt-4o", value=get_settings().get("config.model") or "",
+                      key="model_name_input",
+                      disabled=bool(st.session_state.model))
+        st.text_input("api_key", placeholder="Your api_key",
+                      key="api_key",
+                      value=get_settings().get("OPENAI_TOKEN") or "",
+                      disabled=bool(st.session_state.model),
+                      type='password')
+        st.text_input("base url", placeholder="Optional base url",
+                      key="base_url",
+                      value=get_settings().get("config.base_url") or "",
+                      disabled=bool(st.session_state.model),
+                      help="Base URL for API requests. Only specify if using a proxy or service emulator.")
+        submit = st.button(label="Submit", use_container_width=True,
+                           disabled=bool(st.session_state.model))
+        if submit:
+            set_model(form_grid)
+            st.rerun()
 
 
 def init_model():
     with st.container(border=True):
         st.header("Model")
         if not st.session_state.model:
-            if not st.session_state.model:
-                on_provider = st.selectbox("Select provider",
-                                           options=['Ollama', 'OpenAI'],
-                                           key='model_provider_input',
-                                           placeholder='Select provider')
-                form_grid = grid(1, 1, 1, 1, 1, vertical_align='bottom')
-                if on_provider:
-                    on_provider_selected(form_grid)
-                submit = st.button(label="Submit", use_container_width=True,
-                                   disabled=bool(st.session_state.model))
-                if submit:
-                    set_model(form_grid)
+            set_chat_model()
         else:
-            st.write(f"Name: {st.session_state.model_name}")
+            st.write(f"Name: {st.session_state.model.name}")
 
 
 def side_bar():

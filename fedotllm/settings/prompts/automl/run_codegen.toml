@@ -1,5 +1,5 @@
 [prompts.automl.run_codegen]
-user="""
+user = """
 You are a helpful intelligent assistant. Now please help solve the following machine learning task.
 # About Dataset
 [Task]

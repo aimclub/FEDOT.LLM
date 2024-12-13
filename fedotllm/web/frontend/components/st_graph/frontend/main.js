@@ -4,8 +4,8 @@ var first_run = true;
 var margin = 20;
 
 var graphviz = d3.select("#graph")
-                .graphviz()
-                .attributer(attributer)
+    .graphviz()
+    .attributer(attributer)
 
 function attributer(datum, index, nodes) {
     var selection = d3.select(this);
@@ -36,11 +36,12 @@ function resizeSVG() {
         .transition(function () {
             return d3.transition("main")
                 .ease(d3.easeLinear)
-                .duration(1500);})
+                .duration(1500);
+        })
         .duration(700)
         .attr("width", width - margin)
         .attr("height", height - margin);
-};
+}
 
 d3.select(window).on("resize", resizeSVG);
 d3.select(window).on("click", resetZoom);
@@ -55,6 +56,7 @@ function render_dot(dot) {
                 .duration(1500);
         });
 }
+
 function render(new_dot, prev_dot) {
     console.log(window.innerWidth)
     if (new_dot) {
@@ -63,11 +65,10 @@ function render(new_dot, prev_dot) {
                 .width(window.innerWidth)
                 .renderDot(prev_dot)
                 .on("end", function () {
-                    render_dot(new_dot)
-                }
+                        render_dot(new_dot)
+                    }
                 );
-        }
-        else {
+        } else {
             graphviz
                 .renderDot(new_dot)
         }

@@ -1,9 +1,11 @@
-import shutil
 import os
+import shutil
 from pathlib import Path
 from typing import List
+
 from streamlit.runtime.uploaded_file_manager import UploadedFile
-from data.loaders import PathDatasetLoader
+
+from fedotllm.data.loaders import PathDatasetLoader
 
 STREAMLIT_DATASET_DIR = Path("_experiments/datasets/streamlit")
 

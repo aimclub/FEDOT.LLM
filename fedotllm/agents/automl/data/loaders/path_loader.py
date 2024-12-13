@@ -1,10 +1,10 @@
 from pathlib import Path
 from typing import Union
 
-from scipy.io.arff import loadarff
 import pandas as pd
+from scipy.io.arff import loadarff
 
-from agents.automl.data.data import Dataset, Split
+from fedotllm.agents.automl.data.data import Dataset, Split
 
 
 class PathDatasetLoader:
@@ -15,8 +15,6 @@ class PathDatasetLoader:
 
         Args:
             path: Path to folder with Dataset data
-            with_metadata: Whether Dataset should be loading metadata.json file contained in folder. Defaults to false.
-
         """
 
         if isinstance(path, str):

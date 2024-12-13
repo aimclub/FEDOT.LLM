@@ -1,7 +1,8 @@
-from agents.automl.state import AutoMLAgentState
-from agents.automl.templates.load_template import load_template, render_template
 from autoflake import fix_code
-from log import get_logger
+from fedotllm.agents.automl.templates.load_template import load_template, render_template
+
+from fedotllm.agents.automl.state import AutoMLAgentState
+from fedotllm.log import get_logger
 
 logger = get_logger()
 

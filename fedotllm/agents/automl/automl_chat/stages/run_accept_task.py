@@ -1,4 +1,4 @@
-from agents.automl.state import AutoMLAgentState
+from fedotllm.agents.automl.state import AutoMLAgentState
 
 
 def run_accept_task(state: AutoMLAgentState):

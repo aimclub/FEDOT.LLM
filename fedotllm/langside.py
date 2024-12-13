@@ -1,11 +1,11 @@
-from uuid import uuid4
 import asyncio
-from functools import wraps
-from dataclasses import dataclass, field
-from typing import Any, Generator, Optional, ParamSpec, TypeVar, Callable, TypedDict, Literal, List
-from contextvars import ContextVar
-import threading
 import queue
+import threading
+from contextvars import ContextVar
+from dataclasses import dataclass, field
+from functools import wraps
+from typing import Any, Generator, Optional, ParamSpec, TypeVar, Callable, TypedDict, Literal, List
+
 from utils.singleton import SingletonMeta
 
 P = ParamSpec("P")
@@ -13,18 +13,68 @@ R = TypeVar("R")
 
 
 class EventRecord(TypedDict):
-    id: str = field(default_factory=lambda: str(uuid4()))
+    id: str
     name: str
     status: Literal["start", "end", "unknown"]
     inputs: dict
     output: Any
-    nesting: int = field(default=0)
-    metadata: dict = field(default_factory=dict)
+    nesting: int
+    metadata: dict
 
 
 _inside_stack_context: ContextVar[
     List[EventRecord]
 ] = ContextVar("inside_stack_context", default=[])
+
+
+def _prepare_call(func: Callable[P, R],
+                  name: Optional[str] = None) -> EventRecord:
+    try:
+        stack = _inside_stack_context.get()
+        event = EventRecord(name=name or func.__name__, status="unknown", inputs={
+        }, output=None, nesting=len(stack))
+        _inside_stack_context.set(stack + [event])
+        return event
+    except Exception as e:
+        raise e
+
+
+def _end_call(event: EventRecord) -> None:
+    try:
+        stack = _inside_stack_context.get()
+        _inside_stack_context.set(stack[:-1])
+    except Exception as e:
+        raise e
+
+
+def update_event(name: Optional[str] = None,
+                 status: Optional[Literal["start",
+                 "end", "unknown"]] = None,
+                 inputs: Optional[dict] = None,
+                 output: Optional[Any] = None,
+                 metadata: Optional[dict] = None,
+                 nesting: Optional[int] = None) -> None:
+    try:
+        stack = _inside_stack_context.get()
+        event = stack[-1] if stack else None
+        if not event:
+            raise ValueError("No event found in the current context")
+
+        update_params = {
+            k: v
+            for k, v in {
+                "name": name,
+                "status": status,
+                "inputs": inputs,
+                "output": output,
+                "metadata": metadata,
+                "nesting": nesting,
+            }.items()
+            if v is not None
+        }
+        event.update(update_params)
+    except Exception as e:
+        raise e
 
 
 @dataclass
@@ -63,56 +113,8 @@ class Langside(metaclass=SingletonMeta):
                     name=name,
                 )
             )
+
         return decorator(func) if func else decorator
-
-    def _prepare_call(self,
-                      func: Callable[P, R],
-                      name: Optional[str] = None) -> EventRecord:
-        try:
-            stack = _inside_stack_context.get()
-            event = EventRecord(name=name or func.__name__, status="unknown", inputs={
-            }, output=None, nesting=len(stack))
-            _inside_stack_context.set(stack + [event])
-            return event
-        except Exception as e:
-            raise e
-
-    def _end_call(self, event: EventRecord) -> None:
-        try:
-            stack = _inside_stack_context.get()
-            _inside_stack_context.set(stack[:-1])
-        except Exception as e:
-            raise e
-
-    def update_event(self,
-                     name: Optional[str] = None,
-                     status: Optional[Literal["start",
-                                              "end", "unknown"]] = None,
-                     inputs: Optional[dict] = None,
-                     output: Optional[Any] = None,
-                     metadata: Optional[dict] = None,
-                     nesting: Optional[int] = None) -> None:
-        try:
-            stack = _inside_stack_context.get()
-            event = stack[-1] if stack else None
-            if not event:
-                raise ValueError("No event found in the current context")
-
-            update_params = {
-                k: v
-                for k, v in {
-                    "name": name,
-                    "status": status,
-                    "inputs": inputs,
-                    "output": output,
-                    "metadata": metadata,
-                    "nesting": nesting,
-                }.items()
-                if v is not None
-            }
-            event.update(update_params)
-        except Exception as e:
-            raise e
 
     def _async_inside(self,
                       func: Callable[P, R],
@@ -121,7 +123,7 @@ class Langside(metaclass=SingletonMeta):
         @wraps(func)
         async def wrapper(*args, **kwargs):
 
-            event = self._prepare_call(func=func, name=name)
+            event = _prepare_call(func=func, name=name)
             event["status"] = "start"
             event["inputs"] = {
                 "args": args,
@@ -143,9 +145,10 @@ class Langside(metaclass=SingletonMeta):
             event["output"] = result
             event["status"] = "end"
             self.add_event(event)
-            self._end_call(event)
+            _end_call(event)
 
             return result
+
         return wrapper
 
     def _sync_inside(self,
@@ -155,7 +158,7 @@ class Langside(metaclass=SingletonMeta):
         @wraps(func)
         def wrapper(*args, **kwargs):
 
-            event = self._prepare_call(func=func, name=name)
+            event = _prepare_call(func=func, name=name)
             event["status"] = "start"
             event["inputs"] = {
                 "args": args,
@@ -173,9 +176,10 @@ class Langside(metaclass=SingletonMeta):
             event["status"] = "end"
 
             self.add_event(event)
-            self._end_call(event)
+            _end_call(event)
 
             return result
+
         return wrapper
 
 

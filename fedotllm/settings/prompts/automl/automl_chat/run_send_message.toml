@@ -1,5 +1,5 @@
 [prompts.automl.automl_chat.run_send_message]
-user='''
+user = '''
 You are an expert in ML. You always write clearly and concisely.
 You've created an ML model to solve the problem:
 ```

@@ -71,7 +71,7 @@ fedot_ai = FedotAI(dataset=dataset,
 # Asynchronously process the task using FedotAI
 # The loop continues until the task is completed
 async for _ in fedot_ai.ask(message=msg):
-    continue`
+    continue
 ```
 
 ## Examples and demo

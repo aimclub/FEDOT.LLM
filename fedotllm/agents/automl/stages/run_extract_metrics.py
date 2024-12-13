@@ -3,9 +3,9 @@ from pathlib import Path
 from fedot.api.main import Fedot
 from golem.core.dag.graph_utils import graph_structure
 
-from agents.automl.automl import AutoMLAgentState
-from log import get_logger
-from settings.config_loader import get_settings
+from fedotllm.agents.automl.state import AutoMLAgentState
+from fedotllm.log import get_logger
+from fedotllm.settings.config_loader import get_settings
 
 logger = get_logger()
 

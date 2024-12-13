@@ -1,17 +1,18 @@
-from agents.automl.automl import AutoMLAgentState
-from settings.config_loader import get_settings
-from pathlib import Path
 import shutil
-from log import get_logger
+from pathlib import Path
+
+from fedotllm.agents.automl.state import AutoMLAgentState
+from fedotllm.log import get_logger
+from fedotllm.settings.config_loader import get_settings
 
 logger = get_logger()
 
 
 def run_save_results(state: AutoMLAgentState):
     solution = state['solutions'][-1]
+    result_dir = Path(get_settings()['config']['result_dir'])
+    result_dir.mkdir(parents=True, exist_ok=True)
     if solution['code'] is not None:
-        result_dir = Path(get_settings()['config']['result_dir'])
-        result_dir.mkdir(parents=True, exist_ok=True)
         with open(result_dir / "solution.py", "w") as f:
             f.write(solution['code'])
         logger.info(f"Saved solution to {result_dir / 'solution.py'}")

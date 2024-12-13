@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from dynaconf import Dynaconf
 
 SETTINGS_DIR = Path(__file__).parent
@@ -11,6 +12,7 @@ global_settings = Dynaconf(
     load_dotenv=True,
     settings_files=toml_files,
 )
+
 
 def get_settings():
     return global_settings

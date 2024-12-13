@@ -1,5 +1,5 @@
 [prompts.researcher.retrieve_grader]
-user='''
+user = '''
 You are a grader assessing relevance of a retrieved document to a user question.
 Here is the retrieved document:\n\n{{ document|trim }}\n\n
 Here is the user question: {{ question|trim }}

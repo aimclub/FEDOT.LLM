@@ -1,23 +1,24 @@
 from typing import List
 from typing import TypedDict, Optional
-from agents.automl.structured import ProblemReflection, FedotConfig
-from agents.automl.eval.local_exec import ExecutionResult
-from agents.state import FedotLLMAgentState
+
+from fedotllm.agents.automl.eval.local_exec import ExecutionResult
+from fedotllm.agents.automl.structured import ProblemReflection, FedotConfig
+from fedotllm.agents.state import FedotLLMAgentState
 
 
 class Solution(TypedDict):
-    code: str
-    exec_result: ExecutionResult
-    fix_tries: int = 0
+    code: Optional[str]
+    exec_result: Optional[ExecutionResult]
+    fix_tries: int
 
 
 class AutoMLAgentState(FedotLLMAgentState):
     description: str
-    reflection: Optional[ProblemReflection] = None
-    fedot_config: Optional[FedotConfig] = None
-    skeleton: Optional[str] = None
+    reflection: Optional[ProblemReflection]
+    fedot_config: Optional[FedotConfig]
+    skeleton: Optional[str]
     codegen_sol: Solution
-    solutions: List[Solution] = []
-    exec_result: Optional[ExecutionResult] = None
-    metrics: Optional[dict] = None
-    pipeline: Optional[dict] = None
+    solutions: List[Solution]
+    exec_result: Optional[ExecutionResult]
+    metrics: Optional[dict]
+    pipeline: Optional[str]

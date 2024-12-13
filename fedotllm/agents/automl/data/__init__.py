@@ -1,3 +1,3 @@
-from agents.automl.data.data import Dataset
+from fedotllm.agents.automl.data.data import Dataset
 
 __all__ = ["Dataset"]

@@ -1,5 +1,5 @@
 [prompts.researcher.is_useful]
-user='''
+user = '''
 You are a grader assessing whether an answer is useful to resolve a question.
 Here is the answer:
 \n ------- \n

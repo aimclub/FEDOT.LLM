@@ -1,5 +1,5 @@
 [prompts.automl.run_fix_solution]
-user="""
+user = """
 You're a machine learning expert.
 You are given a machine learning problem.
 # About Dataset

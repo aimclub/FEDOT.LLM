@@ -1,7 +1,7 @@
 [prompts.automl.run_problem_reflection]
 temperature = 0.2
-system=""
-user='''
+system = ""
+user = '''
 You're a machine learning expert.
 You are given a machine learning problem.
 <problem_description>

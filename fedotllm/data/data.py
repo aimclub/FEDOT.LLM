@@ -1,8 +1,8 @@
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Dict, Any
 from pathlib import Path
+from typing import List, Dict, Any
 
 import pandas as pd
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class Split(BaseModel):
@@ -24,7 +24,7 @@ class Split(BaseModel):
 
 
 class Dataset(BaseModel):
-    splits: List[Split]
+    splits: List[Split] = Field(default_factory=list)
     """ List of splits in the dataset """
     path: Path = Field(default=None)
     """ Path to the dataset """

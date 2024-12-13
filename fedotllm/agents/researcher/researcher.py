@@ -1,20 +1,20 @@
 from functools import partial
 
 from langgraph.graph import END, START, StateGraph
-from agents.base import Agent
 
-from agents.memory import LongTermMemory
-from agents.researcher.stages import (run_retrieve,
-                                      run_retrieve_grader,
-                                      run_generate,
-                                      run_render_answer,
-                                      run_rewrite_question,
-                                      is_grounded,
-                                      is_useful,
-                                      is_continue
-                                      )
-from agents.researcher.state import ResearcherAgentState
-from llm.inference import AIInference
+from fedotllm.agents.base import Agent
+from fedotllm.agents.memory import LongTermMemory
+from fedotllm.agents.researcher.stages import (run_retrieve,
+                                               run_retrieve_grader,
+                                               run_generate,
+                                               run_render_answer,
+                                               run_rewrite_question,
+                                               is_grounded,
+                                               is_useful,
+                                               is_continue
+                                               )
+from fedotllm.agents.researcher.state import ResearcherAgentState
+from fedotllm.llm.inference import AIInference
 
 
 class ResearcherAgent(Agent):
@@ -39,7 +39,7 @@ class ResearcherAgent(Agent):
         workflow.add_conditional_edges(
             "retrieve_grader",
             lambda state: not (
-                len(state["documents"]) == 0 and is_continue(state)),
+                    len(state["documents"]) == 0 and is_continue(state)),
             {
                 True: "generate",
                 False: "rewrite_question",

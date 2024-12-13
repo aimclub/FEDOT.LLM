@@ -2,8 +2,8 @@ from typing import List, Union
 
 from langchain_core.documents import Document
 
-from agents.state import FedotLLMAgentState
-from agents.researcher.structured import GenerateWithCitations
+from fedotllm.agents.researcher.structured import GenerateWithCitations
+from fedotllm.agents.state import FedotLLMAgentState
 
 
 class ResearcherAgentState(FedotLLMAgentState):
@@ -20,4 +20,4 @@ class ResearcherAgentState(FedotLLMAgentState):
     generation: GenerateWithCitations
     documents: List[Union[str, Document]]
     answer: str
-    attempt: int = 0
+    attempt: int

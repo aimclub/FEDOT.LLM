@@ -1,11 +1,13 @@
-from agents.automl.automl import AutoMLAgent
-from agents.automl.llm.inference import AIInference
-from agents.automl.data.data import Dataset
-from agents.automl.state import AutoMLAgentState
-from agents.automl.automl_chat.stages.run_accept_task import run_accept_task
-from agents.automl.automl_chat.stages.run_send_message import run_send_message
-from langgraph.graph import START, END, StateGraph
 from functools import partial
+
+from langgraph.graph import START, END, StateGraph
+
+from fedotllm.agents.automl.automl import AutoMLAgent
+from fedotllm.agents.automl.automl_chat.stages.run_accept_task import run_accept_task
+from fedotllm.agents.automl.automl_chat.stages.run_send_message import run_send_message
+from fedotllm.agents.automl.data.data import Dataset
+from fedotllm.agents.automl.state import AutoMLAgentState
+from fedotllm.llm.inference import AIInference
 
 
 class AutoMLAgentChat:

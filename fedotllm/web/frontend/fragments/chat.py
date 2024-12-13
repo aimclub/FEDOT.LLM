@@ -2,18 +2,18 @@ import asyncio
 
 import streamlit as st
 
-from web.backend.app import FedotAIBackend
-from web.common.types import BaseResponse
-from web.frontend.components import st_write_str_stream
-from web.frontend.utils import response as rp
+from fedotllm.web.backend.app import FedotAIBackend
+from fedotllm.web.common.types import BaseResponse
+from fedotllm.web.frontend.components import st_write_str_stream
+from fedotllm.web.frontend.utils import response as rp
 
 
 async def handle_predict(prompt):
-    fedot_backend: FedotAIBackend = st.session_state.fedot_backend
+    fedotai_backend: FedotAIBackend = st.session_state.fedotai_backend
     st.session_state.messages.append(
         {"role": "assistant", "content": None})
     current_idx = len(st.session_state.messages) - 1
-    gen_response = fedot_backend.ask({'msg': prompt})
+    gen_response = fedotai_backend.ask({'msg': prompt})
     async for response in gen_response:
         if st.session_state.messages[current_idx]["content"]:
             if response.__eq__(st.session_state.messages[current_idx]["content"]):
@@ -58,7 +58,7 @@ def validate_model_and_dataset():
 
 
 def process_fedot_backend(prompt):
-    if st.session_state.fedot_backend:
+    if st.session_state.fedotai_backend:
         with st.spinner("Give me a moment..."):
             try:
                 asyncio.run(handle_predict(prompt))

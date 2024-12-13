@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 import graphviz
 from typing_extensions import List, Optional, Union, Literal, Dict, cast
 
-from web.common.graphviz_typing import GraphAttr, NodeAttr, EdgeAttr
+from fedotllm.web.common.graphviz_typing import GraphAttr, NodeAttr, EdgeAttr
 
 
 class Node:

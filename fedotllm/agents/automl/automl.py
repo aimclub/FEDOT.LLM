@@ -1,18 +1,20 @@
 from functools import partial
+
 from langgraph.graph import StateGraph, START, END
-from agents.automl.state import AutoMLAgentState
-from agents.automl.llm.inference import AIInference
-from agents.automl.stages.run_problem_reflection import run_problem_reflection
-from agents.automl.stages.run_generate_fedot_config import run_generate_fedot_config
-from agents.automl.stages.run_select_skeleton import run_select_skeleton
-from agents.automl.stages.run_insert_templates import run_insert_templates
-from agents.automl.stages.run_codegen import run_codegen
-from agents.automl.stages.run_evaluate import run_evaluate
-from agents.automl.stages.run_fix_solution import run_fix_solution
-from agents.automl.stages.conditions.if_bug import if_bug
-from agents.automl.stages.run_save_results import run_save_results
-from agents.automl.stages.run_extract_metrics import run_extract_metrics
-from agents.automl.data.data import Dataset
+
+from fedotllm.agents.automl.data.data import Dataset
+from fedotllm.agents.automl.stages.conditions.if_bug import if_bug
+from fedotllm.agents.automl.stages.run_codegen import run_codegen
+from fedotllm.agents.automl.stages.run_evaluate import run_evaluate
+from fedotllm.agents.automl.stages.run_extract_metrics import run_extract_metrics
+from fedotllm.agents.automl.stages.run_fix_solution import run_fix_solution
+from fedotllm.agents.automl.stages.run_generate_fedot_config import run_generate_fedot_config
+from fedotllm.agents.automl.stages.run_insert_templates import run_insert_templates
+from fedotllm.agents.automl.stages.run_problem_reflection import run_problem_reflection
+from fedotllm.agents.automl.stages.run_save_results import run_save_results
+from fedotllm.agents.automl.stages.run_select_skeleton import run_select_skeleton
+from fedotllm.agents.automl.state import AutoMLAgentState
+from fedotllm.llm.inference import AIInference
 
 
 class AutoMLAgent:

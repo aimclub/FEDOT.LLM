@@ -1,8 +1,11 @@
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Literal, Optional, Union
-from fedot.core.repository.tasks import TaskTypesEnum
 from enum import Enum
-from settings.config_loader import get_settings
+from typing import Literal, Optional, Union
+
+from fedot.core.repository.tasks import TaskTypesEnum
+from pydantic import BaseModel, Field, ConfigDict
+
+from fedotllm.settings.config_loader import get_settings
+
 
 class ProblemType(str, Enum):
     CLASSIFICATION = 'classification'
@@ -56,7 +59,7 @@ class FedotConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     problem: TaskTypesEnum = Field(...,
-                                 description='Name of the modelling problem to solve')
+                                   description='Name of the modelling problem to solve')
     timeout: float = Field(
         get_settings().config.fedot_timeout, description="Time for model design (in minutes)")
     seed: Optional[int] = Field(42, description="Seed for random generation")
@@ -75,13 +78,15 @@ class FedotConfig(BaseModel):
             "automl -> A special preset with only AutoML libraries such as TPOT and H2O as operations"
         )
     )
-    metric: Union[ClassificationMetricsEnum, RegressionMetricsEnum, TimeSeriesForecastingMetricsEnum] = Field(..., description="Choose relevant to problem metric of model quality assessment.")
+    metric: Union[ClassificationMetricsEnum, RegressionMetricsEnum, TimeSeriesForecastingMetricsEnum] = Field(...,
+                                                                                                              description="Choose relevant to problem metric of model quality assessment.")
     predict_method: Literal['predict', 'predict_proba', 'forecast'] = Field(...,
                                                                             description="Method for prediction: predict - for classification and regression, predict_proba - for classification, forecast - for time series forecasting")
 
 
 class ProblemReflection(BaseModel):
-    reflection: str = Field(..., description="Reflect on the problem, and describe it in your own words, in bullet points."
-                            "Pay attention to small details, nuances, notes and examples in the problem description.")
+    reflection: str = Field(...,
+                            description="Reflect on the problem, and describe it in your own words, in bullet points."
+                                        "Pay attention to small details, nuances, notes and examples in the problem description.")
     target: str = Field(
         ..., description="Name of probem target feature. This feature we want to predict.")

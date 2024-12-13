@@ -1,1 +1,1 @@
-from agents.automl.data.loaders.path_loader import PathDatasetLoader
+from fedotllm.agents.automl.data.loaders.path_loader import PathDatasetLoader

@@ -1,14 +1,27 @@
-from web.common.types import MessagesHandler
-from web.common.types import (BaseResponse, GraphResponse,
-                              RequestFedotLLM, Response,
-                              ResponseState)
 from typing_extensions import AsyncIterator
-from main import FedotAI
+
+from fedotllm.data import Dataset
+from fedotllm.llm.inference import AIInference
+from fedotllm.main import FedotAI
+from fedotllm.web.common.types import (BaseResponse, GraphResponse,
+                                       RequestFedotLLM, Response,
+                                       ResponseState, InitModel)
+from fedotllm.web.common.types import MessagesHandler
 
 
 class FedotAIBackend:
-    def __init__(self, fedot_ai: FedotAI) -> None:
-        self.fedot_ai = fedot_ai
+    def __init__(self) -> None:
+        self.fedot_ai = FedotAI()
+
+    def init_model(self, init_model: InitModel) -> None:
+        self.fedot_ai.inference = AIInference(
+            model=init_model.name,
+            base_url=init_model.base_url,
+            api_key=init_model.api_key
+        )
+
+    def init_dataset(self, init_dataset: Dataset) -> None:
+        self.fedot_ai.dataset = init_dataset
 
     async def ask(self, request: RequestFedotLLM) -> AsyncIterator[BaseResponse]:
         response = Response()

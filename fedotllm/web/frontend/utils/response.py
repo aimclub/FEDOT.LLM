@@ -1,9 +1,11 @@
-from web.common.types import ResponseContent, BaseResponse
 import streamlit as st
-from typing_extensions import List, Dict
-from web.frontend.components.st_graph import st_graph
-from web.frontend.utils.utils import get_hash_key
-from web.common.types import ResponseState
+from typing_extensions import Dict, List
+
+from fedotllm.web.common.types import (BaseResponse, ResponseContent,
+                                       ResponseState)
+from fedotllm.web.frontend.components.st_graph import st_graph
+from fedotllm.web.frontend.utils.utils import get_hash_key
+
 
 def create_expander_label(response: BaseResponse):
     if response.name:
@@ -16,6 +18,7 @@ def create_expander_label(response: BaseResponse):
         #     label = f":red[:material/close:] {label}"
         return label
     return ''
+
 
 def render(response: ResponseContent):
     if isinstance(response, str):

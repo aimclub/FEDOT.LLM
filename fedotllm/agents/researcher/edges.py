@@ -4,7 +4,7 @@ from langchain.chat_models.base import BaseChatModel
 from langchain_core.prompts import PromptTemplate
 from pydantic import BaseModel, Field
 
-from agents.researcher.state import ResearcherAgentState
+from fedotllm.agents.researcher.state import ResearcherAgentState
 
 
 def is_docs_relevant(state: ResearcherAgentState):

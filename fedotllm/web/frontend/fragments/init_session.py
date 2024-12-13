@@ -1,6 +1,9 @@
-import streamlit as st
 import os
+
+import streamlit as st
 from dotenv import load_dotenv
+
+from fedotllm.web.backend.app import FedotAIBackend
 
 
 def init_page():
@@ -30,7 +33,7 @@ def init_session_state():
     if 'chat_input_disable' not in st.session_state:
         st.session_state.chat_input_disable = False
     if "fedotai_backend" not in st.session_state.keys():
-        st.session_state.fedotai_backend = None
+        st.session_state.fedotai_backend = FedotAIBackend()
     if "model_name" not in st.session_state.keys():
         st.session_state.model_name = None
     if 'prev_graph' not in st.session_state.keys():
@@ -39,7 +42,7 @@ def init_session_state():
     def _set_env(var: str):
         if not os.environ.get(var):
             print(f"No {var} in env")
-    
+
     load_dotenv()
     _set_env("LANGSMITH_API_KEY")
     os.environ["LANGCHAIN_TRACING_V2"] = "true"

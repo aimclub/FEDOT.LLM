@@ -2,15 +2,15 @@ from functools import partial
 
 from langgraph.graph import END, START, StateGraph
 
-from agents.agent_wrapper.stages.run_entry_state_connector import \
+from fedotllm.agents.agent_wrapper.stages.run_entry_state_connector import \
     run_entry_state_connector
-from agents.agent_wrapper.stages.run_exit_state_connector import \
+from fedotllm.agents.agent_wrapper.stages.run_exit_state_connector import \
     run_exit_state_connector
-from agents.automl.automl import AutoMLAgent
-from agents.automl.state import AutoMLAgentState
-from agents.base import Agent
-from agents.researcher.researcher import ResearcherAgent
-from agents.researcher.state import ResearcherAgentState
+from fedotllm.agents.automl.automl import AutoMLAgent
+from fedotllm.agents.automl.state import AutoMLAgentState
+from fedotllm.agents.base import Agent
+from fedotllm.agents.researcher.researcher import ResearcherAgent
+from fedotllm.agents.researcher.state import ResearcherAgentState
 
 
 class AgentWrapper(Agent):
@@ -22,7 +22,8 @@ class AgentWrapper(Agent):
             workflow = StateGraph(ResearcherAgentState)
         elif isinstance(self.agent, AutoMLAgent):
             workflow = StateGraph(AutoMLAgentState)
-
+        else:
+            raise ValueError("Not supported agent in AgentWrapper.")
         workflow.add_node('run_entry_state_connector', partial(
             run_entry_state_connector, agent=self.agent))
         workflow.add_node('agent', self.agent.create_graph())

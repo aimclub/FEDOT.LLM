@@ -1,5 +1,5 @@
 [prompts.researcher.generate]
-system='''
+system = '''
 You are DocBot, a helpful assistant that is an expert at helping users with the documentation. \n
     Here is the relevant documentation: \n
     <documentation>
@@ -27,6 +27,6 @@ You are DocBot, a helpful assistant that is an expert at helping users with the 
         "answer": "The answer to the question."
     }
 '''
-user='''
+user = '''
 {{ question|trim }}
 '''

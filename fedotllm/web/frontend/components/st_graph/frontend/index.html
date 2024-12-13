@@ -1,17 +1,23 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <body>
-    <!-- <script src="../../node_modules/d3/dist/d3.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@hpcc-js/wasm/dist/graphviz.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/d3-graphviz@5.6.0/build/d3-graphviz.min.js"></script>
-    <style>
-        html,body{ margin:0; padding:0; height:100%; width:100%; }
-        #graph{
-            height:100%;
-            width:100%;
-            overflow:hidden; /* or overflow:auto; if you want scrollbars */
-        }
-    </style>
+<!-- <script src="../../node_modules/d3/dist/d3.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/@hpcc-js/wasm/dist/graphviz.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-graphviz@5.6.0/build/d3-graphviz.min.js"></script>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+    }
+
+    #graph {
+        height: 100%;
+        width: 100%;
+        overflow: hidden; /* or overflow:auto; if you want scrollbars */
+    }
+</style>
 <div id="graph" style="text-align: center;"></div>
-<script type="module" src="./main.js"></script>
+<script src="./main.js" type="module"></script>

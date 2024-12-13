@@ -1,6 +1,7 @@
-import streamlit as st
 import time
 from dataclasses import dataclass
+
+import streamlit as st
 
 
 @dataclass

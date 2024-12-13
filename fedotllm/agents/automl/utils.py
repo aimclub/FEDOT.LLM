@@ -1,5 +1,6 @@
 from jinja2 import Environment, StrictUndefined
-from settings.config_loader import get_settings
+
+from fedotllm.settings.config_loader import get_settings
 
 
 def jinja_render(template: str, *args, **kwargs):

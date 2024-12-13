@@ -1,9 +1,10 @@
-from agents.automl.llm.inference import AIInference
 import argparse
-from agents.automl.automl import AutoMLAgent
-from agents.automl.data.loaders import PathDatasetLoader
-from agents.automl.eval.local_exec import ProgramStatus
-from log import get_logger, setup_logger
+
+from fedotllm.agents.automl.automl import AutoMLAgent
+from fedotllm.agents.automl.data.loaders import PathDatasetLoader
+from fedotllm.agents.automl.eval.local_exec import ProgramStatus
+from fedotllm.llm.inference import AIInference
+from fedotllm.log import get_logger, setup_logger
 
 logger = get_logger()
 

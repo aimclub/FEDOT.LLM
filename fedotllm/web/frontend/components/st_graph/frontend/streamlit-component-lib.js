@@ -11,13 +11,13 @@ function sendMessageToStreamlitClient(type, data) {
 
 const Streamlit = {
     setComponentReady: function () {
-        sendMessageToStreamlitClient("streamlit:componentReady", { apiVersion: 1 });
+        sendMessageToStreamlitClient("streamlit:componentReady", {apiVersion: 1});
     },
     setFrameHeight: function (height) {
-        sendMessageToStreamlitClient("streamlit:setFrameHeight", { height: height });
+        sendMessageToStreamlitClient("streamlit:setFrameHeight", {height: height});
     },
     setComponentValue: function (value) {
-        sendMessageToStreamlitClient("streamlit:setComponentValue", { value: value });
+        sendMessageToStreamlitClient("streamlit:setComponentValue", {value: value});
     },
 
     RENDER_EVENT: "streamlit:render",

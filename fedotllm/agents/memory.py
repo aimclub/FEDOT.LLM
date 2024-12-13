@@ -9,10 +9,9 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStore
 from langchain_nomic.embeddings import NomicEmbeddings
-
 from pydantic import BaseModel, Field, PrivateAttr, ConfigDict, field_validator, ValidationInfo, model_validator
 
-from agents.load import load_fedot_docs
+from fedotllm.agents.load import load_fedot_docs
 
 CHROMA_PATH = "chroma"
 

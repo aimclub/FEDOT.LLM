@@ -1,8 +1,10 @@
 from pathlib import Path
-from settings.config_loader import get_settings
+
 from langchain_core.messages import HumanMessage
-from agents.automl.state import AutoMLAgentState
-from agents.automl.llm.inference import AIInference
+
+from fedotllm.agents.automl.state import AutoMLAgentState
+from fedotllm.llm.inference import AIInference
+from fedotllm.settings.config_loader import get_settings
 
 
 def run_send_message(state: AutoMLAgentState, inference: AIInference):
@@ -18,10 +20,10 @@ def run_send_message(state: AutoMLAgentState, inference: AIInference):
         ))
         message = message.content + "\n\n" + "[[Code]]({code_url}) | [[Pipeline]]({pipeline_url})".format(
             code_url="file://" +
-            str((Path(get_settings().config.result_dir) / "solution.py").resolve()),
+                     str((Path(get_settings().config.result_dir) / "solution.py").resolve()),
             pipeline_url="file://" +
-            str((Path(get_settings().config.result_dir) /
-                "pipeline/pipeline.json").resolve())
+                         str((Path(get_settings().config.result_dir) /
+                              "pipeline/pipeline.json").resolve())
         )
         state['messages'] = [HumanMessage(
             content=message, name="AutoMLAgent")]

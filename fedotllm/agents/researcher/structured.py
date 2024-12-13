@@ -1,7 +1,7 @@
+from enum import Enum
 from typing import List
 
 from pydantic import BaseModel, Field
-from enum import Enum
 
 
 class BoolAnswer(str, Enum):

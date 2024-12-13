@@ -1,22 +1,21 @@
 from __future__ import annotations
 
-import logging
 import random
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from hashlib import sha256
-from typing_extensions import ClassVar, Dict, List, Optional, Set, TypeAlias, Union, TypedDict
 
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.schema import StreamEvent
 from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
+from typing_extensions import ClassVar, Dict, List, Optional, Set, TypeAlias, Union, TypedDict
 
-from web.backend.utils.graphviz_builder import Edge, GraphvizBuilder, Node
-from web.common.colors import BSColors, STColors
+from fedotllm.web.backend.utils.graphviz_builder import Edge, GraphvizBuilder, Node
+from fedotllm.web.common.colors import BSColors, STColors
 
 ResponseContent: TypeAlias = Union[None, str,
-                                   List['BaseResponse'], 'BaseResponse', 'TypedContentResponse']
+List['BaseResponse'], 'BaseResponse', 'TypedContentResponse']
 
 
 class ResponseState(Enum):
@@ -31,6 +30,12 @@ class RequestFedotLLM(TypedDict):
 class TypedContentResponse(TypedDict):
     data: ResponseContent
     type: str
+
+
+class InitModel(BaseModel):
+    name: str
+    api_key: str = ''
+    base_url: Optional[str] = None
 
 
 class BaseResponse(BaseModel):
@@ -66,7 +71,7 @@ class BaseResponse(BaseModel):
         if other is None:
             return self
         if not isinstance(other, BaseResponse):
-            raise TypeError("Right operand must be of type BaseResponse")
+            raise TypeError(f"Right operand must be of type BaseResponse: {type(other)}")
 
         if self.id != other.id:
             raise ValueError("Cannot add objects with different ids")
@@ -170,7 +175,8 @@ class MessagesHandler(BaseResponse):
         return process_event
 
     @staticmethod
-    def _process_messages(messages: Union[List, AIMessage, HumanMessage], message_idx: Set[str]) -> List[Union[AIMessage, HumanMessage]]:
+    def _process_messages(messages: Union[List, AIMessage, HumanMessage], message_idx: Set[str]) -> List[
+        Union[AIMessage, HumanMessage]]:
         new_messages = []
         if isinstance(messages, list):
             for message in messages:
@@ -256,7 +262,7 @@ class GraphResponse(BaseResponse):
                 if langgraph_node:
                     ns = event_metadata.get("langgraph_checkpoint_ns", None)
                     if ns:
-                        ns = ns.split(":")[0]
+                        ns = str(ns).split(":")[0]
                     if not nesting_graphs:
                         new_graph = self.init_default_graph(ns)
                         nesting_graphs.append(new_graph)

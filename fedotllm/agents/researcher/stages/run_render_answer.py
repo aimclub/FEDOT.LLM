@@ -1,6 +1,7 @@
 from typing import List
-from agents.researcher.state import ResearcherAgentState
-from agents.researcher.structured import Citation
+
+from fedotllm.agents.researcher.state import ResearcherAgentState
+from fedotllm.agents.researcher.structured import Citation
 
 
 def run_render_answer(state: ResearcherAgentState):

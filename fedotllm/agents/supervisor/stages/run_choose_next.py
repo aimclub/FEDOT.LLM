@@ -1,9 +1,8 @@
-from agents.utils import render
-from agents.supervisor.structured import ChooseNext
-from langfuse.decorators import observe
-from settings.config_loader import get_settings
-from agents.supervisor.state import SupervisorState
-from llm.inference import AIInference
+from fedotllm.agents.supervisor.state import SupervisorState
+from fedotllm.agents.supervisor.structured import ChooseNext
+from fedotllm.agents.utils import render
+from fedotllm.llm.inference import AIInference
+from fedotllm.settings.config_loader import get_settings
 
 
 def run_choose_next(state: SupervisorState, inference: AIInference):
