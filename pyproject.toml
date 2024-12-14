@@ -17,8 +17,6 @@ python = "~3.10.0"
 # Fedot
 fedot = "^0.7.3.2"
 thegolem = "^0.4.0"
-giotto-tda = "~0.6.0"
-ripser = "~0.6.4"
 
 # Data processing
 pandas = "^2.2.3"
@@ -41,7 +39,7 @@ streamlit-extras = "^0.5.0"
 gradio = "^5.8.0"
 
 # Database and Vector Store
-nomic = {extras = ["local"], version = "^3.3.3"}
+nomic = {extras = ["local"], version = "^3.3.4"}
 chromadb = "^0.5.23"
 
 # Utilities
@@ -61,6 +59,9 @@ requests = "^2.32.3"
 tenacity = "^9.0.0"
 langchain-ollama = "^0.2.1"
 fastapi = "^0.115.6"
+
+[tool.poetry.extras]
+topological = ["giotto-tda", "ripser"]
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"

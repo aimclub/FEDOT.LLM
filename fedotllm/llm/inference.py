@@ -15,12 +15,14 @@ class AIInference:
     def __init__(self, model: Optional[str] = None, base_url: Optional[str] = None, api_key: Optional[str] = None):
         try:
             headers = None
-            if "vsegpt" in base_url:
+            chat_base_url = base_url or get_settings().get("config.base_url", None)
+            chat_model = str(model or get_settings().config.model or "")
+            chat_api_key = SecretStr(api_key or get_settings()["OPENAI_TOKEN"])
+            if "vsegpt" in chat_base_url:
                 headers = {"X-Title": "FEDOT.LLM"}
-            self.model: ChatOpenAI = ChatOpenAI(model=model or get_settings().config.model,
-                                                base_url=base_url or get_settings().get("config.base_url", None),
-                                                api_key=SecretStr(
-                                                    api_key or get_settings()["OPENAI_TOKEN"]),
+            self.model: ChatOpenAI = ChatOpenAI(model=chat_model,
+                                                base_url=chat_base_url,
+                                                api_key=chat_api_key,
                                                 default_headers=headers,
                                                 )
         except AttributeError as e:
@@ -32,7 +34,6 @@ class AIInference:
             system: Optional[str] = None,
             temperature: float = 0.2,
             frequency_penalty: float = 0.0,
-            max_tokens: int = 3000,
             *,
             format_vals=None,
             structured: Optional[BaseModel] = None,
@@ -44,9 +45,8 @@ class AIInference:
         logger.debug(f"User: {user}")
         system and logger.debug(f"System: {system}")
         model = self.model.bind(
-            temperature=temperature, 
-            frequency_penalty=frequency_penalty, 
-            max_completion_tokens=max_tokens)
+            temperature=temperature,
+            frequency_penalty=frequency_penalty)
         if tools:
             model = model.bind_tools(tools)
         if structured:

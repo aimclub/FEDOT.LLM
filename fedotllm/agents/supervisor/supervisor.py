@@ -20,10 +20,10 @@ class SupervisorAgent(Agent):
         self.inference = inference
         self.dataset = dataset
         self.researcher_agent = AgentWrapper(ResearcherAgent(
-            inference=self.inference, memory=self.memory))
+            inference=self.inference, memory=self.memory)).create_graph()
         if dataset is not None:
             self.automl_agent = AutoMLAgentChat(
-                inference=self.inference, dataset=self.dataset)
+                inference=self.inference, dataset=self.dataset).create_graph()
         else:
             def _automl_agent_error(*args, **kwargs):
                 raise ValueError("Dataset not provided for AutoML agent.")
@@ -34,8 +34,8 @@ class SupervisorAgent(Agent):
         workflow = StateGraph(SupervisorState)
         workflow.add_node("choose_next", partial(
             run_choose_next, inference=self.inference))
-        workflow.add_node("Researcher", self.researcher_agent.create_graph())
-        workflow.add_node("AutoMLChat", self.automl_agent.create_graph())
+        workflow.add_node("Researcher", self.researcher_agent)
+        workflow.add_node("AutoMLChat", self.automl_agent)
 
         workflow.add_edge(START, "choose_next")
         workflow.add_conditional_edges(
