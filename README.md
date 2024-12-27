@@ -4,6 +4,21 @@
   <img src="/docs/fedot-llm.png" width="600" title="Fedot.LLM logo">
 </p>
 
+.. start-badges
+.. list-table::
+   :stub-columns: 1
+
+   * - license
+     - | |license|
+   * - support
+     - | |tg|
+   * - languages
+     - | |eng| |rus|
+   * - mirror
+     - | |gitlab|
+   * - funding
+     - | |ITMO| |SAI|
+.. end-badges
 
 FEDOT.LLM is an LLM-based prototype for next-generation AutoML. It combines the power of Large Language Models with automated machine learning techniques to enhance data analysis and pipeline building processes.
 
@@ -95,3 +110,37 @@ If you want to contribute or set up a development environment, you can use the p
 This will set up a fully-featured development environment in a container, either in GitHub Codespaces or using VS Code's Dev Containers extension.
 
 For more information see [`.devcontainer/README.md`](.devcontainer/README.md).
+
+Funding
+=======
+
+This research is financially supported by the Foundation for
+National Technology Initiative's Projects Support as a part of the roadmap
+implementation for the development of the high-tech field of
+Artificial Intelligence for the period up to 2030 (agreement 70-2021-00187)
+
+.. |ITMO| image:: https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/ITMO_badge.svg
+   :alt: Acknowledgement to ITMO
+   :target: https://en.itmo.ru/en/
+
+.. |NCCR| image:: https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/NCCR_badge.svg
+   :alt: Acknowledgement to NCCR
+   :target: https://actcognitive.org/
+
+.. |license| image:: https://img.shields.io/github/license/aimclub/FEDOT.LLM
+   :alt: Licence for repo
+   :target: https://github.com/aimclub/FEDOT.LLM/blob/master/LICENSE.md
+
+.. |tg| image:: https://img.shields.io/badge/Telegram-Group-blue.svg
+   :target: https://t.me/fedot_helpdesk
+   :alt: Telegram Chat
+
+.. |gitlab| image:: https://img.shields.io/badge/mirror-GitLab-orange
+   :alt: GitLab mirror for this repository
+   :target: https://gitlab.actcognitive.org/itmo-nccr-code/FEDOT-LLM
+
+.. |eng| image:: https://img.shields.io/badge/lang-en-red.svg
+   :target: /README_en.rst
+
+.. |rus| image:: https://img.shields.io/badge/lang-ru-yellow.svg
+   :target: /README.rst
