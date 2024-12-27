@@ -1,7 +1,7 @@
 DC = docker compose
 EXEC = docker exec -it
 APP_FILE = docker/docker-compose.yml
-APP_CONTAINER = app
+APP_CONTAINER = fdlm-app
 ENV = --env-file .env
 SH = /bin/bash
 
