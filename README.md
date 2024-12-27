@@ -4,8 +4,8 @@
   <img src="/docs/fedot-llm.png" width="600" title="Fedot.LLM logo">
 </p>
 
-[![Acknowledgement ITMO](badges/ITMO_badge_rus.svg)](https://itmo.ru/)
-[![Acknowledgement NCCR](badges/NCCR_badge.svg)](https://actcognitive.org/)
+[![Acknowledgement ITMO](https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/ITMO_badge.svg)](https://itmo.ru/)
+[![Acknowledgement NCCR](https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/NCCR_badge.svg)](https://actcognitive.org/)
 [![Mirror](https://img.shields.io/badge/mirror-GitLab-orange)](https://gitlab.actcognitive.org/itmo-nccr-code/fedot-llm)
 
 
