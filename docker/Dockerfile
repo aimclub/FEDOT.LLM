@@ -1,41 +1,37 @@
-FROM python:3.10-slim
+FROM python:3.10-slim AS builder
 
-# Arguments for the new user
-ARG NB_USER=fedya
-ARG NB_UID=1000
-
-# Set the environment variables and create a new user
-ENV USER=${NB_USER}
-ENV NB_UID=${NB_UID}
-ENV HOME="/home/${NB_USER}"
-ENV WORK=${HOME}/work
-
-RUN adduser --disabled-password \
-    --gecos "Default user" \
-    --uid ${NB_UID} \
-    ${NB_USER}
-
-# Install the required packages
-WORKDIR ${HOME}
-RUN apt-get update && \
-    apt-get --no-install-recommends install -yq \
-    libgomp1 \
-    libhdf5-dev \
+RUN apt-get update && apt-get install \
+    --no-install-suggests \
+    --no-install-recommends \
+    -y \
+    build-essential \
+    curl \
+    python3-venv \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt requirements.txt
-RUN pip3 install --upgrade pip && pip3 install -r requirements.txt
+ENV PYTHONFAULTHANDLER=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONHASHSEED=random \
+    PIP_NO_CACHE_DIR=off \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PIP_DEFAULT_TIMEOUT=100 \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_CACHE_DIR='/var/cache/pypoetry' \
+    POETRY_HOME='/usr/local' \
+    POETRY_VERSION=1.8.5
 
+WORKDIR /app
 
+RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 -
 
-COPY . ${WORK}
+COPY poetry.lock pyproject.toml /app/
 
-# Switch to new user and start the Jupyter notebook
-USER root
-RUN chown -R ${NB_UID} ${HOME}
+RUN poetry install --no-interaction --no-ansi
 
-USER ${NB_USER}
+RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/docker_caches/.bash_history" \
+    && echo "$SNIPPET" >> "/root/.bashrc"
 
+COPY . .
 
-ENTRYPOINT ["python3", "-m"]
-CMD ["jupyter", "notebook", "--port=8888", "--no-browser", "--ip=0.0.0.0"]

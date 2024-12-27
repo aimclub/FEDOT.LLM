@@ -1,11 +1,33 @@
-version: '3'
+name: fedotllm
 services:
-  jupyter-fedotllm:
+  app:
     build:
       context: ../
       dockerfile: docker/Dockerfile
+    restart: always
+    container_name: app
+    command: "tail -f /dev/null"
     ports:
-      - "8800:8888"
+      - "8080:8080"
+    env_file:
+      - ../.env
+    platform: linux/amd64
     volumes:
-      - ../:/home/fedya/work
-      - ../.cache/pip-docker:/home/fedya/.cache/pip
+      - ./docker_caches:/docker_caches
+    develop:
+      watch:
+        - action: sync
+          path: ../
+          target: /app
+          ignore:
+            - ../pyproject.toml
+            - ./
+        - action: rebuild
+          path: .
+          target: /app/docker
+          ignore:
+           - ./docker_caches
+           - ./dev.Dockerfile
+           - ./README.md
+        - action: rebuild
+          path: ../pyproject.toml

@@ -2,7 +2,7 @@
 name = "fedotllm"
 version = "0.1.0"
 description = "LLM-based prototype for nexgen AutoML"
-authors = ["Alexey Lapin <a.lapin03@gmail.com>"]
+authors = ["Alexey Lapin <a.lapin@itmo.ru>"]
 license = "BSD 3-Clause"
 readme = "README.md"
 packages = [
@@ -18,7 +18,6 @@ python = "~3.10.0"
 fedot = "^0.7.3.2"
 thegolem = "^0.4.0"
 giotto-tda = "0.6.0"
-ripser = "0.6.4"
 
 # Data processing
 pandas = "^2.2.3"
@@ -56,10 +55,8 @@ dynaconf = "^3.2.6"
 watchdog = "^6.0.0"
 loguru = "^0.7.3"
 autoflake = "^2.3.1"
-langfuse = "^2.56.0"
 requests = "^2.32.3"
 tenacity = "^9.0.0"
-langchain-ollama = "^0.2.1"
 fastapi = "^0.115.6"
 
 [tool.poetry.group.dev.dependencies]
