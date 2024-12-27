@@ -4,6 +4,10 @@
   <img src="/docs/fedot-llm.png" width="600" title="Fedot.LLM logo">
 </p>
 
+[![Acknowledgement ITMO](https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/ITMO_badge.svg)](https://itmo.ru/)
+[![Acknowledgement NCCR](https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/NCCR_badge.svg)](https://actcognitive.org/)
+[![Mirror](https://img.shields.io/badge/mirror-GitLab-orange)](https://gitlab.actcognitive.org/itmo-nccr-code/fedot-llm)
+
 
 FEDOT.LLM is an LLM-based prototype for next-generation AutoML. It combines the power of Large Language Models with automated machine learning techniques to enhance data analysis and pipeline building processes.
 
@@ -95,3 +99,13 @@ If you want to contribute or set up a development environment, you can use the p
 This will set up a fully-featured development environment in a container, either in GitHub Codespaces or using VS Code's Dev Containers extension.
 
 For more information see [`.devcontainer/README.md`](.devcontainer/README.md).
+
+Funding
+=======
+
+This research is financially supported by the Foundation for
+National Technology Initiative's Projects Support as a part of the roadmap
+implementation for the development of the high-tech field of
+Artificial Intelligence for the period up to 2030 (agreement 70-2021-00187)
+
+
