@@ -1,5 +1,7 @@
 [config]
 model = "gpt-4o"
+#model = "llama-3.3-70b-versatile"
+#base_url = "https://api.groq.com/openai/v1"
 base_url = "https://models.inference.ai.azure.com"
 #base_url="http://0.0.0.0:4000"
 #base_url="http://127.0.0.1:11434"

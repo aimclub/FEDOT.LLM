@@ -1,11 +1,58 @@
-version: '3'
+name: fedotllm
 services:
-  jupyter-fedotllm:
+  app:
     build:
-      context: ../
-      dockerfile: docker/Dockerfile
+      context: ..
+      dockerfile: docker/run.Dockerfile
+    restart: always
+    container_name: fdlm-app
+    command: "tail -f /dev/null"
     ports:
-      - "8800:8888"
+      - "8080:8080"
+    env_file:
+      - ../.env
+    platform: linux/amd64
     volumes:
-      - ../:/home/fedya/work
-      - ../.cache/pip-docker:/home/fedya/.cache/pip
+      - ./docker_caches:/docker_caches
+    develop:
+      watch:
+        - action: sync
+          path: ../
+          target: /app
+          ignore:
+            - ../pyproject.toml
+            - ./
+        - action: rebuild
+          path: .
+          target: /app/docker
+          ignore:
+           - ./docker-compose.yml
+           - ./docker_caches
+           - ./dev.Dockerfile
+           - ./README.md
+        - action: rebuild
+          path: ../pyproject.toml
+    networks:
+      - fdlm-net
+    depends_on:
+      chromadb:
+        condition: service_started
+
+  chromadb:
+    image: chromadb/chroma
+    restart: always
+    container_name: fdlm-chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY="/docker_caches/chroma"
+      - ANONYMIZED_TELEMETRY=FALSE
+    volumes:
+      - ./docker_caches/chroma:/docker_caches/chroma
+    command: "--workers 1 --host 0.0.0.0 --port 8000 --proxy-headers --log-config chromadb/log_config.yml --timeout-keep-alive 30"
+    ports:
+      - 8000:8000
+    networks:
+      - fdlm-net
+
+networks:
+  fdlm-net:

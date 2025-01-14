@@ -1,4 +1,4 @@
-from web.frontend import fragments as fg
+from fedotllm.web.frontend import fragments as fg
 
 
 def main():

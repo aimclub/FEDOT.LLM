@@ -1,5 +1,4 @@
 # Python virtual environment
-../.venv
-../venv
-
-
+**/.env
+**/.venv
+**/venv
