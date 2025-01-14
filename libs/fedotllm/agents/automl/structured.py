@@ -23,6 +23,16 @@ class PresetType(str, Enum):
     AUTOML = 'automl'
 
 
+class IndustrialStrategyType(str, Enum):
+    ANOMALY_DETECTION = 'anomaly_detection'
+    FEDERATED_AUTOML = 'federated_automl'
+    FORECASTING_ASSUMPTIONS = 'forecasting_assumptions'
+    FORECASTING_EXOGENOUS = 'forecasting_exogenous'
+    KERNEL_AUTOML = 'kernel_automl'
+    LORA_STRATEGY = 'lora_strategy'
+    SAMPLING_STRATEGY = 'sampling_strategy'
+
+
 class ClassificationMetricsEnum(str, Enum):
     # ROCAUC = 'roc_auc'
     precision = 'precision'
@@ -82,6 +92,20 @@ class FedotConfig(BaseModel):
                                                                                                               description="Choose relevant to problem metric of model quality assessment.")
     predict_method: Literal['predict', 'predict_proba', 'forecast'] = Field(...,
                                                                             description="Method for prediction: predict - for classification and regression, predict_proba - for classification, forecast - for time series forecasting")
+
+
+class FedotIndustrialConfig(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    problem: ProblemType = Field(..., description="Name of the modelling problem to solve")
+    timeout: float = Field(1, description="Time for model design (in minutes): None or -1 means infinite time.")
+    seed: Optional[int] = Field(None, description="Seed for random generation")
+    cv_folds: Optional[int] = Field(None, description="Number of folds for cross-validation")
+    metrics: List[Union[ClassificationMetricsEnum, RegressionMetricsEnum, TimeSeriesForecastingMetricsEnum]
+                  ] = Field(..., description="Choose all relevant to problem metrics of model quality assessment")
+    predict_method: Literal['predict', 'predict_proba'] = Field(...,
+                                                                description="Method for prediction: predict - for classification and regression, predict_proba - for classification, forecast - for time series forecasting")
+    industrial_strategy: Optional[IndustrialStrategyType] = Field(None, description="Industrial strategy for model building")
 
 
 class ProblemReflection(BaseModel):

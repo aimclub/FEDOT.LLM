@@ -1,0 +1,22 @@
+### FEDOT.Industrial ###
+# FEDOT.Industrial AutoML framework for training the mode
+model = FedotIndustrial(problem={%problem%},
+        industrial_strategy={%industrial_strategy%},
+        timeout={%timeout%},
+        seed={%seed%},
+        cv_folds={%cv_folds%},
+        metric={%metric%},
+        with_tuning=True,
+        logging_level=20)
+
+model.fit(input_data=train_data) # this is the training step, after this step variable ‘model‘ will be a trained model
+
+# Save the pipeline
+pipeline, api_controller = model.solver, model.api_controller
+if api_controller.condition_check.solver_is_fedot_class(pipeline):
+  pipeline = pipeline.current_pipeline
+
+pipeline.save(path=PIPELINE_PATH, create_subdir=False, is_datetime_in_path=False)
+
+return model
+### FEDOT.Industrial ###
