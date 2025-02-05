@@ -1,7 +1,7 @@
 from typing_extensions import AsyncIterator
 
 from fedotllm.data import Dataset
-from fedotllm.llm.inference import AIInference
+from fedotllm.llm.inference import AIInference, OpenaiEmbeddings
 from fedotllm.main import FedotAI
 from fedotllm.web.common.types import (BaseResponse, GraphResponse,
                                        RequestFedotLLM, Response,
@@ -18,6 +18,10 @@ class FedotAIBackend:
             model=init_model.name,
             base_url=init_model.base_url,
             api_key=init_model.api_key
+        )
+        self.fedot_ai.embeddings = OpenaiEmbeddings(
+            api_key=init_model.api_key,
+            base_url=init_model.base_url
         )
 
     def init_dataset(self, init_dataset: Dataset) -> None:

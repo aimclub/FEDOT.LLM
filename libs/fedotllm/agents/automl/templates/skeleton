@@ -19,21 +19,23 @@ SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 
+DATASET_PATH = Path({Path to Dataset}) # path for saving and loading dataset(s)
 ### UNMODIFIABLE CODE BEGIN ###
-DATASET_PATH = Path("_experiments/datasets") # path for saving and loading dataset(s)
 PIPELINE_PATH = Path("pipeline") # path for saving and loading pipelines
 MODEL_PERFORMANCE = {} # dictionary to store the model performance
 ### UNMODIFIABLE CODE END ###
 
 # USER CODE BEGIN LOAD_DATA #
 def load_data():
-    # TODO: this function is for loading a dataset from hub (if available) or user’s local storage
-    return ...
+    # TODO: this function is for loading a dataset from user’s local storage
+    return train, X_test
 # USER CODE END LOAD_DATA #
 
 def transform_data(data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
     # TODO: this function is for transforming the data into a format that can be used for training the model
     # TODO: Only dropping columns is allowed, all other dataset transformations are STRICTLY FORBIDDEN
+    # TODO: Impute Missing Values in Test Data
+    # TODO: Ensure No Rows are Dropped in Test Data
     return features, target
 
 # The main function to orchestrate the data loading, feature engineering, model training and model evaluation
@@ -43,21 +45,28 @@ def create_model():
     """
     # USER CODE BEGIN CREATE MODEL #
     # TODO: Step 1. Retrieve or load a dataset from hub (if available) or user’s local storage, start path from the DATASET_PATH
-    dataset = load_data()
+    train, X_test = load_data()
     
     # TODO: Step 2. Create a train-test split of the data by splitting the ‘dataset‘ into train_data and test_data.
     # Here, the train_data contains 80% of the ‘dataset‘ and the test_data contains 20% of the ‘dataset‘.
-    train_data, test_data = train_test_split(dataset, test_size=0.2, random_state=SEED) # corresponding to 80%, 20% of ‘dataset‘
+    train_data, eval_test_data = train_test_split(train, test_size=0.2, random_state=SEED) # corresponding to 80%, 20% of ‘dataset‘
     
     train_features, train_target = transform_data(train_data)
-    test_features, test_target = transform_data(test_data)
+    eval_test_features, eval_test_target = transform_data(eval_test_data)
+    test_features, _ = transform_data(X_test)
     
     
     # TODO: Step 3. Train AutoML model. AutoML performs feature engineering and model training.
     model = train_model(train_features: np.ndarray, train_target: np.ndarray)
     
     # TODO: Step 4. evaluate the trained model using the defined "evaluate_model" function model_performance, model_complexity = evaluate_model()
-    model_performance = evaluate_model(model, test_features: np.ndarray, test_target: np.ndarray)
+    model_performance = evaluate_model(model, eval_test_features: np.ndarray, eval_test_target: np.ndarray)
+
+    # Evaluate predictions for the test datase using AutoML Framework
+    # **YOU MUST USE automl_predict()**
+    predictions:np.ndarray = automl_predict(model, test_features: np.ndarray) # returns 2D array
+    output = pd.DataFrame(predictions, columns=[...])
+    output.to_csv('submission.csv', index=False)
     # USER CODE END CREATE MODEL # 
     return model_performance
 

@@ -1,12 +1,14 @@
 [config]
 model = "gpt-4o"
+embeddings = "text-embedding-3-large"
 #model = "llama-3.3-70b-versatile"
 #base_url = "https://api.groq.com/openai/v1"
 base_url = "https://models.inference.ai.azure.com"
+#base_url = "https://api.vsegpt.ru/v1"
 #base_url="http://0.0.0.0:4000"
 #base_url="http://127.0.0.1:11434"
 output_dir = "exec_out"
 dataset_dir = "_experiments"
 result_dir = "results"
 fix_tries = 3
-fedot_timeout = 30
+fedot_timeout = 1

@@ -24,7 +24,7 @@ class PresetType(str, Enum):
 
 
 class ClassificationMetricsEnum(str, Enum):
-    # ROCAUC = 'roc_auc'
+    ROCAUC = 'roc_auc'
     precision = 'precision'
     # f1 = 'f1'
     # logloss = 'neg_log_loss'
@@ -90,3 +90,7 @@ class ProblemReflection(BaseModel):
                                         "Pay attention to small details, nuances, notes and examples in the problem description.")
     target: str = Field(
         ..., description="Name of probem target feature. This feature we want to predict.")
+    train_features: str = Field(...,
+                                description="Name of dataset split with train data")
+    test_features: str = Field(
+        ..., description="Name of dataset split with test data")

@@ -9,22 +9,22 @@ from fedotllm.settings.config_loader import get_settings
 
 def run_retrieve_grader(state: ResearcherAgentState, inference: AIInference) -> ResearcherAgentState:
     question = state["question"]
-    documents = state["documents"]
+    documents = state["retrieved"]['documents']
 
     # Score each doc
-    filtered_docs = []
-    for d in documents:
-        if not isinstance(d, Document):
-            raise ValueError("Document must be an instance of Document")
+    for i in range(len(documents)):
+        document = state['retrieved']['documents'][0][i]
         score = GradeDocuments.model_validate(
             inference.chat_completion(*render(get_settings().get("prompts.researcher.retrieve_grader"),
-                                              question=question, document=d.page_content),
+                                              question=question, document=document),
                                       structured=GradeDocuments))
 
         grade = score.score
-        if grade == BoolAnswer.YES:
-            filtered_docs.append(d)
+        if grade == BoolAnswer.NO:
+            del state['retrieved']['ids'][0][i]
+            del state['retrieved']['distances'][0][i]
+            del state['retrieved']['documents'][0][i]
+            del state['retrieved']['metadatas'][0][i]
         else:
             continue
-    state["documents"] = filtered_docs
     return state

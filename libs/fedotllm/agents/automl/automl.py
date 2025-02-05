@@ -59,7 +59,7 @@ class AutoMLAgent:
                 False: "save_results"
             }
         )
-        workflow.add_edge("fix_solution_main", "evaluate_main")
+        workflow.add_edge("fix_solution_main", "insert_templates")
         workflow.add_edge("save_results", "extract_metrics")
         workflow.add_edge("extract_metrics", END)
         return workflow.compile().with_config(config={"run_name": "AutoMLAgent"})
