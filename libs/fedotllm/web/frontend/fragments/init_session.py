@@ -9,7 +9,7 @@ from fedotllm.web.backend.app import FedotAIBackend
 from fedotllm.web.frontend.localization import lclz
 
 if 'lang' not in st.session_state.keys():
-    st.session_state.lang = 'eng'
+    st.session_state.lang = 'en'
 
 
 def init_page():
@@ -32,7 +32,7 @@ def init_session_state():
     if "dataset" not in st.session_state.keys():
         st.session_state.dataset = None
     if 'lang' not in st.session_state.keys():
-        st.session_state.lang = 'eng'
+        st.session_state.lang = 'en'
     if "messages" not in st.session_state:
         st.session_state.messages = [
             {"role": "assistant",

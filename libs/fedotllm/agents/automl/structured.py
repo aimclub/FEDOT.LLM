@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, Union, List
 
 from fedot.core.repository.tasks import TaskTypesEnum
 from pydantic import BaseModel, Field, ConfigDict
@@ -104,7 +104,7 @@ class FedotIndustrialConfig(BaseModel):
     metrics: List[Union[ClassificationMetricsEnum, RegressionMetricsEnum, TimeSeriesForecastingMetricsEnum]
                   ] = Field(..., description="Choose all relevant to problem metrics of model quality assessment")
     predict_method: Literal['predict', 'predict_proba'] = Field(...,
-                                                                description="Method for prediction: predict - for classification and regression, predict_proba - for classification, forecast - for time series forecasting")
+                                                                description="Method for prediction: predict - for classification, regression, time series forecasting, predict_proba - for classification")
     industrial_strategy: Optional[IndustrialStrategyType] = Field(None, description="Industrial strategy for model building")
 
 

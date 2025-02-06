@@ -20,9 +20,10 @@ lclz = {
         'NO_DATASET': 'Сначала загрузите файлы датасета!',
         'SPINNER_LABEL': 'Подождите...',
         'SUBMIT': 'Отправить',
-        'RESULTS': 'Результаты'
+        'RESULTS': 'Результаты',
+        'GRAPH': 'Граф'
     },
-    'eng': {
+    'en': {
         'MENU': 'Menu',
         'INIT_LLM_MODEL_HEADER' : 'LLM',
         'LLM_NAME': 'LLM Name',
@@ -43,6 +44,7 @@ lclz = {
         'NO_DATASET': 'Oh, you need to upload the dataset files first!',
         'SPINNER_LABEL': 'Give me a moment...',
         'SUBMIT': 'Submit',
-        "RESULTS": 'Results'
+        "RESULTS": 'Results',
+        'GRAPH': 'Graph'
     }
 }

@@ -1,6 +1,8 @@
 [config]
-model = "gpt-4o"
-embeddings = "text-embedding-3-large"
+model = "gpt-4o-mini"
+embeddings = "text-embedding-3-small"
+automl = "Fedot"
+#automl = "FedotInd"
 #model = "llama-3.3-70b-versatile"
 #base_url = "https://api.groq.com/openai/v1"
 base_url = "https://models.inference.ai.azure.com"

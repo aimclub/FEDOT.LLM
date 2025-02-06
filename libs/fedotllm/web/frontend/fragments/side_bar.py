@@ -136,8 +136,8 @@ def init_model():
 def change_lang():
     if st.button(f'{st.session_state.lang.upper()}', type="primary", use_container_width=True):
         match (st.session_state.lang):
-            case 'ru': st.session_state.lang = 'eng'
-            case 'eng': st.session_state.lang = 'ru'
+            case 'ru': st.session_state.lang = 'en'
+            case 'en': st.session_state.lang = 'ru'
         st.session_state.messages[0] = {"role": "assistant",
                                         "content": lclz[st.session_state.lang]['GREETING_MSG']}
         st.rerun()

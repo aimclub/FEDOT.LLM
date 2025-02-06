@@ -5,13 +5,13 @@ from fedotllm.agents.scraper import recursive_url_loader
 from bs4 import BeautifulSoup
 from chromadb.api.types import QueryResult
 from html2text import html2text
-
+from chromadb.config import Settings
 
 class RetrieveTool:
     def __init__(self, embeddings: OpenaiEmbeddings, base_url: str = "https://fedot.readthedocs.io/en/latest/", collection_name: str = 'docs'):
         self.embeddings = embeddings
         self.base_url = base_url
-        self.client = chromadb.PersistentClient(path='db')
+        self.client = chromadb.PersistentClient(path='db', settings=Settings(anonymized_telemetry=False))
         self.collection_name = collection_name
 
         self.db = Memory(self.client, self.collection_name, self.embeddings)

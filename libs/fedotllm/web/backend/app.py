@@ -1,12 +1,13 @@
-from typing_extensions import AsyncIterator
+from typing import Literal
 
+from deep_translator import GoogleTranslator
 from fedotllm.data import Dataset
 from fedotllm.llm.inference import AIInference, OpenaiEmbeddings
 from fedotllm.main import FedotAI
-from fedotllm.web.common.types import (BaseResponse, GraphResponse,
-                                       RequestFedotLLM, Response,
-                                       ResponseState, InitModel)
-from fedotllm.web.common.types import MessagesHandler
+from fedotllm.web.common.types import (BaseResponse, GraphResponse, InitModel,
+                                       MessagesHandler, RequestFedotLLM,
+                                       Response, ResponseState)
+from typing_extensions import AsyncIterator
 
 
 class FedotAIBackend:
@@ -27,13 +28,13 @@ class FedotAIBackend:
     def init_dataset(self, init_dataset: Dataset) -> None:
         self.fedot_ai.dataset = init_dataset
 
-    async def ask(self, request: RequestFedotLLM) -> AsyncIterator[BaseResponse]:
+    async def ask(self, request: RequestFedotLLM, lang: Literal['en', 'ru'] = 'en') -> AsyncIterator[BaseResponse]:
         response = Response()
-        message_handler = MessagesHandler().message_handler(response)
-        graph_handler = GraphResponse().graph_handler(response)
+        message_handler = MessagesHandler(lang=lang).message_handler(response)
+        graph_handler = GraphResponse(lang=lang).graph_handler(response)
         self.fedot_ai.handlers = [message_handler, graph_handler]
 
-        async for _ in self.fedot_ai.ask(request['msg']):
+        async for _ in self.fedot_ai.ask(GoogleTranslator(source='auto', target='en').translate(request['msg'])):
             if len(response.context) > 0:
                 yield response.pack()
             response.clean()

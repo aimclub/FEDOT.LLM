@@ -8,8 +8,7 @@ from typing_extensions import Any, AsyncIterator
 from fedotllm.agents.supervisor.supervisor import SupervisorAgent
 from fedotllm.data import Dataset
 from fedotllm.llm.inference import AIInference, OpenaiEmbeddings
-
-
+    
 class FedotAI(BaseModel):
     dataset: Optional[Dataset] = Field(default=None)
     inference: AIInference = Field(default_factory=AIInference)

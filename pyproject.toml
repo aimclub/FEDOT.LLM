@@ -55,6 +55,8 @@ tenacity = "^9.0.0"
 fastapi = "^0.115.6"
 tiktoken = "^0.8.0"
 html2text = "^2024.2.26"
+fedot-ind = "^0.4.2"
+deep-translator = "^1.11.4"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"

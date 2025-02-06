@@ -6,7 +6,6 @@ from fedotllm.web.backend.app import FedotAIBackend
 from fedotllm.web.common.types import BaseResponse
 from fedotllm.web.frontend.components import st_write_str_stream
 from fedotllm.web.frontend.utils import response as rp
-
 from fedotllm.web.frontend.localization import lclz
 
 
@@ -15,7 +14,7 @@ async def handle_predict(prompt):
     st.session_state.messages.append(
         {"role": "assistant", "content": None})
     current_idx = len(st.session_state.messages) - 1
-    gen_response = fedotai_backend.ask({'msg': prompt})
+    gen_response = fedotai_backend.ask({'msg': prompt}, lang=st.session_state.lang)
     async for response in gen_response:
         if st.session_state.messages[current_idx]["content"]:
             if response.__eq__(st.session_state.messages[current_idx]["content"]):

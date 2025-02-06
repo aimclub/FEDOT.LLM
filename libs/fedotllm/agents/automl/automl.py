@@ -8,7 +8,7 @@ from fedotllm.agents.automl.stages.run_codegen import run_codegen
 from fedotllm.agents.automl.stages.run_evaluate import run_evaluate
 from fedotllm.agents.automl.stages.run_extract_metrics import run_extract_metrics
 from fedotllm.agents.automl.stages.run_fix_solution import run_fix_solution
-from fedotllm.agents.automl.stages.run_generate_fedot_config import run_generate_fedot_config
+from fedotllm.agents.automl.stages.run_generate_automl_config import run_generate_automl_config
 from fedotllm.agents.automl.stages.run_insert_templates import run_insert_templates
 from fedotllm.agents.automl.stages.run_problem_reflection import run_problem_reflection
 from fedotllm.agents.automl.stages.run_save_results import run_save_results
@@ -26,8 +26,8 @@ class AutoMLAgent:
         workflow = StateGraph(AutoMLAgentState)
         workflow.add_node("problem_reflection", partial(
             run_problem_reflection, inference=self.inference, dataset=self.dataset))
-        workflow.add_node("generate_fedot_config", partial(
-            run_generate_fedot_config, inference=self.inference, dataset=self.dataset))
+        workflow.add_node("generate_automl_config", partial(
+            run_generate_automl_config, inference=self.inference, dataset=self.dataset))
         workflow.add_node("select_skeleton", run_select_skeleton)
         workflow.add_node("insert_templates", run_insert_templates)
         workflow.add_node("codegen", partial(
@@ -39,8 +39,8 @@ class AutoMLAgent:
         workflow.add_node("extract_metrics", run_extract_metrics)
 
         workflow.add_edge(START, "problem_reflection")
-        workflow.add_edge("problem_reflection", "generate_fedot_config")
-        workflow.add_edge("generate_fedot_config", "select_skeleton")
+        workflow.add_edge("problem_reflection", "generate_automl_config")
+        workflow.add_edge("generate_automl_config", "select_skeleton")
         workflow.add_edge("select_skeleton", "codegen")
         workflow.add_edge("codegen", "insert_templates")
         workflow.add_conditional_edges(

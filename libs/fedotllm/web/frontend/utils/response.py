@@ -40,4 +40,4 @@ def render(response: ResponseContent):
     elif not response:
         return
     else:
-        raise (ValueError("Unsupported response."))
+        raise ValueError("Unsupported response.")

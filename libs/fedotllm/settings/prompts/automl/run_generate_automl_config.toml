@@ -1,4 +1,4 @@
-[prompts.automl.run_generate_fedot_config]
+[prompts.automl.run_generate_automl_config]
 temperature = 0.2
 system = ""
 user = '''

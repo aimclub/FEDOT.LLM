@@ -6,16 +6,22 @@ from datetime import datetime
 from enum import Enum
 from hashlib import sha256
 
+from deep_translator import GoogleTranslator
+from fedotllm.web.backend.utils.graphviz_builder import (Edge, GraphvizBuilder,
+                                                         Node)
+from fedotllm.web.common.colors import BSColors, STColors
+from fedotllm.web.frontend.localization import lclz
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.schema import StreamEvent
-from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
-from typing_extensions import ClassVar, Dict, List, Optional, Set, TypeAlias, Union, TypedDict
-
-from fedotllm.web.backend.utils.graphviz_builder import Edge, GraphvizBuilder, Node
-from fedotllm.web.common.colors import BSColors, STColors
+from pydantic import (BaseModel, ConfigDict, Field, field_validator,
+                      model_validator)
+from typing_extensions import (ClassVar, Dict, List, Literal, Optional, Set,
+                               TypeAlias, TypedDict, Union)
 
 ResponseContent: TypeAlias = Union[None, str,
-List['BaseResponse'], 'BaseResponse', 'TypedContentResponse']
+                                   List['BaseResponse'], 'BaseResponse', 'TypedContentResponse']
+
+Lang: TypeAlias = Literal['en', 'ru']
 
 
 class ResponseState(Enum):
@@ -71,7 +77,8 @@ class BaseResponse(BaseModel):
         if other is None:
             return self
         if not isinstance(other, BaseResponse):
-            raise TypeError(f"Right operand must be of type BaseResponse: {type(other)}")
+            raise TypeError(
+                f"Right operand must be of type BaseResponse: {type(other)}")
 
         if self.id != other.id:
             raise ValueError("Cannot add objects with different ids")
@@ -149,6 +156,7 @@ class MessagesHandler(BaseResponse):
     SUBSCRIBE_EVENTS: ClassVar[List[str]] = [
         'SupervisorAgent', 'ResearcherAgent', 'AutoMLAgent']
     SEPARATOR: ClassVar[str] = "---\n\n"
+    lang: Lang = Field(default='en')
 
     def message_handler(self, response: Response) -> callable:
         content: List[str] = []
@@ -176,7 +184,7 @@ class MessagesHandler(BaseResponse):
 
     @staticmethod
     def _process_messages(messages: Union[List, AIMessage, HumanMessage], message_idx: Set[str]) -> List[
-        Union[AIMessage, HumanMessage]]:
+            Union[AIMessage, HumanMessage]]:
         new_messages = []
         if isinstance(messages, list):
             for message in messages:
@@ -203,7 +211,8 @@ class MessagesHandler(BaseResponse):
             id=self.id,
             name=self.name,
             state=self.state,
-            content='\n\n'.join(content),
+            content=GoogleTranslator(source='en', target=self.lang).translate(
+                '\n\n'.join(content)),
             stream=self.stream
         ))
 
@@ -212,6 +221,7 @@ class GraphResponse(BaseResponse):
     name: Optional[str] = Field(default='graph', init=False)
     state: Optional['ResponseState'] = Field(default=None, init=False)
     stream: bool = Field(default=False, init=False)
+    lang: Lang = Field(default='en')
 
     @field_validator('content', mode='before')
     @classmethod
@@ -222,6 +232,11 @@ class GraphResponse(BaseResponse):
                 'type': 'graphviz'
             }
         return v
+
+    @model_validator(mode='after')
+    def set_name(self) -> GraphResponse:
+        self.name = lclz[self.lang]['GRAPH']
+        return self
 
     @staticmethod
     def init_default_graph(name: str = '') -> GraphvizBuilder:
