@@ -17,7 +17,7 @@ up:
 down:
 	${DC} -f ${APP_FILE} down
 
-.PHONY: appsh
+.PHONY: app-sh
 app-sh:
 	${EXEC} -it ${APP_CONTAINER} ${SH}
 app-py:

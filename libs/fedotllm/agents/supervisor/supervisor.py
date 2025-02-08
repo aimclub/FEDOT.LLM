@@ -6,21 +6,20 @@ from langgraph.graph import END, START, StateGraph
 from fedotllm.agents.agent_wrapper.agent_wrapper import AgentWrapper
 from fedotllm.agents.automl.automl_chat import AutoMLAgentChat
 from fedotllm.agents.base import Agent
-from fedotllm.agents.memory import LongTermMemory
 from fedotllm.agents.researcher.researcher import ResearcherAgent
 from fedotllm.agents.supervisor.stages.run_choose_next import run_choose_next
 from fedotllm.agents.supervisor.state import SupervisorState
 from fedotllm.data import Dataset
-from fedotllm.llm.inference import AIInference
+from fedotllm.llm.inference import AIInference, OpenaiEmbeddings
 
 
 class SupervisorAgent(Agent):
-    def __init__(self, memory: LongTermMemory, inference: AIInference, dataset: Optional[Dataset]):
-        self.memory = memory
+    def __init__(self, embeddings: OpenaiEmbeddings, inference: AIInference, dataset: Optional[Dataset]):
+        self.embeddings = embeddings
         self.inference = inference
         self.dataset = dataset
         self.researcher_agent = AgentWrapper(ResearcherAgent(
-            inference=self.inference, memory=self.memory)).create_graph()
+            inference=self.inference, embeddings=self.embeddings)).create_graph()
         if dataset is not None:
             self.automl_agent = AutoMLAgentChat(
                 inference=self.inference, dataset=self.dataset).create_graph()

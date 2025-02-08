@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Literal, Optional, Union
+from typing import Literal, Optional, Union, List
 
 from fedot.core.repository.tasks import TaskTypesEnum
 from pydantic import BaseModel, Field, ConfigDict
@@ -23,8 +23,18 @@ class PresetType(str, Enum):
     AUTOML = 'automl'
 
 
+class IndustrialStrategyType(str, Enum):
+    ANOMALY_DETECTION = 'anomaly_detection'
+    FEDERATED_AUTOML = 'federated_automl'
+    FORECASTING_ASSUMPTIONS = 'forecasting_assumptions'
+    FORECASTING_EXOGENOUS = 'forecasting_exogenous'
+    KERNEL_AUTOML = 'kernel_automl'
+    LORA_STRATEGY = 'lora_strategy'
+    SAMPLING_STRATEGY = 'sampling_strategy'
+
+
 class ClassificationMetricsEnum(str, Enum):
-    # ROCAUC = 'roc_auc'
+    ROCAUC = 'roc_auc'
     precision = 'precision'
     # f1 = 'f1'
     # logloss = 'neg_log_loss'
@@ -84,9 +94,27 @@ class FedotConfig(BaseModel):
                                                                             description="Method for prediction: predict - for classification and regression, predict_proba - for classification, forecast - for time series forecasting")
 
 
+class FedotIndustrialConfig(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    problem: ProblemType = Field(..., description="Name of the modelling problem to solve")
+    timeout: float = Field(1, description="Time for model design (in minutes): None or -1 means infinite time.")
+    seed: Optional[int] = Field(None, description="Seed for random generation")
+    cv_folds: Optional[int] = Field(None, description="Number of folds for cross-validation")
+    metrics: List[Union[ClassificationMetricsEnum, RegressionMetricsEnum, TimeSeriesForecastingMetricsEnum]
+                  ] = Field(..., description="Choose all relevant to problem metrics of model quality assessment")
+    predict_method: Literal['predict', 'predict_proba'] = Field(...,
+                                                                description="Method for prediction: predict - for classification, regression, time series forecasting, predict_proba - for classification")
+    industrial_strategy: Optional[IndustrialStrategyType] = Field(None, description="Industrial strategy for model building")
+
+
 class ProblemReflection(BaseModel):
     reflection: str = Field(...,
                             description="Reflect on the problem, and describe it in your own words, in bullet points."
                                         "Pay attention to small details, nuances, notes and examples in the problem description.")
     target: str = Field(
         ..., description="Name of probem target feature. This feature we want to predict.")
+    train_features: str = Field(...,
+                                description="Name of dataset split with train data")
+    test_features: str = Field(
+        ..., description="Name of dataset split with test data")

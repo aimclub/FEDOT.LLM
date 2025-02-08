@@ -6,6 +6,7 @@ from fedotllm.web.backend.app import FedotAIBackend
 from fedotllm.web.common.types import BaseResponse
 from fedotllm.web.frontend.components import st_write_str_stream
 from fedotllm.web.frontend.utils import response as rp
+from fedotllm.web.frontend.localization import lclz
 
 
 async def handle_predict(prompt):
@@ -13,7 +14,7 @@ async def handle_predict(prompt):
     st.session_state.messages.append(
         {"role": "assistant", "content": None})
     current_idx = len(st.session_state.messages) - 1
-    gen_response = fedotai_backend.ask({'msg': prompt})
+    gen_response = fedotai_backend.ask({'msg': prompt}, lang=st.session_state.lang)
     async for response in gen_response:
         if st.session_state.messages[current_idx]["content"]:
             if response.__eq__(st.session_state.messages[current_idx]["content"]):
@@ -51,15 +52,17 @@ def add_user_message(prompt):
 
 
 def validate_model_and_dataset():
+    if not st.session_state.model and not st.session_state.dataset:
+        raise ValueError(lclz[st.session_state.lang]['NO_MODEL_AND_DATASET'])
     if not st.session_state.model:
-        raise ValueError("Oh, you need to pick a model first!")
+        raise ValueError(lclz[st.session_state.lang]['NO_MODEL'])
     if not st.session_state.dataset:
-        raise ValueError("Oh, you need to upload the dataset files first!")
+        raise ValueError(lclz[st.session_state.lang]['NO_DATASET'])
 
 
 def process_fedot_backend(prompt):
     if st.session_state.fedotai_backend:
-        with st.spinner("Give me a moment..."):
+        with st.spinner(lclz[st.session_state.lang]['SPINNER_LABEL']):
             try:
                 asyncio.run(handle_predict(prompt))
             except Exception as e:
@@ -70,7 +73,7 @@ def process_fedot_backend(prompt):
 
 def add_assistant_error_message(content):
     st.session_state.messages.append({"role": "assistant", "content": content})
-    st_write_str_stream(content)
+    st.rerun()
 
 
 def chat():
@@ -80,9 +83,10 @@ def chat():
         with message_container.chat_message(message["role"]):
             rp.render(message["content"])
 
-    on_submit = st.chat_input("Enter a prompt here...",
+    on_submit = st.chat_input(lclz[st.session_state.lang]['CHAT_INPUT_PLACEHOLDER'],
                               key='chat_input',
                               args=(message_container,),
                               disabled=st.session_state.chat_input_disable)
     if on_submit:
         message_handler(message_container)
+        st.rerun()

@@ -3,7 +3,6 @@ from functools import partial
 from langgraph.graph import END, START, StateGraph
 
 from fedotllm.agents.base import Agent
-from fedotllm.agents.memory import LongTermMemory
 from fedotllm.agents.researcher.stages import (run_retrieve,
                                                run_retrieve_grader,
                                                run_generate,
@@ -14,18 +13,18 @@ from fedotllm.agents.researcher.stages import (run_retrieve,
                                                is_continue
                                                )
 from fedotllm.agents.researcher.state import ResearcherAgentState
-from fedotllm.llm.inference import AIInference
+from fedotllm.llm.inference import AIInference, OpenaiEmbeddings
 
 
 class ResearcherAgent(Agent):
-    def __init__(self, inference: AIInference, memory: LongTermMemory):
+    def __init__(self, inference: AIInference, embeddings: OpenaiEmbeddings):
         self.inference = inference
-        self.memory = memory
+        self.embeddings = embeddings
 
     def create_graph(self):
         workflow = StateGraph(ResearcherAgentState)
         workflow.add_node("retrieve", partial(
-            run_retrieve, retriever=self.memory.get_collection("FedotDocs").get_retriever()))
+            run_retrieve, embeddings=self.embeddings))
         workflow.add_node("retrieve_grader", partial(
             run_retrieve_grader, inference=self.inference))
         workflow.add_node("generate", partial(
@@ -39,7 +38,7 @@ class ResearcherAgent(Agent):
         workflow.add_conditional_edges(
             "retrieve_grader",
             lambda state: not (
-                    len(state["documents"]) == 0 and is_continue(state)),
+                    len(state["retrieved"]["documents"]) == 0 and is_continue(state)),
             {
                 True: "generate",
                 False: "rewrite_question",

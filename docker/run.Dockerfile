@@ -28,10 +28,9 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSIO
 
 COPY poetry.lock pyproject.toml /app/
 
+COPY . .
+
 RUN poetry install --no-interaction --no-ansi
 
 RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/docker_caches/.bash_history" \
     && echo "$SNIPPET" >> "/root/.bashrc"
-
-COPY . .
-

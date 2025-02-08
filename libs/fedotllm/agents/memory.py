@@ -1,150 +1,88 @@
-from pathlib import Path
-from typing import Callable, List, Dict, Optional
-
-import chromadb
-from chromadb.api import ClientAPI
-from chromadb.config import Settings
-from langchain_chroma import Chroma
-from langchain_core.documents import Document
-from langchain_core.embeddings import Embeddings
-from langchain_core.vectorstores import VectorStore
-from langchain_nomic.embeddings import NomicEmbeddings
-from pydantic import BaseModel, Field, PrivateAttr, ConfigDict, field_validator, ValidationInfo, model_validator
-
-from fedotllm.agents.load import load_fedot_docs
-
-CHROMA_PATH = "chroma"
+from chromadb.api.client import Client
+from chromadb.api.types import QueryResult
+from fedotllm.llm.inference import OpenaiEmbeddings
+from tqdm import tqdm
+from typing import NamedTuple, List
 
 
-class MemoryResource(BaseModel):
-    collection_name: str
-    loader: Callable[[], List[Document]]
+def text_splitter(text: str, max_chunk_length: int = OpenaiEmbeddings.MAX_INPUT, overlap_ratio: float = 0.1):
+    if not (0 <= overlap_ratio < 1):
+        raise ValueError("Overlap ratio must be between 0 and 1 (exclusive).")
+
+    overlap_length = int(max_chunk_length * overlap_ratio)
+    chunks = []
+    start = 0
+
+    while start < len(text):
+        end = min(start + max_chunk_length, len(text))
+        chunk = text[start:end]
+        chunks.append(chunk)
+        start += max_chunk_length - overlap_length
+
+    return chunks
 
 
-resources: List[MemoryResource] = [
-    MemoryResource(collection_name="FedotDocs", loader=load_fedot_docs)
-]
+class ChunkedDocument(NamedTuple):
+    source: str
+    title: str
+    chunks: str
 
 
-class Collection(BaseModel):
-    collection_name: str
-    client: ClientAPI
-    embedding_function: Embeddings = Field(
-        default_factory=lambda: NomicEmbeddings(
-            model="nomic-embed-text-v1.5", inference_mode="local"
-        )
-    )
-    _vectorstore: VectorStore = PrivateAttr()
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+class Memory:
+    def __init__(self, client: Client, collection_name: str, embedding_model: OpenaiEmbeddings):
+        self.chroma_client = client
+        self.collection_name = collection_name
+        self.collection = self.chroma_client.get_or_create_collection(
+            self.collection_name, metadata={"hnsw:space": "cosine"})
 
-    @classmethod
-    def create(cls, collection_name: str, client: ClientAPI, embedding_function: Embeddings):
-        Chroma(
-            embedding_function=embedding_function,
-            collection_name=collection_name,
-            create_collection_if_not_exists=True,
-            client=client
-        )
-        return cls(
-            collection_name=collection_name,
-            client=client,
-            embedding_function=embedding_function
-        )
+        self.embedding_model = embedding_model
+        self.id = 0
 
-    @staticmethod
-    def is_exists(collection_name: str, client: ClientAPI) -> bool:
-        try:
-            client.get_collection(collection_name)
-            return True
-        except Exception:
-            return False
+    def insert_vectors(self, documents: List[ChunkedDocument]):
+        for document in tqdm(documents, desc='Embedding'):
+            for chunk in document.chunks:
+                text_embedding = self.embedding_model.encode(input=chunk)[
+                    0].embedding
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        self._vectorstore = Chroma(
-            embedding_function=self.embedding_function,
-            collection_name=self.collection_name,
-            create_collection_if_not_exists=False,
-            client=self.client
-        )
+                metadata = {
+                    'source': document.source,
+                    'title': document.title
+                }
 
-    def get_retriever(self):
-        return self._vectorstore.as_retriever()
-
-    def add_documents(self, docs: List[Document]):
-        self._vectorstore.add_documents(docs)
-
-    def reset(self):
-        self._vectorstore.delete()
-
-
-class LongTermMemory(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    persistent_path: Path = Path(CHROMA_PATH)
-    embedding_function: Embeddings = Field(
-        default_factory=lambda: NomicEmbeddings(
-            model="nomic-embed-text-v1.5", inference_mode="local"
-        )
-    )
-    _cached_collections: Dict[str, Collection] = PrivateAttr(
-        default_factory=dict)
-    client: ClientAPI = Field(
-        default_factory=lambda: chromadb.PersistentClient(
-            path=str(CHROMA_PATH),
-            settings=Settings(anonymized_telemetry=False)
-        )
-    )
-
-    @field_validator("client", mode="before")
-    @classmethod
-    def init_client(cls, v: Optional[ClientAPI], info: ValidationInfo):
-        if v is None:
-            v = chromadb.PersistentClient(
-                path=str(info.data["persistent_path"]),
-                settings=Settings(anonymized_telemetry=False)
-            )
-        return v
-
-    @model_validator(mode="after")
-    def load_resources(self):
-        for resource in resources:
-            if not self.is_collection_exists(resource.collection_name):
-                self.create_collection(resource.collection_name)
-                self.add_documents(resource.collection_name, resource.loader())
-        return self
-
-    def is_collection_exists(self, collection_name: str) -> bool:
-        return Collection.is_exists(collection_name, self.client)
-
-    def create_collection(self, collection_name: str) -> Collection:
-        collection = Collection.create(
-            collection_name=collection_name,
-            client=self.client,
-            embedding_function=self.embedding_function
-        )
-        self._cached_collections[collection_name] = collection
-        return collection
-
-    def add_documents(self, collection_name: str, docs: List[Document]):
-        self.get_collection(collection_name).add_documents(docs)
-
-    def reset_collection(self, collection_name: str):
-        if collection_name in self._cached_collections:
-            self._cached_collections[collection_name].reset()
-            del self._cached_collections[collection_name]
-        else:
-            raise ValueError(f"Collection {collection_name} not found")
-
-    def get_collection(self, collection_name: str) -> Collection:
-        if Collection.is_exists(collection_name, self.client):
-            if collection_name not in self._cached_collections:
-                self._cached_collections[collection_name] = Collection(
-                    collection_name=collection_name,
-                    client=self.client,
-                    embedding_function=self.embedding_function
+                self.collection.add(
+                    documents=chunk,
+                    ids=f'{self.id}',
+                    embeddings=text_embedding,
+                    metadatas=metadata
                 )
-            return self._cached_collections[collection_name]
+                self.id += 1
+        print('---------------------------------')
+        print(f'Finished inserting vectors for <{self.collection_name}>!')
+        print('---------------------------------')
+
+    def search_context(self, query: str, n_results=5) -> QueryResult:
+        query_embeddings = self.embedding_model.encode(query)[0].embedding
+        results = self.collection.query(
+            query_embeddings=query_embeddings,
+            n_results=n_results,
+            include=['documents', 'distances', 'metadatas'])
+        return results
+
+    def search_context_with_metadatas(self, query: str, where: dict, n_results=5) -> dict:
+        query_embeddings = self.embedding_model.encode(query)[0].embedding
+        results = self.collection.query(
+            query_embeddings=query_embeddings,
+            n_results=n_results,
+            include=['documents', 'distances', 'metadatas'],
+            where=where)
+        return results
+
+    def check_collection_none(self):
+        document_count = self.collection.count()
+        if document_count == 0:
+            print(f"The collection <{self.collection_name}> is empty.")
         else:
-            if collection_name in self._cached_collections:
-                del self._cached_collections[collection_name]
-            raise ValueError(f"Collection {collection_name} not found")
+            print(
+                f"The collection <{self.collection_name}>  has {document_count} documents.")
+
+        return document_count

@@ -1,10 +1,12 @@
-from langchain.vectorstores.base import VectorStoreRetriever
+from fedotllm.llm.inference import OpenaiEmbeddings
+from fedotllm.agents.retrieve import RetrieveTool
 
 from fedotllm.agents.researcher.state import ResearcherAgentState
 
 
-def run_retrieve(state: ResearcherAgentState, retriever: VectorStoreRetriever) -> ResearcherAgentState:
-    question = state["messages"][-1].content
-    documents = retriever.invoke(question)
-    state["documents"] = documents
+def run_retrieve(state: ResearcherAgentState, embeddings: OpenaiEmbeddings) -> ResearcherAgentState:
+    retriever = RetrieveTool(embeddings=embeddings)
+    if retriever.count() == 0:
+        retriever.create_db_docs()
+    state['retrieved'] = retriever.query_docs(state["question"])
     return state

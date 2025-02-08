@@ -22,3 +22,8 @@ def run_save_results(state: AutoMLAgentState):
         shutil.copytree(pipeline_path, result_dir /
                         "pipeline", dirs_exist_ok=True)
         logger.info(f"Saved pipelines to {result_dir / 'pipeline'}")
+    
+    submission_path  = Path(get_settings()['config']['output_dir']) / "submission.csv"
+    if submission_path.exists():
+        shutil.copy(submission_path, result_dir / "submission.csv")
+        logger.info(f"Saved submission to {result_dir / 'pipeline'}")

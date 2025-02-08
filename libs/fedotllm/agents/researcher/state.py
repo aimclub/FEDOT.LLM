@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from langchain_core.documents import Document
+from chromadb.api.types import QueryResult
 
 from fedotllm.agents.researcher.structured import GenerateWithCitations
 from fedotllm.agents.state import FedotLLMAgentState
@@ -18,6 +18,6 @@ class ResearcherAgentState(FedotLLMAgentState):
     """
     question: str
     generation: GenerateWithCitations
-    documents: List[Union[str, Document]]
+    retrieved: QueryResult
     answer: str
     attempt: int

@@ -18,12 +18,15 @@ def run_send_message(state: AutoMLAgentState, inference: AIInference):
             pipeline=state['pipeline'],
             code=state['solutions'][-1]['code']
         ))
-        message = message.content + "\n\n" + "[[Code]]({code_url}) | [[Pipeline]]({pipeline_url})".format(
+        message = message.content + "\n\n" + "[[Code]]({code_url}) | [[Pipeline]]({pipeline_url}) | [[Submission]]({submission_url})".format(
             code_url="file://" +
                      str((Path(get_settings().config.result_dir) / "solution.py").resolve()),
             pipeline_url="file://" +
                          str((Path(get_settings().config.result_dir) /
-                              "pipeline/pipeline.json").resolve())
+                              "pipeline/pipeline.json").resolve()),
+            submission_url="file://" +
+                         str((Path(get_settings().config.result_dir) /
+                              "submission.csv").resolve()),
         )
         state['messages'] = [HumanMessage(
             content=message, name="AutoMLAgent")]
