@@ -1,36 +1,56 @@
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 import pandas as pd
-from pydantic import BaseModel, Field, ConfigDict
+from scipy.io.arff import loadarff
 
 
-class Split(BaseModel):
+class Split:
     """
     Split within dataset object
     """
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    name: str
-    """ The name of the split """
-    data: pd.DataFrame = Field(repr=False)
-    """ Data that is stored in the split """
-
-    def model_dump(self, **kwargs) -> Dict[str, Any]:
-        return {
-            "name": self.name,
-            "data": self.data.to_dict(orient="records")
-        }
+    def __init__(self, name: str, data: pd.DataFrame):
+        self.name = name
+        self.data = data
 
 
-class Dataset(BaseModel):
-    splits: List[Split] = Field(default_factory=list)
-    """ List of splits in the dataset """
-    path: Path = Field(default=None)
-    """ Path to the dataset """
+class Dataset:
+    
+    def __init__(self, splits: List[Split], path: Path):
+        self.splits = splits
+        self.path = path
 
-    def model_dump(self, **kwargs) -> Dict[str, Any]:
-        return {
-            "splits": [split.model_dump() for split in self.splits],
-            "path": str(self.path) if self.path else None
-        }
+    @classmethod
+    def from_path(cls, path: Path):
+        """
+        Load Dataset a folder with dataset objects
+
+        Args:
+            path: Path to folder with Dataset data
+        """
+
+        # Loading all splits in folder
+        splits = []
+        if path.is_dir():
+            files = [x for x in path.glob('**/*') if x.is_file()]
+        else:
+            files = [path]
+        for file in files:
+            file_path = file.absolute()
+            split_name = file.name
+            if file.name.split(".")[-1] == "csv":
+                raw_data = pd.read_csv(file_path)
+                split = Split(data=raw_data, name=split_name)
+                splits.append(split)
+            if file.name.split(".")[-1] == "arff":
+                raw_data = loadarff(file_path)
+                split = Split(
+                    data=pd.DataFrame(raw_data[0]), name=split_name
+                )
+                splits.append(split)
+            if file.name.split(".")[-1] in ['xls', 'xlsx', 'xlsm', 'xlsb', 'odf', 'ods', 'odt']:
+                raw_data = pd.read_excel(file_path)
+                split = Split(data=raw_data, name=split_name)
+                splits.append(split)
+
+        return Dataset(splits=splits, path=path)

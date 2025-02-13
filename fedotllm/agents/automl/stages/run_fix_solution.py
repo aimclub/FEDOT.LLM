@@ -1,4 +1,4 @@
-from fedotllm.agents.automl.data.data import Dataset
+from fedotllm.data import Dataset
 from fedotllm.agents.automl.state import AutoMLAgentState
 from fedotllm.agents.automl.utils import extract_code
 from fedotllm.llm.inference import AIInference

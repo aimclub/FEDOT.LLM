@@ -1,7 +1,3 @@
-from fedotllm.data.data import Dataset
-from fedotllm.data.data import Split
+from .data import Dataset
 
-__all__ = [
-    "Dataset",
-    "Split"
-]
+__all__ = ["Dataset"]
