@@ -15,12 +15,12 @@ if 'lang' not in st.session_state.keys():
 def init_page():
     st.set_page_config(
         page_title="FedotLLM",
-        page_icon="libs/fedotllm/web/frontend/static/images/logo.png",
+        page_icon="fedotllm/web/frontend/static/images/logo.png",
         layout="wide",
         initial_sidebar_state="expanded"
     )
     st.logo(
-        image='libs/fedotllm/web/frontend/static/images/fedot-llm-white.png',
+        image='fedotllm/web/frontend/static/images/fedot-llm-white.png',
         link='https://itmo-nss-team.github.io/'
     )
     st.title("💬 FEDOT.LLM")

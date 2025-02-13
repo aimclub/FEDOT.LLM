@@ -6,7 +6,7 @@ authors = ["Alexey Lapin <a.lapin@itmo.ru>"]
 license = "BSD 3-Clause"
 readme = "README.md"
 packages = [
-    { include = "fedotllm", from = "libs" }
+    { include = "fedotllm", from = "." }
 ]
 
 [tool.poetry.urls]
