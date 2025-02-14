@@ -1,42 +1,39 @@
-from typing import Literal
+from typing import Literal, Optional
 
 from deep_translator import GoogleTranslator
-from fedotllm.data import Dataset
 from fedotllm.llm.inference import AIInference, OpenaiEmbeddings
 from fedotllm.main import FedotAI
-from fedotllm.web.common.types import (BaseResponse, GraphResponse, InitModel,
-                                       MessagesHandler, RequestFedotLLM,
+from fedotllm.web.common.types import (BaseResponse, GraphResponse,
+                                       MessagesHandler,
                                        Response, ResponseState)
 from typing_extensions import AsyncIterator
+from pathlib import Path
 
 
-class FedotAIBackend:
-    def __init__(self) -> None:
-        self.fedot_ai = FedotAI()
 
-    def init_model(self, init_model: InitModel) -> None:
-        self.fedot_ai.inference = AIInference(
-            model=init_model.name,
-            base_url=init_model.base_url,
-            api_key=init_model.api_key
-        )
-        self.fedot_ai.embeddings = OpenaiEmbeddings(
-            api_key=init_model.api_key,
-            base_url=init_model.base_url
-        )
+async def ask(msg: str,
+                task_path: Path,
+                llm_name: str,
+                llm_base_url: Optional[str] = None,
+                llm_api_key: Optional[str] = None,
+                work_dir: Optional[Path] = None,
+                lang: Literal['en', 'ru'] = 'en') -> AsyncIterator[BaseResponse]:
 
-    def init_dataset(self, init_dataset: Dataset) -> None:
-        self.fedot_ai.dataset = init_dataset
+    response = Response()
+    message_handler = MessagesHandler(lang=lang).message_handler(response)
+    graph_handler = GraphResponse(lang=lang).graph_handler(response)
+    fedot_ai = FedotAI(task_path=task_path,
+                        inference=AIInference(
+                            model=llm_name, base_url=llm_base_url, api_key=llm_api_key),
+                        embeddings=OpenaiEmbeddings(
+                            api_key=llm_api_key, base_url=llm_base_url),
+                        handlers=[message_handler, graph_handler],
+                        work_dir=work_dir
+                        )
 
-    async def ask(self, request: RequestFedotLLM, lang: Literal['en', 'ru'] = 'en') -> AsyncIterator[BaseResponse]:
-        response = Response()
-        message_handler = MessagesHandler(lang=lang).message_handler(response)
-        graph_handler = GraphResponse(lang=lang).graph_handler(response)
-        self.fedot_ai.handlers = [message_handler, graph_handler]
-
-        async for _ in self.fedot_ai.ask(GoogleTranslator(source='auto', target='en').translate(request['msg'])):
-            if len(response.context) > 0:
-                yield response.pack()
-            response.clean()
-        response.root.state = ResponseState.COMPLETE
-        yield response.pack()
+    async for _ in fedot_ai.ask(GoogleTranslator(source='auto', target='en').translate(msg)):
+        if len(response.context) > 0:
+            yield response.pack()
+        response.clean()
+    response.root.state = ResponseState.COMPLETE
+    yield response.pack()

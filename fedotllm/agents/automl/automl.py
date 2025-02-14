@@ -1,20 +1,20 @@
 from functools import partial
 
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import END, START, StateGraph
 
-from fedotllm.agents.automl.data.data import Dataset
-from fedotllm.agents.automl.stages.conditions.if_bug import if_bug
-from fedotllm.agents.automl.stages.run_codegen import run_codegen
-from fedotllm.agents.automl.stages.run_evaluate import run_evaluate
-from fedotllm.agents.automl.stages.run_extract_metrics import run_extract_metrics
-from fedotllm.agents.automl.stages.run_fix_solution import run_fix_solution
-from fedotllm.agents.automl.stages.run_generate_automl_config import run_generate_automl_config
-from fedotllm.agents.automl.stages.run_insert_templates import run_insert_templates
-from fedotllm.agents.automl.stages.run_problem_reflection import run_problem_reflection
-from fedotllm.agents.automl.stages.run_save_results import run_save_results
-from fedotllm.agents.automl.stages.run_select_skeleton import run_select_skeleton
-from fedotllm.agents.automl.state import AutoMLAgentState
+from fedotllm.data import Dataset
 from fedotllm.llm.inference import AIInference
+
+from .stages.conditions.if_bug import if_bug
+from .stages.run_codegen import run_codegen
+from .stages.run_evaluate import run_evaluate
+from .stages.run_extract_metrics import run_extract_metrics
+from .stages.run_fix_solution import run_fix_solution
+from .stages.run_generate_automl_config import run_generate_automl_config
+from .stages.run_insert_templates import run_insert_templates
+from .stages.run_problem_reflection import run_problem_reflection
+from .stages.run_select_skeleton import run_select_skeleton
+from .state import AutoMLAgentState
 
 
 class AutoMLAgent:
@@ -28,14 +28,15 @@ class AutoMLAgent:
             run_problem_reflection, inference=self.inference, dataset=self.dataset))
         workflow.add_node("generate_automl_config", partial(
             run_generate_automl_config, inference=self.inference, dataset=self.dataset))
-        workflow.add_node("select_skeleton", run_select_skeleton)
+        workflow.add_node("select_skeleton", partial(run_select_skeleton, dataset=self
+                                                     .dataset
+                                                     ))
         workflow.add_node("insert_templates", run_insert_templates)
         workflow.add_node("codegen", partial(
             run_codegen, inference=self.inference, dataset=self.dataset))
         workflow.add_node("evaluate_main", run_evaluate)
         workflow.add_node("fix_solution_main", partial(
             run_fix_solution, inference=self.inference, dataset=self.dataset))
-        workflow.add_node("save_results", run_save_results)
         workflow.add_node("extract_metrics", run_extract_metrics)
 
         workflow.add_edge(START, "problem_reflection")
@@ -56,10 +57,9 @@ class AutoMLAgent:
             if_bug,
             {
                 True: "fix_solution_main",
-                False: "save_results"
+                False: "extract_metrics"
             }
         )
         workflow.add_edge("fix_solution_main", "insert_templates")
-        workflow.add_edge("save_results", "extract_metrics")
         workflow.add_edge("extract_metrics", END)
         return workflow.compile().with_config(config={"run_name": "AutoMLAgent"})

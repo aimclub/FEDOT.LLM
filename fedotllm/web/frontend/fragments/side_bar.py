@@ -2,56 +2,53 @@ from pathlib import Path
 
 import streamlit as st
 from fedotllm.settings.config_loader import get_settings
-from fedotllm.web.backend.app import FedotAIBackend
-from fedotllm.web.common.types import InitModel
-from fedotllm.web.frontend.utils.utils import load_dataset
 from streamlit_extras.grid import GridDeltaGenerator, grid
 from fedotllm.web.frontend.localization import lclz
+from ..utils import file_uploader, get_user_data_dir, create_zip_file
 
 
-@st.dialog(lclz[st.session_state.lang]['PREVIEW'], width="large")
-def split_preview(item):
-    st.write(item.data)
+@st.dialog('Preview', width="large")
+def split_preview(selected_file):
+    st.write(st.session_state.uploaded_files[selected_file]["df"])
 
 
 def init_dataset():
-    dataset_files_container = st.container(border=True)
-    with dataset_files_container:
-        st.header(lclz[st.session_state.lang]['INIT_DATASET_HEADER'])
-        _render_file_uploader()
+    st.header(lclz[st.session_state.lang]['INIT_DATASET_HEADER'])
+    if not st.session_state.uploaded_files:
+        file_uploader()
+        st.rerun()
+    else:
         _render_file_previews()
 
 
-def _render_file_uploader():
-    expander_state = not st.session_state.dataset
-    with st.expander(lclz[st.session_state.lang]['CHOOSE_FILES'], expanded=expander_state):
-        with st.form(key="dataset_files_form", border=False):
-            st.file_uploader(
-                "Choose dataset files",
-                accept_multiple_files=True,
-                key="file_uploader",
-                label_visibility='collapsed'
-            )
-            st.form_submit_button(lclz[st.session_state.lang]['SUBMIT'], use_container_width=True,
-                                  on_click=load_dataset)
+def get_user_uploaded_files():
+    files_name = []
+    if st.session_state.uploaded_files is not None:
+        uploaded_files = st.session_state.uploaded_files
+        files_name = list(uploaded_files.keys())
+    return files_name
 
 
 def _render_file_previews():
-    if not st.session_state.dataset:
+
+    file_options = get_user_uploaded_files()
+
+    selected_file = st.selectbox(
+        "Preview File",
+        options=file_options,
+        index=None,
+        placeholder="Select the file to preview",
+        label_visibility="collapsed")
+
+    if not st.session_state.uploaded_files:
+        st.info("file not found yet.", icon="ℹ️")
         return
-
-    with st.expander(lclz[st.session_state.lang]['FILES_PREVIEWS'], expanded=True):
-        preview_grid = grid([1] * len(st.session_state.dataset.splits))
-        for split in st.session_state.dataset.splits:
-            preview_grid.button(
-                split.name,
-                on_click=split_preview,
-                args=(split,),
-                use_container_width=True
-            )
+    if selected_file:
+        split_preview(selected_file)
+        selected_file = None
 
 
-def set_model(form_grid: GridDeltaGenerator):
+def set_llm(form_grid: GridDeltaGenerator):
     name = st.session_state.model_name_input
     if not name:
         form_grid.warning(lclz[st.session_state.lang]['NO_NAME'], icon="⚠")
@@ -63,48 +60,43 @@ def set_model(form_grid: GridDeltaGenerator):
         params['api_key'] = api_key
     if base_url:
         params['base_url'] = base_url
-
-    fedotai_backend: FedotAIBackend = st.session_state.fedotai_backend
-    try:
-        model = InitModel.model_construct(**params)
-        fedotai_backend.init_model(model)
-        st.toast(
-            f"{lclz[st.session_state.lang]['SUCCESS_MODEL_SET']}:\n {st.session_state.model_name_input}",
-            icon="✅")
-        st.session_state.model = model
-    except ValueError as e:
-        form_grid.warning(str(e), icon="⚠")
+    st.toast(
+        f"{lclz[st.session_state.lang]['SUCCESS_MODEL_SET']}:\n {st.session_state.model_name_input}",
+        icon="✅")
+    st.session_state.llm = params
 
 
 def set_chat_model():
-    if not st.session_state.model:
+    if not st.session_state.llm:
         form_grid = grid(1, 1, 1, 1, 1, vertical_align='bottom')
         st.text_input(lclz[st.session_state.lang]['NAME'], placeholder="gpt-4o", value=get_settings().get("config.model") or "",
                       key="model_name_input",
-                      disabled=bool(st.session_state.model))
+                      disabled=bool(st.session_state.llm))
         st.text_input(lclz[st.session_state.lang]['API_KEY'], placeholder=lclz[st.session_state.lang]['API_KEY'],
                       key="api_key",
                       value=get_settings().get("OPENAI_TOKEN") or "",
-                      disabled=bool(st.session_state.model),
+                      disabled=bool(st.session_state.llm),
                       type='password')
         st.text_input(lclz[st.session_state.lang]['BASE_URL'], placeholder=lclz[st.session_state.lang]['BASE_URL'],
                       key="base_url",
                       value=get_settings().get("config.base_url") or "",
-                      disabled=bool(st.session_state.model),
+                      disabled=bool(st.session_state.llm),
                       help=lclz[st.session_state.lang]['BASE_URL_HELP'])
         submit = st.button(label=lclz[st.session_state.lang]['SUBMIT'], use_container_width=True,
-                           disabled=bool(st.session_state.model))
+                           disabled=bool(st.session_state.llm))
         if submit:
-            set_model(form_grid)
+            set_llm(form_grid)
             st.rerun()
 
 
 def dwn_results():
     with st.container(border=True):
         st.header(lclz[st.session_state.lang]['RESULTS'])
-        result_dir = Path(get_settings()['config']['result_dir'])
-        solution_path = result_dir / "solution.py"
-        submission_path = result_dir / "submission.csv"
+        user_data_dir = get_user_data_dir()
+        solution_path = user_data_dir / "solution.py"
+        submission_path = user_data_dir / "submission.csv"
+        pipeline_path = user_data_dir / "pipeline"
+
         if solution_path.exists():
             with open(solution_path, "rb") as file:
                 btn = st.download_button(
@@ -121,16 +113,25 @@ def dwn_results():
                     file_name="submission.csv",
                     mime="text/csv",
                 )
+        if pipeline_path.exists():
+            zip_file = create_zip_file(pipeline_path)
+            with open(zip_file, "rb") as file:
+                btn = st.download_button(
+                    label="Download pipeline",
+                    data=file,
+                    file_name="pipeline.zip",
+                    mime="application/zip",
+                )
 
 
 def init_model():
     with st.container(border=True):
         st.header(lclz[st.session_state.lang]['INIT_LLM_MODEL_HEADER'])
-        if not st.session_state.model:
+        if not st.session_state.llm:
             set_chat_model()
         else:
             st.write(
-                f"{lclz[st.session_state.lang]['NAME']}: {st.session_state.model.name}")
+                f"{lclz[st.session_state.lang]['NAME']}: {st.session_state.llm['name']}")
 
 
 def change_lang():
@@ -163,9 +164,9 @@ def side_bar():
                 change_lang()
             case 1:
                 init_model()
-            case 2: 
+            case 2:
                 init_dataset()
-            case 3: 
+            case 3:
                 dwn_results()
             case _:
                 change_lang()

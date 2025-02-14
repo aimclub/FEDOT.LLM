@@ -6,7 +6,7 @@ def train_model(train_features: np.ndarray, train_target: np.ndarray):
             cv_folds={%cv_folds%},
             preset={%preset%},
             metric={%metric%},
-            n_jobs=-1,
+            n_jobs=1,
             with_tuning=True,
             show_progress=True)
 

@@ -2,11 +2,12 @@ from fedotllm.agents.automl.templates.load_template import load_template, render
 
 from fedotllm.agents.automl.state import AutoMLAgentState
 from fedotllm.log import get_logger
+from fedotllm.data import Dataset
 
 logger = get_logger()
 
 
-def run_select_skeleton(state: AutoMLAgentState) -> AutoMLAgentState:
+def run_select_skeleton(state: AutoMLAgentState, dataset: Dataset) -> AutoMLAgentState:
     logger.info("Running select skeleton")
     fedot_config = state['fedot_config']
 
@@ -24,15 +25,8 @@ def run_select_skeleton(state: AutoMLAgentState) -> AutoMLAgentState:
     skeleton = load_template("skeleton")
     skeleton = render_template(
         template=skeleton,
-        # Fedot config
-        problem=f"{fedot_config.problem}",
-        timeout=fedot_config.timeout,
-        seed=fedot_config.seed,
-        cv_folds=fedot_config.cv_folds,
-        preset=f"'{fedot_config.preset.value}'",
-        metric=fedot_config.metric.value,
-        # Prediction method
-        predict_method=predict_method
+        dataset_path=dataset.path,
+        work_dir_path=state['work_dir'],
     )
 
     state['skeleton'] = skeleton

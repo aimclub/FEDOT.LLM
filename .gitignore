@@ -192,9 +192,11 @@ saved_pipelines/
 chroma/
 
 # AutoMLAgent
-exec_out/
 _experiments/
-results/
+user_data/
+fedot-output*
+db/
 
 # Docker
 docker/docker_caches/
+

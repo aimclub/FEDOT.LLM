@@ -2,31 +2,40 @@ import asyncio
 
 import streamlit as st
 
-from fedotllm.web.backend.app import FedotAIBackend
+from fedotllm.web.backend.app import ask
 from fedotllm.web.common.types import BaseResponse
-from fedotllm.web.frontend.components import st_write_str_stream
-from fedotllm.web.frontend.utils import response as rp
-from fedotllm.web.frontend.localization import lclz
+from ..utils import render, get_user_data_dir, save_all_files
+from ..localization import lclz
 
 
 async def handle_predict(prompt):
-    fedotai_backend: FedotAIBackend = st.session_state.fedotai_backend
-    st.session_state.messages.append(
-        {"role": "assistant", "content": None})
-    current_idx = len(st.session_state.messages) - 1
-    gen_response = fedotai_backend.ask({'msg': prompt}, lang=st.session_state.lang)
-    async for response in gen_response:
-        if st.session_state.messages[current_idx]["content"]:
-            if response.__eq__(st.session_state.messages[current_idx]["content"]):
-                continue
-        else:
-            st.session_state.messages[current_idx]["content"] = BaseResponse(
-                id=response.id)
+    user_data_dir = get_user_data_dir()
+    save_all_files(user_data_dir)
+    gen_response = ask(prompt, task_path=user_data_dir,
+                    llm_name=st.session_state.llm['name'],
+                    llm_base_url=st.session_state.llm['base_url'],
+                    llm_api_key=st.session_state.llm['api_key'],
+                    work_dir=user_data_dir,
+                    lang=st.session_state.lang)
+    try:
+        current_idx = len(st.session_state.messages)
+        st.session_state.messages.append(
+            {"role": "assistant", "content": None})
+        async for response in gen_response:
+            if st.session_state.messages[current_idx]["content"]:
+                if response.__eq__(st.session_state.messages[current_idx]["content"]):
+                    continue
+            else:
+                st.session_state.messages[current_idx]["content"] = BaseResponse(
+                    id=response.id)
 
-        st.session_state.messages[current_idx]["content"] += response
-        with st.container():
-            rp.render(
-                response=st.session_state.messages[current_idx]["content"])
+            st.session_state.messages[current_idx]["content"] += response
+            with st.container():
+                render(
+                    response=st.session_state.messages[current_idx]["content"])
+    except Exception as e:
+        print(f"Error during prediction: {str(e)}")
+        raise Exception(f"Error during prediction: {str(e)}")
 
 
 def message_handler(message_container):
@@ -52,23 +61,20 @@ def add_user_message(prompt):
 
 
 def validate_model_and_dataset():
-    if not st.session_state.model and not st.session_state.dataset:
+    if not st.session_state.llm and not st.session_state.uploaded_files:
         raise ValueError(lclz[st.session_state.lang]['NO_MODEL_AND_DATASET'])
-    if not st.session_state.model:
+    if not st.session_state.llm:
         raise ValueError(lclz[st.session_state.lang]['NO_MODEL'])
-    if not st.session_state.dataset:
+    if not st.session_state.uploaded_files:
         raise ValueError(lclz[st.session_state.lang]['NO_DATASET'])
 
 
 def process_fedot_backend(prompt):
-    if st.session_state.fedotai_backend:
-        with st.spinner(lclz[st.session_state.lang]['SPINNER_LABEL']):
-            try:
-                asyncio.run(handle_predict(prompt))
-            except Exception as e:
-                raise Exception(f"Error during prediction: {str(e)}")
-    else:
-        raise ValueError("FedotAI is None! Upload dataset files.")
+    with st.spinner(lclz[st.session_state.lang]['SPINNER_LABEL']):
+        try:
+            asyncio.run(handle_predict(prompt))
+        except Exception as e:
+            raise Exception(f"Error during prediction: {str(e)}")
 
 
 def add_assistant_error_message(content):
@@ -81,12 +87,11 @@ def chat():
 
     for message in st.session_state.messages:
         with message_container.chat_message(message["role"]):
-            rp.render(message["content"])
+            render(message["content"])
 
     on_submit = st.chat_input(lclz[st.session_state.lang]['CHAT_INPUT_PLACEHOLDER'],
                               key='chat_input',
-                              args=(message_container,),
-                              disabled=st.session_state.chat_input_disable)
+                              args=(message_container,))
     if on_submit:
         message_handler(message_container)
         st.rerun()

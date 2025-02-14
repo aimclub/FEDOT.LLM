@@ -29,19 +29,9 @@ class ResponseState(Enum):
     COMPLETE = 'complete'
 
 
-class RequestFedotLLM(TypedDict):
-    msg: str
-
-
 class TypedContentResponse(TypedDict):
     data: ResponseContent
     type: str
-
-
-class InitModel(BaseModel):
-    name: str
-    api_key: str = ''
-    base_url: Optional[str] = None
 
 
 class BaseResponse(BaseModel):

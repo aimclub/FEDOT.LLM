@@ -19,10 +19,9 @@ SEED = 42
 random.seed(SEED)
 np.random.seed(SEED)
 
-DATASET_PATH = Path({Path to Dataset}) # path for saving and loading dataset(s)
 ### UNMODIFIABLE CODE BEGIN ###
-PIPELINE_PATH = Path("pipeline") # path for saving and loading pipelines
-MODEL_PERFORMANCE = {} # dictionary to store the model performance
+DATASET_PATH = Path({%dataset_path%}) # path for saving and loading dataset(s)
+PIPELINE_PATH = Path({%work_dir_path%} / "pipeline") # path for saving and loading pipelines
 ### UNMODIFIABLE CODE END ###
 
 # USER CODE BEGIN LOAD_DATA #
@@ -66,7 +65,7 @@ def create_model():
     # **YOU MUST USE automl_predict()**
     predictions:np.ndarray = automl_predict(model, test_features: np.ndarray) # returns 2D array
     output = pd.DataFrame(predictions, columns=[...])
-    output.to_csv('submission.csv', index=False)
+    output.to_csv(Path({%work_dir_path%} / 'submission.csv'), index=False)
     # USER CODE END CREATE MODEL # 
     return model_performance
 
@@ -76,9 +75,8 @@ def main():
     """ 
     Main function to execute the text classification pipeline.
     """
-    global MODEL_PERFORMANCE
-    MODEL_PERFORMANCE = create_model()
-    print("Model Performance on Test Set:", MODEL_PERFORMANCE)
+    model_performance = create_model()
+    print("Model Performance on Test Set:", model_performance)
         
 if __name__ == "__main__":
     main()

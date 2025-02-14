@@ -20,5 +20,5 @@ class AutoMLAgentState(FedotLLMAgentState):
     codegen_sol: Solution
     solutions: List[Solution]
     exec_result: Optional[ExecutionResult]
-    metrics: Optional[dict]
+    metrics: Optional[str]
     pipeline: Optional[str]
