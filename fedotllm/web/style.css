@@ -1,0 +1,33 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+html, body, [class*="css"] {
+  font-family: "Montserrat", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+/*File Uploader*/
+div[data-testid='stFileUploader'] > section[aria-label="Select the dataset"] > input + div {
+    margin: 0;
+    padding: 20px;
+}
+div[data-testid='stFileUploader'] > section[aria-label="Select the dataset"]{
+    width:100%;
+    height: 440rpx;
+
+}
+
+/* preview.py */
+.file-view-bar {
+    background-color: #f0f2f6;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 0 12px;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 10px;
+    margin-top:0;
+}
+.file-view-label {
+    font-weight: bold;
+    color: #555;
+}

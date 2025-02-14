@@ -24,4 +24,4 @@ app-py:
 	${EXEC} -it ${APP_CONTAINER} poetry shell
 
 streamlit-st:
-	python -m streamlit run fedotllm/streamlit-app.py --server.port=8080 --server.address=0.0.0.0
+	python -m streamlit run fedotllm/web/streamlit-app.py --server.port=8080 --server.address=0.0.0.0

@@ -9,15 +9,15 @@ from ..localization import lclz
 
 
 async def handle_predict(prompt):
-    user_data_dir = get_user_data_dir()
-    save_all_files(user_data_dir)
-    gen_response = ask(prompt, task_path=user_data_dir,
-                    llm_name=st.session_state.llm['name'],
-                    llm_base_url=st.session_state.llm['base_url'],
-                    llm_api_key=st.session_state.llm['api_key'],
-                    work_dir=user_data_dir,
-                    lang=st.session_state.lang)
     try:
+        user_data_dir = get_user_data_dir()
+        save_all_files(user_data_dir)
+        gen_response = ask(prompt, task_path=user_data_dir,
+                        llm_name=st.session_state.llm['name'],
+                        llm_base_url=st.session_state.llm['base_url'],
+                        llm_api_key=st.session_state.llm['api_key'],
+                        work_dir=user_data_dir,
+                        lang=st.session_state.lang)
         current_idx = len(st.session_state.messages)
         st.session_state.messages.append(
             {"role": "assistant", "content": None})
@@ -39,7 +39,7 @@ async def handle_predict(prompt):
 
 
 def message_handler(message_container):
-    prompt = st.session_state.chat_input
+    prompt = st.session_state.task_description
     with message_container:
         try:
             add_user_message(prompt)
@@ -83,15 +83,23 @@ def add_assistant_error_message(content):
 
 
 def chat():
+    _, mid_pos, _ = st.columns([1, 22, 1], gap="large")
+    with mid_pos:
+        if st.button(
+            label="Run!",
+            key="run_task",
+            disabled=st.session_state.task_running,
+            use_container_width=True,
+        ):
+            st.session_state.task_running = True
+            st.rerun()
+            
+    st.markdown("---", unsafe_allow_html=True)
     message_container = st.container()
-
+    if st.session_state.task_running:
+        message_handler(message_container)
+        st.session_state.task_running = False
+        st.rerun()
     for message in st.session_state.messages:
         with message_container.chat_message(message["role"]):
             render(message["content"])
-
-    on_submit = st.chat_input(lclz[st.session_state.lang]['CHAT_INPUT_PLACEHOLDER'],
-                              key='chat_input',
-                              args=(message_container,))
-    if on_submit:
-        message_handler(message_container)
-        st.rerun()

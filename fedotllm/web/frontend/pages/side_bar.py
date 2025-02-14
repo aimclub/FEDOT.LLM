@@ -1,10 +1,11 @@
-from pathlib import Path
-
 import streamlit as st
-from fedotllm.settings.config_loader import get_settings
 from streamlit_extras.grid import GridDeltaGenerator, grid
+
+from fedotllm.settings.config_loader import get_settings
 from fedotllm.web.frontend.localization import lclz
-from ..utils import file_uploader, get_user_data_dir, create_zip_file
+
+from ..utils import (create_zip_file, file_uploader, generate_output_file,
+                     get_user_data_dir, get_user_uploaded_files)
 
 
 @st.dialog('Preview', width="large")
@@ -16,18 +17,6 @@ def init_dataset():
     st.header(lclz[st.session_state.lang]['INIT_DATASET_HEADER'])
     if not st.session_state.uploaded_files:
         file_uploader()
-        st.rerun()
-    else:
-        _render_file_previews()
-
-
-def get_user_uploaded_files():
-    files_name = []
-    if st.session_state.uploaded_files is not None:
-        uploaded_files = st.session_state.uploaded_files
-        files_name = list(uploaded_files.keys())
-    return files_name
-
 
 def _render_file_previews():
 
@@ -106,6 +95,7 @@ def dwn_results():
                     mime="text/plain",
                 )
         if submission_path.exists():
+            generate_output_file()
             with open(submission_path, "rb") as file:
                 btn = st.download_button(
                     label="Download submission",

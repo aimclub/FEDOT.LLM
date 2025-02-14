@@ -97,6 +97,24 @@ def file_uploader():
             df = pd.read_excel(file)
         st.session_state.uploaded_files[file.name] = {"file": file, "df": df}
 
+def generate_output_file():
+    """
+    Generate and store the output file after task completion.
+    """
+    st.session_state.output_filename = get_user_data_dir() / "submission.csv"
+    if st.session_state.output_filename.exists():
+        df = pd.read_csv(st.session_state.output_filename)
+        st.session_state.output_file = df
+    else:
+        st.error(f"CSV file not found: {st.session_state.output_filename}")
+
+def get_user_uploaded_files():
+    files_name = []
+    if st.session_state.uploaded_files is not None:
+        uploaded_files = st.session_state.uploaded_files
+        files_name = list(uploaded_files.keys())
+    return files_name
+
 
 def create_zip_file(model_path: Path):
     """

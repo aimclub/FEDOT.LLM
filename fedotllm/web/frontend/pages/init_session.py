@@ -4,20 +4,15 @@ import streamlit as st
 from dotenv import load_dotenv
 from fedotllm.constants import DEFAULT_SESSION_VALUES
 from copy import deepcopy
+from fedotllm.settings.config_loader import get_settings
 
 
 def init_page():
-    st.set_page_config(
-        page_title="FedotLLM",
-        page_icon="fedotllm/web/frontend/static/images/logo.png",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
     st.logo(
         image='fedotllm/web/frontend/static/images/fedot-llm-white.png',
         link='https://itmo-nss-team.github.io/'
     )
-    st.title("💬 FEDOT.LLM")
+    st.title("FEDOT.LLM")
 
 
 def initial_session_state():
@@ -30,6 +25,12 @@ def initial_session_state():
                 deepcopy(default_value) if isinstance(
                     default_value, (dict, list)) else default_value
             )
+    if not st.session_state.llm:
+        st.session_state.llm = {
+            "name": get_settings().get("config.model") or "",
+            "api_key": get_settings().get("OPENAI_TOKEN") or "",
+            "base_url": get_settings().get("config.base_url") or "",
+        }
 
 
 def _set_env(var: str):
