@@ -72,7 +72,6 @@ def change_lang():
         st.rerun()
 
 def run_section():
-    st.write(st.session_state.llm)
     st.header(lclz[st.session_state.lang]['RUN_FEDOTLLM'])
     _, mid, _ = st.columns([1, 22, 1], gap="large")
     with mid:
