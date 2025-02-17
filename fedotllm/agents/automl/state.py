@@ -22,3 +22,4 @@ class AutoMLAgentState(FedotLLMAgentState):
     exec_result: Optional[ExecutionResult]
     metrics: Optional[str]
     pipeline: Optional[str]
+    report: Optional[str]

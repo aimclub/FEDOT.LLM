@@ -2,7 +2,7 @@ def train_model(train_features: np.ndarray, train_target: np.ndarray):
     input_data = InputData.from_numpy(train_features, train_target, task=Task({%problem%}))
     model = Fedot(problem={%problem%}.value,
             timeout={%timeout%},
-            seed={%seed%},
+            seed=42,
             cv_folds={%cv_folds%},
             preset={%preset%},
             metric={%metric%},

@@ -14,6 +14,7 @@ from .stages.run_generate_automl_config import run_generate_automl_config
 from .stages.run_insert_templates import run_insert_templates
 from .stages.run_problem_reflection import run_problem_reflection
 from .stages.run_select_skeleton import run_select_skeleton
+from .stages.run_report import run_report
 from .state import AutoMLAgentState
 
 
@@ -38,6 +39,7 @@ class AutoMLAgent:
         workflow.add_node("fix_solution_main", partial(
             run_fix_solution, inference=self.inference, dataset=self.dataset))
         workflow.add_node("extract_metrics", run_extract_metrics)
+        workflow.add_node("report_node", partial(run_report, inference=self.inference))
 
         workflow.add_edge(START, "problem_reflection")
         workflow.add_edge("problem_reflection", "generate_automl_config")
@@ -61,5 +63,6 @@ class AutoMLAgent:
             }
         )
         workflow.add_edge("fix_solution_main", "insert_templates")
-        workflow.add_edge("extract_metrics", END)
+        workflow.add_edge("extract_metrics", "report_node")
+        workflow.add_edge("report_node", END)
         return workflow.compile().with_config(config={"run_name": "AutoMLAgent"})

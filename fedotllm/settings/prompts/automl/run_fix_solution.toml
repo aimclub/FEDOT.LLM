@@ -19,9 +19,9 @@ Output:
 {stdout}
 </stdout>
 Problem trace:
-<trace>
-{trace}
-</trace>
+<stderr>
+{stderr}
+</stderr>
 
 You need to generate a fixed solution code.
 - **Concentrate on solving the problem that caused the error**, don't fix others 

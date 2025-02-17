@@ -1,6 +1,6 @@
 from fedotllm.data.data import Dataset
 from fedotllm.agents.automl.state import AutoMLAgentState, Solution
-from fedotllm.agents.automl.utils import extract_code
+from fedotllm.agents.utils import extract_code
 from fedotllm.llm.inference import AIInference
 from fedotllm.log import get_logger
 from fedotllm.settings.config_loader import get_settings

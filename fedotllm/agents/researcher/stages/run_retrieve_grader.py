@@ -1,5 +1,3 @@
-from langchain.schema import Document
-
 from fedotllm.agents.researcher.state import ResearcherAgentState
 from fedotllm.agents.researcher.structured import GradeDocuments, BoolAnswer
 from fedotllm.agents.utils import render

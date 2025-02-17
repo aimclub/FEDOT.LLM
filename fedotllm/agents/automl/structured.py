@@ -70,13 +70,10 @@ class FedotConfig(BaseModel):
 
     problem: TaskTypesEnum = Field(...,
                                    description='Name of the modelling problem to solve')
-    timeout: float = Field(
-        get_settings().config.fedot_timeout, description="Time for model design (in minutes)")
-    seed: Optional[int] = Field(42, description="Seed for random generation")
-    cv_folds: Optional[int] = Field(
-        None, description="Number of folds for cross-validation")
+    timeout: float = Field(..., description="Time for model design (in minutes): Default: 1.0")
+    cv_folds: Optional[int] = Field(..., description="Number of folds for cross-validation: Default: None")
     preset: PresetType = Field(
-        PresetType.AUTO,
+        ...,
         description=(
             "Name of the preset for model building. Possible options:\n"
             "best_quality -> All models that are available for this data type and task are used\n"
@@ -86,6 +83,7 @@ class FedotConfig(BaseModel):
             "gpu -> Models that use GPU resources for computation\n"
             "ts -> A special preset with models for time series forecasting task\n"
             "automl -> A special preset with only AutoML libraries such as TPOT and H2O as operations"
+            "Default: auto"
         )
     )
     metric: Union[ClassificationMetricsEnum, RegressionMetricsEnum, TimeSeriesForecastingMetricsEnum] = Field(...,
@@ -98,9 +96,8 @@ class FedotIndustrialConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     problem: ProblemType = Field(..., description="Name of the modelling problem to solve")
-    timeout: float = Field(1, description="Time for model design (in minutes): None or -1 means infinite time.")
-    seed: Optional[int] = Field(None, description="Seed for random generation")
-    cv_folds: Optional[int] = Field(None, description="Number of folds for cross-validation")
+    timeout: float = Field(..., description="Time for model design (in minutes): Default: 1.0")
+    cv_folds: Optional[int] = Field(..., description="Number of folds for cross-validation: Default: None")
     metrics: List[Union[ClassificationMetricsEnum, RegressionMetricsEnum, TimeSeriesForecastingMetricsEnum]
                   ] = Field(..., description="Choose all relevant to problem metrics of model quality assessment")
     predict_method: Literal['predict', 'predict_proba'] = Field(...,

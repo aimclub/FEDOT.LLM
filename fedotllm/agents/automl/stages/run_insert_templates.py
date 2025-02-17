@@ -21,7 +21,6 @@ def run_insert_templates(state: AutoMLAgentState):
         fedot_train = render_template(template=fedot_train,
                                       problem=f"{fedot_config.problem}",
                                       timeout=fedot_config.timeout,
-                                      seed=fedot_config.seed,
                                       cv_folds=fedot_config.cv_folds,
                                       preset=f"'{fedot_config.preset.value}'",
                                       metric=f"'{fedot_config.metric.value}'")

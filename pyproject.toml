@@ -24,8 +24,8 @@ pandas = "^2.2.3"
 tabulate = "^0.9.0"
 
 # LangChain ecosystem
-langchain-openai = "^0.3.2"
-langgraph = "^0.2.56"
+langchain-core = "^0.3.22"
+langchain-openai = "^0.2.11"
 
 # Web Interface
 streamlit = "^1.40.2"
@@ -51,6 +51,7 @@ tiktoken = "^0.8.0"
 html2text = "^2024.2.26"
 deep-translator = "^1.11.4"
 pygwalker = "^0.4.9.13"
+langgraph = ">=0.2.67,<0.3.0"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.1.0"

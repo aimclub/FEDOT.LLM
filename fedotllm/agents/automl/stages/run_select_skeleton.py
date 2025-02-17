@@ -26,7 +26,7 @@ def run_select_skeleton(state: AutoMLAgentState, dataset: Dataset) -> AutoMLAgen
     skeleton = render_template(
         template=skeleton,
         dataset_path=dataset.path,
-        work_dir_path=state['work_dir'],
+        work_dir_path=state['work_dir'].resolve(),
     )
 
     state['skeleton'] = skeleton

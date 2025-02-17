@@ -1,6 +1,6 @@
 from fedotllm.data import Dataset
 from fedotllm.agents.automl.state import AutoMLAgentState
-from fedotllm.agents.automl.utils import extract_code
+from fedotllm.agents.utils import extract_code
 from fedotllm.llm.inference import AIInference
 from fedotllm.log import get_logger
 from fedotllm.settings.config_loader import get_settings
@@ -23,7 +23,7 @@ def run_fix_solution(state: AutoMLAgentState, inference: AIInference, dataset: D
                                                                                 dataset.path.cwd()),
                                                                             files=files,
                                                                             code_recent_solution=codegen['code'],
-                                                                            trace=exec_result.sandbox_result,
+                                                                            stderr=exec_result.stderr,
                                                                             stdout=exec_result.stdout)
     fixed_solution = inference.chat_completion(fix_prompt)
     extracted_code = extract_code(fixed_solution)

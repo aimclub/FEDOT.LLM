@@ -3,7 +3,7 @@
 input_data = InputData.from_numpy(train_features, train_target.values, task=Task({%problem%}))
 model = Fedot(problem={%problem%}.value,
         timeout={%timeout%},
-        seed={%seed%},
+        seed=42,
         cv_folds={%cv_folds%},
         preset={%preset%},
         metric={%metric%},

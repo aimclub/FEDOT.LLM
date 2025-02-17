@@ -21,7 +21,7 @@ np.random.seed(SEED)
 
 ### UNMODIFIABLE CODE BEGIN ###
 DATASET_PATH = Path({%dataset_path%}) # path for saving and loading dataset(s)
-PIPELINE_PATH = Path({%work_dir_path%} / "pipeline") # path for saving and loading pipelines
+PIPELINE_PATH = Path({%work_dir_path%}) / "pipeline" # path for saving and loading pipelines
 ### UNMODIFIABLE CODE END ###
 
 # USER CODE BEGIN LOAD_DATA #
@@ -65,7 +65,7 @@ def create_model():
     # **YOU MUST USE automl_predict()**
     predictions:np.ndarray = automl_predict(model, test_features: np.ndarray) # returns 2D array
     output = pd.DataFrame(predictions, columns=[...])
-    output.to_csv(Path({%work_dir_path%} / 'submission.csv'), index=False)
+    output.to_csv(Path({%work_dir_path%}) / 'submission.csv', index=False)
     # USER CODE END CREATE MODEL # 
     return model_performance
 

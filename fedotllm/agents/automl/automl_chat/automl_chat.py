@@ -21,8 +21,7 @@ class AutoMLAgentChat:
         workflow = StateGraph(AutoMLAgentState)
         workflow.add_node("accept_task", run_accept_task)
         workflow.add_node("AutoMLAgent", self.automl.create_graph())
-        workflow.add_node("send_message", partial(
-            run_send_message, inference=self.inference))
+        workflow.add_node("send_message", run_send_message)
 
         workflow.add_edge(START, "accept_task")
         workflow.add_edge("accept_task", "AutoMLAgent")
