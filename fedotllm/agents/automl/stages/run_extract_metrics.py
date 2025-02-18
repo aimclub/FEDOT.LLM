@@ -11,10 +11,10 @@ logger = get_logger()
 
 
 def _extract_metrics(raw_output: str):
-    pattern = "Model metrics:(.*?)"
-    matches = re.findall(pattern, raw_output)
-    if matches:
-        return matches[0].strip()
+    pattern = r"Model metrics:\s*(\{.*?\})"
+    match = re.search(pattern, raw_output)
+    if match:
+        return match.group(1).strip()
     return None
 
 
