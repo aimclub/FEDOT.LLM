@@ -13,15 +13,10 @@ FEDOT.LLM is an LLM-based prototype for next-generation AutoML. It combines the 
 
 ## Installation
 
-1. FEDOT.LLM is only available via github now. To install, clone the repository:
+1. FEDOT.LLM is only available via github now:
    ```
-   git clone https://github.com/ITMO-NSS-team/FEDOT.LLM.git
-   cd FEDOT.LLM
-   ```
-
-2. Install dependencies:
-   ```
-   pip install -e .
+   conda create -n FedotLLM python=3.10
+   pip install git+https://github.com/aimclub/FEDOT.LLM.git
    ```
 
 ## How to Use
@@ -46,19 +41,20 @@ To use the API, follow these steps:
 To acquire predictions, use the `ask` method with a string description of the dataset and associated task in an arbitrary form.
 ```python
 # Import necessary modules and classes
-from langchain_openai import ChatOpenAI
+import os
 from pathlib import Path
+
 from fedotllm.data.loaders import PathDatasetLoader
+from fedotllm.llm.inference import AIInference
 from fedotllm.main import FedotAI
 from fedotllm.output.jupyter import JupyterOutput
 
-# Initialize the ChatOpenAI model
-# Note: Make sure to set the OPENAI_TOKEN environment variable
-llm = ChatOpenAI(model='gpt-4o-mini', base_url='https://models.inference.ai.azure.com', api_key=os.environ['OPENAI_TOKEN'])
+# Initialize the LLM model
+inference = AIInference(model="gpt-4o-mini", api_key=os.getenv('OPENAI_TOKEN'), base_url='https://models.inference.ai.azure.com')
 
 # Set the path to the dataset
 # Load the dataset using PathDatasetLoader
-dataset_path = Path(module_path) / 'datasets' / 'Health_Insurance'
+dataset_path = Path('datasets') / 'Health_Insurance'
 dataset = PathDatasetLoader.load(dataset_path)
 
 # Define the task description for the model
@@ -68,9 +64,9 @@ They are interested in whether the policyholders (customers) from last year
 will also be interested in the car insurance provided by the company."""
 
 # Initialize FedotAI with the dataset, language model, and output handlers
-fedot_ai = FedotAI(dataset=dataset, 
-                model=llm,
-                handlers=JupyterOutput().subscribe)
+fedot_ai = FedotAI(dataset=dataset,
+                   inference=inference,
+                   handlers=JupyterOutput().subscribe)
 
 # Asynchronously process the task using FedotAI
 # The loop continues until the task is completed
