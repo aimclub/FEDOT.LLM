@@ -4,7 +4,7 @@ from typing import Union
 import pandas as pd
 from scipy.io.arff import loadarff
 
-from fedotllm.agents.automl.data.data import Dataset, Split
+from fedotllm.data import Dataset, Split
 
 
 class PathDatasetLoader:
