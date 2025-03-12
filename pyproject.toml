@@ -14,10 +14,16 @@ repository = "https://github.com/aimclub/FEDOT.LLM"
 
 [tool.poetry.dependencies]
 python = "~3.10.0"
+
 # Fedot
-fedot = "^0.7.4"
-thegolem = "^0.4.0"
-giotto-tda = "0.6.0"
+fedot = "^0.7.5"
+giotto-tda = "^0.6.0"
+ripser = "^0.6.4"
+protobuf = "^5.29.0"
+opencv-python = "^4.11.0"
+pillow = "^11.1.0"
+tensorflow = "^2.18.0"
+tensorflow-io-gcs-filesystem = "^0.31.0"
 
 # Data processing
 pandas = "^2.2.3"
@@ -55,7 +61,6 @@ tenacity = "^9.0.0"
 fastapi = "^0.115.6"
 tiktoken = "^0.8.0"
 html2text = "^2024.2.26"
-fedot-ind = "^0.4.2"
 deep-translator = "^1.11.4"
 
 [tool.poetry.group.dev.dependencies]
