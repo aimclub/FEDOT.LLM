@@ -166,6 +166,9 @@ titanic/
 credit-g/
 *.zip
 
+#Local dataset storage 
+datasets-local/
+
 # Fedot
 FEDOT/
 custom_history_dir/

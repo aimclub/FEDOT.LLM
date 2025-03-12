@@ -1,7 +1,7 @@
 import argparse
 
 from fedotllm.agents.automl.automl import AutoMLAgent
-from fedotllm.agents.automl.data.loaders import PathDatasetLoader
+from fedotllm.data.loaders import PathDatasetLoader
 from fedotllm.agents.automl.eval.local_exec import ProgramStatus
 from fedotllm.llm.inference import AIInference
 from fedotllm.log import get_logger, setup_logger

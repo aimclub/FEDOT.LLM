@@ -2,7 +2,7 @@ from functools import partial
 
 from langgraph.graph import StateGraph, START, END
 
-from fedotllm.agents.automl.data.data import Dataset
+from fedotllm.data import Dataset
 from fedotllm.agents.automl.stages.conditions.if_bug import if_bug
 from fedotllm.agents.automl.stages.run_codegen import run_codegen
 from fedotllm.agents.automl.stages.run_evaluate import run_evaluate
