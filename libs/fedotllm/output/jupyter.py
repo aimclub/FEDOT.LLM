@@ -11,7 +11,7 @@ class JupyterOutput(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def messages_handler(self):
-        subscribe_events = ['SupervisorAgent', 'ResearcherAgent', 'AutoMLAgent']
+        subscribe_events = ['SupervisorAgent', 'ResearcherAgent', 'AutoMLAgent', 'AutoMLMultimodalAgent']
         content = []
         message_idx = set()
 

@@ -4,7 +4,10 @@ from typing import Optional
 from langgraph.graph import END, START, StateGraph
 
 from fedotllm.agents.agent_wrapper.agent_wrapper import AgentWrapper
+
 from fedotllm.agents.automl.automl_chat import AutoMLAgentChat
+from fedotllm.agents.automl_multimodal.automl_chat import AutoMLMultimodalAgentChat
+
 from fedotllm.agents.base import Agent
 from fedotllm.agents.researcher.researcher import ResearcherAgent
 from fedotllm.agents.supervisor.stages.run_choose_next import run_choose_next
@@ -21,8 +24,12 @@ class SupervisorAgent(Agent):
         self.researcher_agent = AgentWrapper(ResearcherAgent(
             inference=self.inference, embeddings=self.embeddings)).create_graph()
         if dataset is not None:
-            self.automl_agent = AutoMLAgentChat(
-                inference=self.inference, dataset=self.dataset).create_graph()
+            if dataset.is_multimodal():
+                self.automl_agent = AutoMLMultimodalAgentChat(
+                    inference=self.inference, dataset=self.dataset).create_graph()
+            else:
+                self.automl_agent = AutoMLAgentChat(
+                    inference=self.inference, dataset=self.dataset).create_graph()
         else:
             def _automl_agent_error(*args, **kwargs):
                 raise ValueError("Dataset not provided for AutoML agent.")

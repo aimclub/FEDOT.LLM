@@ -113,8 +113,8 @@ class ProblemReflection(BaseModel):
                             description="Reflect on the problem, and describe it in your own words, in bullet points."
                                         "Pay attention to small details, nuances, notes and examples in the problem description.")
     target: str = Field(
-        ..., description="Name of problem target feature. This feature we want to predict.")
-    train_features: str = Field(...,
-                                description="Name of dataset split with train data")
-    test_features: str = Field(
-        ..., description="Name of dataset split with test data")
+        ..., description="Name of problem target feature. This is the feature that we want to predict.")
+    num_features: List[str] = Field(...,
+                                description="Name of only a couple of the numeric columns (from numeric-features), most meaningful to predict target")
+    text_features: List[str] = Field(...,
+                                description="Name of only a couple of the text columns (from text-features), most meaningful to predict target")

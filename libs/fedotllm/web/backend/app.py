@@ -9,7 +9,6 @@ from fedotllm.web.common.types import (BaseResponse, GraphResponse, InitModel,
                                        Response, ResponseState)
 from typing_extensions import AsyncIterator
 
-
 class FedotAIBackend:
     def __init__(self) -> None:
         self.fedot_ai = FedotAI()
