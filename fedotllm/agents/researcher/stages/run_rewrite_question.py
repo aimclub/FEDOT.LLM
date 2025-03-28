@@ -1,8 +1,7 @@
 from fedotllm.agents.researcher.state import ResearcherAgentState
 from fedotllm.agents.researcher.structured import RewriteQuestion
-from fedotllm.agents.utils import render
 from fedotllm.llm.inference import AIInference
-from fedotllm.settings.config_loader import get_settings
+import fedotllm.prompts as prompts
 
 
 def run_rewrite_question(
@@ -10,10 +9,7 @@ def run_rewrite_question(
 ) -> ResearcherAgentState:
     state["question"] = RewriteQuestion.model_validate(
         inference.chat_completion(
-            *render(
-                get_settings().get("prompts.researcher.rewrite_question"),
-                question=state["question"],
-            ),
+            prompts.researcher.rewrite_question_prompt(state["question"]),
             structured=RewriteQuestion,
         )
     ).question

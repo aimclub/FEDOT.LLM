@@ -1,8 +1,7 @@
 from fedotllm.agents.researcher.state import ResearcherAgentState
 from fedotllm.agents.researcher.structured import GradeHallucination, BoolAnswer
-from fedotllm.agents.utils import render
 from fedotllm.llm.inference import AIInference
-from fedotllm.settings.config_loader import get_settings
+import fedotllm.prompts as prompts
 
 
 def is_grounded(state: ResearcherAgentState, inference: AIInference):
@@ -16,11 +15,7 @@ def is_grounded(state: ResearcherAgentState, inference: AIInference):
     )
     grade = GradeHallucination.model_validate(
         inference.chat_completion(
-            *render(
-                get_settings().get("prompts.researcher.is_grounded"),
-                generation=state["generation"],
-                documents=documents,
-            ),
+            prompts.researcher.is_grounded_prompt(documents, state["generation"]),
             structured=GradeHallucination,
         )
     )

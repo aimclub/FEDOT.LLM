@@ -3,7 +3,7 @@ from fedotllm.agents.automl.state import AutoMLAgentState
 from fedotllm.agents.automl.structured import ProblemReflection
 from fedotllm.llm.inference import AIInference
 from fedotllm.log import get_logger
-from fedotllm.settings.config_loader import get_settings
+import fedotllm.prompts as prompts
 
 logger = get_logger()
 
@@ -27,7 +27,7 @@ def run_problem_reflection(
     )
 
     reflection = inference.chat_completion(
-        get_settings().prompts.automl.run_problem_reflection.user.format(
+        prompts.automl.problem_reflection_prompt(
             description=state["description"], dataset_description=dataset_description
         ),
         structured=ProblemReflection,

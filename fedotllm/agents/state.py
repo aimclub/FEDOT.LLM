@@ -7,4 +7,4 @@ from langgraph.graph.message import add_messages
 
 class FedotLLMAgentState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
-    work_dir: Optional[Path]
+    work_dir: Annotated[Optional[Path], "work_dir"]

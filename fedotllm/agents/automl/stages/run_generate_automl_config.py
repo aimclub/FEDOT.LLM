@@ -4,6 +4,7 @@ from fedotllm.agents.automl.structured import FedotConfig, FedotIndustrialConfig
 from fedotllm.llm.inference import AIInference
 from fedotllm.log import get_logger
 from fedotllm.settings.config_loader import get_settings
+import fedotllm.prompts as prompts
 
 logger = get_logger()
 
@@ -28,7 +29,7 @@ def run_generate_automl_config(
     match get_settings().config.automl.lower():
         case "fedot":
             config = inference.chat_completion(
-                get_settings().prompts.automl.run_generate_automl_config.user.format(
+                prompts.automl.generate_configuration_prompt(
                     reflection=state["reflection"],
                     dataset_description=dataset_description,
                 ),
@@ -36,7 +37,7 @@ def run_generate_automl_config(
             )
         case "fedotind":
             config = inference.chat_completion(
-                get_settings().prompts.automl.run_generate_automl_config.user.format(
+                prompts.automl.generate_configuration_prompt(
                     reflection=state["reflection"],
                     dataset_description=dataset_description,
                 ),

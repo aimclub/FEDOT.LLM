@@ -1,18 +1,13 @@
 from fedotllm.agents.researcher.state import ResearcherAgentState
 from fedotllm.agents.researcher.structured import GradeAnswer, BoolAnswer
-from fedotllm.agents.utils import render
 from fedotllm.llm.inference import AIInference
-from fedotllm.settings.config_loader import get_settings
+import fedotllm.prompts as prompts
 
 
 def is_useful(state: ResearcherAgentState, inference: AIInference):
     grade = GradeAnswer.model_validate(
         inference.chat_completion(
-            *render(
-                get_settings().get("prompts.researcher.is_useful"),
-                generation=state["generation"],
-                question=state["question"],
-            ),
+            prompts.researcher.is_useful_prompt(state["generation"], state["question"]),
             structured=GradeAnswer,
         )
     )

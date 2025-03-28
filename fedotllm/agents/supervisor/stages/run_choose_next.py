@@ -1,8 +1,7 @@
 from fedotllm.agents.supervisor.state import SupervisorState
 from fedotllm.agents.supervisor.structured import ChooseNext
-from fedotllm.agents.utils import render
 from fedotllm.llm.inference import AIInference
-from fedotllm.settings.config_loader import get_settings
+import fedotllm.prompts as prompts
 
 
 def run_choose_next(state: SupervisorState, inference: AIInference):
@@ -13,9 +12,7 @@ def run_choose_next(state: SupervisorState, inference: AIInference):
         messages_str = f"{messages.name}: {messages.content}"
 
     response = inference.chat_completion(
-        *render(
-            get_settings().prompts.supervisor.choose_next, {"messages": messages_str}
-        ),
+        prompts.supervisor.choose_next_prompt(messages_str),
         structured=ChooseNext,
     )
     state["next"] = response.next

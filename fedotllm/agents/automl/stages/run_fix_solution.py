@@ -3,7 +3,7 @@ from fedotllm.agents.automl.state import AutoMLAgentState
 from fedotllm.agents.utils import extract_code
 from fedotllm.llm.inference import AIInference
 from fedotllm.log import get_logger
-from fedotllm.settings.config_loader import get_settings
+import fedotllm.prompts as prompts
 
 logger = get_logger()
 
@@ -20,7 +20,7 @@ def run_fix_solution(state: AutoMLAgentState, inference: AIInference, dataset: D
             for file in dataset.splits
         ]
     )
-    fix_prompt = get_settings().prompts.automl.run_fix_solution.user.format(
+    fix_prompt = prompts.automl.fix_solution_prompt(
         user_instruction=state["description"],
         dataset_path=dataset.path.relative_to(dataset.path.cwd()),
         files=files,
