@@ -4,7 +4,7 @@ from dynaconf import Dynaconf
 
 SETTINGS_DIR = Path(__file__).parent
 
-toml_files = list(SETTINGS_DIR.glob('**/*.toml'))
+toml_files = list(SETTINGS_DIR.glob("**/*.toml"))
 
 global_settings = Dynaconf(
     envvar_prefix=False,

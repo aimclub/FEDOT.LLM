@@ -4,22 +4,27 @@ from streamlit_extras.grid import GridDeltaGenerator, grid
 from fedotllm.settings.config_loader import get_settings
 from fedotllm.web.frontend.localization import lclz
 
-from ..utils import (create_zip_file, file_uploader, generate_output_file,
-                     get_user_data_dir, get_user_uploaded_files)
+from ..utils import (
+    create_zip_file,
+    file_uploader,
+    generate_output_file,
+    get_user_data_dir,
+    get_user_uploaded_files,
+)
 
 
-@st.dialog('Preview', width="large")
+@st.dialog("Preview", width="large")
 def split_preview(selected_file):
     st.write(st.session_state.uploaded_files[selected_file]["df"])
 
 
 def init_dataset():
-    st.header(lclz[st.session_state.lang]['INIT_DATASET_HEADER'])
+    st.header(lclz[st.session_state.lang]["INIT_DATASET_HEADER"])
     if not st.session_state.uploaded_files:
         file_uploader()
 
-def _render_file_previews():
 
+def _render_file_previews():
     file_options = get_user_uploaded_files()
 
     selected_file = st.selectbox(
@@ -27,7 +32,8 @@ def _render_file_previews():
         options=file_options,
         index=None,
         placeholder="Select the file to preview",
-        label_visibility="collapsed")
+        label_visibility="collapsed",
+    )
 
     if not st.session_state.uploaded_files:
         st.info("file not found yet.", icon="ℹ️")
@@ -40,39 +46,53 @@ def _render_file_previews():
 def set_llm(form_grid: GridDeltaGenerator):
     name = st.session_state.model_name_input
     if not name:
-        form_grid.warning(lclz[st.session_state.lang]['NO_NAME'], icon="⚠")
+        form_grid.warning(lclz[st.session_state.lang]["NO_NAME"], icon="⚠")
         return
     api_key = st.session_state.api_key
     base_url = st.session_state.base_url
-    params = {'name': name}
+    params = {"name": name}
     if api_key:
-        params['api_key'] = api_key
+        params["api_key"] = api_key
     if base_url:
-        params['base_url'] = base_url
+        params["base_url"] = base_url
     st.toast(
         f"{lclz[st.session_state.lang]['SUCCESS_MODEL_SET']}:\n {st.session_state.model_name_input}",
-        icon="✅")
+        icon="✅",
+    )
     st.session_state.llm = params
 
 
 def set_chat_model():
     if not st.session_state.llm:
-        form_grid = grid(1, 1, 1, 1, 1, vertical_align='bottom')
-        st.text_input(lclz[st.session_state.lang]['NAME'], placeholder="gpt-4o", value=get_settings().get("config.model") or "",
-                      key="model_name_input",
-                      disabled=bool(st.session_state.llm))
-        st.text_input(lclz[st.session_state.lang]['API_KEY'], placeholder=lclz[st.session_state.lang]['API_KEY'],
-                      key="api_key",
-                      value=get_settings().get("OPENAI_TOKEN") or "",
-                      disabled=bool(st.session_state.llm),
-                      type='password')
-        st.text_input(lclz[st.session_state.lang]['BASE_URL'], placeholder=lclz[st.session_state.lang]['BASE_URL'],
-                      key="base_url",
-                      value=get_settings().get("config.base_url") or "",
-                      disabled=bool(st.session_state.llm),
-                      help=lclz[st.session_state.lang]['BASE_URL_HELP'])
-        submit = st.button(label=lclz[st.session_state.lang]['SUBMIT'], use_container_width=True,
-                           disabled=bool(st.session_state.llm))
+        form_grid = grid(1, 1, 1, 1, 1, vertical_align="bottom")
+        st.text_input(
+            lclz[st.session_state.lang]["NAME"],
+            placeholder="gpt-4o",
+            value=get_settings().get("config.model") or "",
+            key="model_name_input",
+            disabled=bool(st.session_state.llm),
+        )
+        st.text_input(
+            lclz[st.session_state.lang]["API_KEY"],
+            placeholder=lclz[st.session_state.lang]["API_KEY"],
+            key="api_key",
+            value=get_settings().get("OPENAI_TOKEN") or "",
+            disabled=bool(st.session_state.llm),
+            type="password",
+        )
+        st.text_input(
+            lclz[st.session_state.lang]["BASE_URL"],
+            placeholder=lclz[st.session_state.lang]["BASE_URL"],
+            key="base_url",
+            value=get_settings().get("config.base_url") or "",
+            disabled=bool(st.session_state.llm),
+            help=lclz[st.session_state.lang]["BASE_URL_HELP"],
+        )
+        submit = st.button(
+            label=lclz[st.session_state.lang]["SUBMIT"],
+            use_container_width=True,
+            disabled=bool(st.session_state.llm),
+        )
         if submit:
             set_llm(form_grid)
             st.rerun()
@@ -80,7 +100,7 @@ def set_chat_model():
 
 def dwn_results():
     with st.container(border=True):
-        st.header(lclz[st.session_state.lang]['RESULTS'])
+        st.header(lclz[st.session_state.lang]["RESULTS"])
         user_data_dir = get_user_data_dir()
         solution_path = user_data_dir / "solution.py"
         submission_path = user_data_dir / "submission.csv"
@@ -88,7 +108,7 @@ def dwn_results():
 
         if solution_path.exists():
             with open(solution_path, "rb") as file:
-                btn = st.download_button(
+                st.download_button(
                     label="Download code solution",
                     data=file,
                     file_name="solution.py",
@@ -97,7 +117,7 @@ def dwn_results():
         if submission_path.exists():
             generate_output_file()
             with open(submission_path, "rb") as file:
-                btn = st.download_button(
+                st.download_button(
                     label="Download submission",
                     data=file,
                     file_name="submission.csv",
@@ -106,7 +126,7 @@ def dwn_results():
         if pipeline_path.exists():
             zip_file = create_zip_file(pipeline_path)
             with open(zip_file, "rb") as file:
-                btn = st.download_button(
+                st.download_button(
                     label="Download pipeline",
                     data=file,
                     file_name="pipeline.zip",
@@ -116,21 +136,28 @@ def dwn_results():
 
 def init_model():
     with st.container(border=True):
-        st.header(lclz[st.session_state.lang]['INIT_LLM_MODEL_HEADER'])
+        st.header(lclz[st.session_state.lang]["INIT_LLM_MODEL_HEADER"])
         if not st.session_state.llm:
             set_chat_model()
         else:
             st.write(
-                f"{lclz[st.session_state.lang]['NAME']}: {st.session_state.llm['name']}")
+                f"{lclz[st.session_state.lang]['NAME']}: {st.session_state.llm['name']}"
+            )
 
 
 def change_lang():
-    if st.button(f'{st.session_state.lang.upper()}', type="primary", use_container_width=True):
-        match (st.session_state.lang):
-            case 'ru': st.session_state.lang = 'en'
-            case 'en': st.session_state.lang = 'ru'
-        st.session_state.messages[0] = {"role": "assistant",
-                                        "content": lclz[st.session_state.lang]['GREETING_MSG']}
+    if st.button(
+        f"{st.session_state.lang.upper()}", type="primary", use_container_width=True
+    ):
+        match st.session_state.lang:
+            case "ru":
+                st.session_state.lang = "en"
+            case "en":
+                st.session_state.lang = "ru"
+        st.session_state.messages[0] = {
+            "role": "assistant",
+            "content": lclz[st.session_state.lang]["GREETING_MSG"],
+        }
         st.rerun()
 
 
@@ -143,11 +170,11 @@ def side_bar():
     }
     with st.sidebar:
         selection = st.segmented_control(
-            lclz[st.session_state.lang]['MENU'],
+            lclz[st.session_state.lang]["MENU"],
             options=option_map.keys(),
             format_func=lambda option: option_map[option],
             selection_mode="single",
-            default=0
+            default=0,
         )
         match selection:
             case 0:

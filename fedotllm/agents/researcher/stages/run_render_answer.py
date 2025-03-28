@@ -10,7 +10,8 @@ def run_render_answer(state: ResearcherAgentState):
     citations: List[Citation] = generation.citations
     for citation in citations:
         answer = answer.replace(
-            f"[{citation.number}]", f"[\\[{citation.number}\\]]({citation.url})")
+            f"[{citation.number}]", f"[\\[{citation.number}\\]]({citation.url})"
+        )
 
-    state['answer'] = answer
+    state["answer"] = answer
     return state

@@ -9,8 +9,8 @@ from fedotllm.settings.config_loader import get_settings
 
 def init_page():
     st.logo(
-        image='fedotllm/web/frontend/static/images/fedot-llm-white.png',
-        link='https://itmo-nss-team.github.io/'
+        image="fedotllm/web/frontend/static/images/fedot-llm-white.png",
+        link="https://itmo-nss-team.github.io/",
     )
     st.title("FEDOT.LLM")
 
@@ -22,8 +22,9 @@ def initial_session_state():
     for key, default_value in DEFAULT_SESSION_VALUES.items():
         if key not in st.session_state:
             st.session_state[key] = (
-                deepcopy(default_value) if isinstance(
-                    default_value, (dict, list)) else default_value
+                deepcopy(default_value)
+                if isinstance(default_value, (dict, list))
+                else default_value
             )
     if not st.session_state.llm:
         st.session_state.llm = {

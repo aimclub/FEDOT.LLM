@@ -20,7 +20,9 @@ def get_user_data_dir():
         str: The path to the user's data directory.
     """
     if "user_data_dir" not in st.session_state:
-        unique_dir = get_user_session_id()
+        unique_dir = (
+            f"{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}-{get_user_session_id()}"
+        )
         st.session_state.user_data_dir = BASE_DATA_DIR / unique_dir
         st.session_state.user_data_dir.mkdir(parents=True, exist_ok=True)
     return st.session_state.user_data_dir
@@ -87,7 +89,10 @@ def file_uploader():
     Handle file uploads
     """
     uploaded_files = st.file_uploader(
-        "Select the dataset", accept_multiple_files=True, label_visibility="collapsed", type=["csv", "xlsx"]
+        "Select the dataset",
+        accept_multiple_files=True,
+        label_visibility="collapsed",
+        type=["csv", "xlsx"],
     )
     st.session_state.uploaded_files = {}
     for file in uploaded_files:
@@ -96,6 +101,7 @@ def file_uploader():
         elif file.name.endswith(".xlsx"):
             df = pd.read_excel(file)
         st.session_state.uploaded_files[file.name] = {"file": file, "df": df}
+
 
 def generate_output_file():
     """
@@ -107,6 +113,7 @@ def generate_output_file():
         st.session_state.output_file = df
     else:
         st.error(f"CSV file not found: {st.session_state.output_filename}")
+
 
 def get_user_uploaded_files():
     files_name = []
@@ -134,5 +141,5 @@ def create_zip_file(model_path: Path):
 
 
 def get_hash_key(prefix: Optional[str]):
-    date = datetime.now().strftime('%Y-%m-%d %H:%M:%S:%f')
-    return sha256(f'{prefix}{date}'.encode()).hexdigest()
+    date = datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
+    return sha256(f"{prefix}{date}".encode()).hexdigest()

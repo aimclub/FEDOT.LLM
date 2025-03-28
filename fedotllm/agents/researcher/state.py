@@ -1,5 +1,3 @@
-from typing import List, Union
-
 from chromadb.api.types import QueryResult
 
 from fedotllm.agents.researcher.structured import GenerateWithCitations
@@ -16,6 +14,7 @@ class ResearcherAgentState(FedotLLMAgentState):
         generation: LLM generation
         documents: list of documents
     """
+
     question: str
     generation: GenerateWithCitations
     retrieved: QueryResult

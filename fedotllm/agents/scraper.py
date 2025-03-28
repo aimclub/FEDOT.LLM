@@ -7,18 +7,15 @@ from tqdm import tqdm
 
 warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
-def extract_sub_links(
-    raw_html: str,
-    url: HttpUrl,
-    base_url: HttpUrl
-):
+
+def extract_sub_links(raw_html: str, url: HttpUrl, base_url: HttpUrl):
     parsed_url = urlparse(url)
     parsed_base_url = urlparse(base_url)
     absolute_paths = set()
 
-    soup = BeautifulSoup(raw_html, 'html.parser')
-    for link_tag in soup.find_all('a', href=True):
-        link = link_tag['href']
+    soup = BeautifulSoup(raw_html, "html.parser")
+    for link_tag in soup.find_all("a", href=True):
+        link = link_tag["href"]
         try:
             parsed_link = urlparse(link)
             if parsed_link.scheme == "http" or parsed_link.scheme == "https":
@@ -42,7 +39,7 @@ def extract_sub_links(
 def extract_metadata(raw_html: str, url: str, response: requests.Response) -> dict:
     content_type = getattr(response, "headers").get("Content-Type", "")
     metadata = {"source": url, "content_type": content_type}
-    soup = BeautifulSoup(raw_html, 'html.parser')
+    soup = BeautifulSoup(raw_html, "html.parser")
     if title := soup.find("title"):
         metadata["title"] = title.get_text()
     return metadata
@@ -59,30 +56,26 @@ def recursive_url_loader(url: str, max_depth: int = 10, timeout: int = 10):
 
         visited.add(url)
         try:
-            response = requests.get(
-                url, timeout=timeout
-            )
+            response = requests.get(url, timeout=timeout)
 
             if 400 <= response.status_code <= 599:
-                raise ValueError(
-                    f"Received HTTP status {response.status_code}")
+                raise ValueError(f"Received HTTP status {response.status_code}")
         except Exception as _:
             return
 
         document = {
             "content": response.text,
-            "metadata": extract_metadata(raw_html=response.text, 
-                                         url=url, 
-                                         response=response)
+            "metadata": extract_metadata(
+                raw_html=response.text, url=url, response=response
+            ),
         }
-        sub_links = extract_sub_links(raw_html=response.text,
-                                      url=url,
-                                      base_url=base_url)
+        sub_links = extract_sub_links(
+            raw_html=response.text, url=url, base_url=base_url
+        )
         return document, sub_links
 
-    depth_bar = tqdm(total=max_depth + 1,
-                     desc="Scraping")
-    
+    depth_bar = tqdm(total=max_depth + 1, desc="Scraping")
+
     depth = max_depth
     waiting = {base_url}
     while True:

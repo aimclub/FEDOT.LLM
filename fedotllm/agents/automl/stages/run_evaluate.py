@@ -10,24 +10,25 @@ logger = get_logger()
 
 def _generate_code_file(code: str, output_dir: Path):
     output_dir.mkdir(parents=True, exist_ok=True)
-    with open(output_dir / 'solution.py', 'w') as f:
+    with open(output_dir / "solution.py", "w") as f:
         f.write(code)
-    return output_dir / 'solution.py'
+    return output_dir / "solution.py"
+
 
 def run_evaluate(state: AutoMLAgentState):
-    solution = state['solutions'][-1]
-    work_dir = state['work_dir']
+    solution = state["solutions"][-1]
+    work_dir = state["work_dir"]
     logger.info("Running evaluate")
     logger.debug(f"{solution['code']}")
-    code_path = _generate_code_file(solution['code'], work_dir)
+    code_path = _generate_code_file(solution["code"], work_dir)
     result: ExecutionResult
-    result = execute_code(path_to_run_code=code_path, 
-                          timeout=20 * 60)
+    result = execute_code(path_to_run_code=code_path, timeout=None)
     if result:
         if result.program_status == ProgramStatus.kFailed:
             logger.error(result.sandbox_result)
         logger.debug(
-            f"Evaluate result\nStatus: {result.program_status}\nStdout: {result.stdout}\nStderr: {result.stderr}\nSandbox result: {result.sandbox_result}")
+            f"Evaluate result\nStatus: {result.program_status}\nStdout: {result.stdout}\nStderr: {result.stderr}\nSandbox result: {result.sandbox_result}"
+        )
 
-    solution['exec_result'] = result
+    solution["exec_result"] = result
     return state

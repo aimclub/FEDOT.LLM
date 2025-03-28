@@ -9,8 +9,8 @@ from fedotllm.agents.state import FedotLLMAgentState
 def run_entry_state_connector(state: FedotLLMAgentState, agent: Agent):
     if isinstance(agent, ResearcherAgent):
         state: ResearcherAgentState
-        state['question'] = state['messages'][-1].content
+        state["question"] = state["messages"][-1].content
     elif isinstance(agent, AutoMLAgent):
         state: AutoMLAgentState
-        state['description'] = state['messages'][-1].content
+        state["description"] = state["messages"][-1].content
     return state

@@ -3,12 +3,13 @@ from ..utils import get_user_uploaded_files
 from pygwalker.api.streamlit import StreamlitRenderer
 from ..localization import lclz
 
+
 @st.fragment
 def preview_dataset():
     """
     Displays a preview of the uploaded dataset in the Streamlit app.
     """
-    st.header(lclz[st.session_state.lang]['FILES_PREVIEWS'])
+    st.header(lclz[st.session_state.lang]["FILES_PREVIEWS"])
     _, col2, _ = st.columns([1, 22, 1])
     with col2:
         file_options = get_user_uploaded_files()
@@ -18,12 +19,12 @@ def preview_dataset():
             "Preview File",
             options=file_options,
             index=None,
-            placeholder=lclz[st.session_state.lang]['SELECT_PREVIEW'],
+            placeholder=lclz[st.session_state.lang]["SELECT_PREVIEW"],
             label_visibility="collapsed",
             key="_selected_file",
         )
         if not st.session_state.uploaded_files:
-            st.info(lclz[st.session_state.lang]['PREVIEW_NOT_FOUND'], icon="ℹ️")
+            st.info(lclz[st.session_state.lang]["PREVIEW_NOT_FOUND"], icon="ℹ️")
             return
         if selected_file is not None:
             st.markdown(
@@ -38,7 +39,9 @@ def preview_dataset():
                 output_file = st.session_state.output_file
                 pyg_app = StreamlitRenderer(output_file)
             else:
-                pyg_app =StreamlitRenderer(st.session_state.uploaded_files[selected_file]["df"])
+                pyg_app = StreamlitRenderer(
+                    st.session_state.uploaded_files[selected_file]["df"]
+                )
             pyg_app.explorer()
 
 

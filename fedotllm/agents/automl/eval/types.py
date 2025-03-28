@@ -12,9 +12,9 @@ class ProgramStatus(Enum):
 
 @dataclass
 class ExecutionResult:
-    stdout: str = ''
-    stderr: str = ''
+    stdout: str = ""
+    stderr: str = ""
     program_status: ProgramStatus = ProgramStatus.kUnknown
-    sandbox_result: str = ''
+    sandbox_result: str = ""
     trace: Optional[str] = None
     global_vars: Optional[dict] = None

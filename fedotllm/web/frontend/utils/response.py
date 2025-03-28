@@ -1,8 +1,7 @@
 import streamlit as st
 from typing_extensions import Dict, List
 
-from fedotllm.web.common.types import (BaseResponse, ResponseContent,
-                                       ResponseState)
+from fedotllm.web.common.types import BaseResponse, ResponseContent, ResponseState
 from fedotllm.web.frontend.components.st_graph import st_graph
 from fedotllm.web.frontend.utils.utils import get_hash_key
 
@@ -17,7 +16,7 @@ def create_expander_label(response: BaseResponse):
         # elif response.state == 'error':
         #     label = f":red[:material/close:] {label}"
         return label
-    return ''
+    return ""
 
 
 def render(response: ResponseContent):
@@ -28,15 +27,18 @@ def render(response: ResponseContent):
             render(resp)
     elif isinstance(response, BaseResponse):
         if response.name:
-            with st.expander(label=create_expander_label(response), expanded=(response.state == ResponseState.RUNNING)):
+            with st.expander(
+                label=create_expander_label(response),
+                expanded=(response.state == ResponseState.RUNNING),
+            ):
                 with st.empty():
                     render(response=response.content)
         elif response.content:
             render(response.content)
     elif isinstance(response, Dict):
-        if response['type'] == 'graphviz':
-            if isinstance(response['data'], str):
-                st_graph(response['data'], key=get_hash_key('graphviz'))
+        if response["type"] == "graphviz":
+            if isinstance(response["data"], str):
+                st_graph(response["data"], key=get_hash_key("graphviz"))
     elif not response:
         return
     else:

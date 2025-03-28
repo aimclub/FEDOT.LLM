@@ -19,6 +19,7 @@ from typing import Optional
 class TimeoutException(Exception):
     pass
 
+
 def filter_picklable(d):
     return {k: v for k, v in d.items() if is_picklable(v)}
 
@@ -41,7 +42,7 @@ class Tee:
 
     def write(self, data):
         for stream in self.streams:
-            if hasattr(stream, 'write'):
+            if hasattr(stream, "write"):
                 try:
                     stream.write(data)
                 except AttributeError:
@@ -54,7 +55,7 @@ class Tee:
 
     def flush(self):
         for stream in self.streams:
-            if hasattr(stream, 'flush'):
+            if hasattr(stream, "flush"):
                 try:
                     stream.flush()
                 except AttributeError:
@@ -67,22 +68,24 @@ class Tee:
         """
         values = []
         for stream in self.streams:
-            if hasattr(stream, 'getvalue'):
+            if hasattr(stream, "getvalue"):
                 try:
                     values.append(stream.getvalue())
                 except AttributeError:
                     pass  # Ignore if getvalue raises an exception
-        return ''.join(values)
+        return "".join(values)
 
 
-def execute_code(code,
-                 timeout,
-                 sandbox=True,
-                 in_glob=None,
-                 argv=None,
-                 output_dir: Optional[Path] = None,
-                 vaults: Optional[list[Path]] = None,
-                 show_progress=True):
+def execute_code(
+    code,
+    timeout,
+    sandbox=True,
+    in_glob=None,
+    argv=None,
+    output_dir: Optional[Path] = None,
+    vaults: Optional[list[Path]] = None,
+    show_progress=True,
+):
     """
     Executes the provided code with optional sandboxing, vaults, and progress display.
 
@@ -107,13 +110,21 @@ def execute_code(code,
     if sandbox:
         manager = multiprocessing.Manager()
         result = manager.list()
-        pipes = (multiprocessing.Pipe(), multiprocessing.Pipe()
-                 ) if show_progress else None
+        pipes = (
+            (multiprocessing.Pipe(), multiprocessing.Pipe()) if show_progress else None
+        )
 
-        process_args = (code, timeout, result, in_glob, argv, output_dir,
-                        vaults, (pipes[0][1], pipes[1][1]) if pipes else None)
-        process = multiprocessing.Process(
-            target=unsafe_execute, args=process_args)
+        process_args = (
+            code,
+            timeout,
+            result,
+            in_glob,
+            argv,
+            output_dir,
+            vaults,
+            (pipes[0][1], pipes[1][1]) if pipes else None,
+        )
+        process = multiprocessing.Process(target=unsafe_execute, args=process_args)
         process.start()
 
         if show_progress and pipes:
@@ -130,13 +141,13 @@ def execute_code(code,
                         msg = parent_stdout.recv()
                         if msg is None:
                             break
-                        print(msg, end='')
+                        print(msg, end="")
 
                     if parent_stderr.poll(0.1):
                         msg = parent_stderr.recv()
                         if msg is None:
                             break
-                        print(msg, end='', file=sys.stderr)
+                        print(msg, end="", file=sys.stderr)
 
                     if not process.is_alive():
                         break
@@ -145,7 +156,8 @@ def execute_code(code,
 
         # Wait for the process to finish or timeout
         print(
-            f"Waiting for process cleanup with timeout {timeout if timeout < 5 * 60 else 5 * 60}...")
+            f"Waiting for process cleanup with timeout {timeout if timeout < 5 * 60 else 5 * 60}..."
+        )
         process.join(timeout=timeout if timeout < 5 * 60 else 5 * 60)
         if process.is_alive():
             process.kill()
@@ -158,18 +170,18 @@ def execute_code(code,
     return result[0] if result else None
 
 
-SCRIPT_NAME = 'solution.py'
+SCRIPT_NAME = "solution.py"
 
 
 def unsafe_execute(
-        code: str,
-        timeout: int,
-        result: list,
-        in_glob=None,
-        argv=None,
-        output_dir: Optional[Path] = None,
-        vaults: Optional[list[Path]] = None,
-        pipes: Optional[tuple[Connection, Connection]] = None
+    code: str,
+    timeout: int,
+    result: list,
+    in_glob=None,
+    argv=None,
+    output_dir: Optional[Path] = None,
+    vaults: Optional[list[Path]] = None,
+    pipes: Optional[tuple[Connection, Connection]] = None,
 ):
     if argv is None:
         argv = []
@@ -179,6 +191,7 @@ def unsafe_execute(
     with create_tempdir(vaults, output_dir):
         # These system calls are needed when cleaning up tempdir.
         import os
+
         rmtree = shutil.rmtree
         rmdir = os.rmdir
         chdir = os.chdir
@@ -187,9 +200,9 @@ def unsafe_execute(
             # Disable functionalities that can make destructive changes to the test.
             # reliability_guard()
             exec_globals = {
-                               '__name__': '__main__',
-                               '__file__': SCRIPT_NAME,
-                           } | in_glob
+                "__name__": "__main__",
+                "__file__": SCRIPT_NAME,
+            } | in_glob
             exec_result = ExecutionResult()
             tracing = io.StringIO()
             tracing.seek(0)
@@ -198,8 +211,7 @@ def unsafe_execute(
             try:
                 with swallow_io(pipes=pipes) as (stdout_stream, stderr_stream):
                     with time_limit(timeout):
-                        exec(compile(code,
-                                     SCRIPT_NAME, "exec"), exec_globals)
+                        exec(compile(code, SCRIPT_NAME, "exec"), exec_globals)
                 exec_result.program_status = ProgramStatus.kSuccess
             except TimeoutException:
                 exec_result.program_status = ProgramStatus.kTimeout
@@ -208,9 +220,8 @@ def unsafe_execute(
                 filtered_trace = traceback.format_exc()
                 if clean_exception:
                     filtered_trace = filtered_trace.splitlines()
-                    filtered_trace = filtered_trace[min(
-                        len(filtered_trace) - 2, 3):]
-                    filtered_trace = '\n'.join(filtered_trace)
+                    filtered_trace = filtered_trace[min(len(filtered_trace) - 2, 3) :]
+                    filtered_trace = "\n".join(filtered_trace)
                 exec_result.sandbox_result = filtered_trace
                 exec_result.program_status = ProgramStatus.kFailed
             finally:
@@ -257,7 +268,11 @@ def time_limit(seconds):
 
 
 @contextlib.contextmanager
-def swallow_io(input_stream=None, binary=False, pipes: Optional[tuple[Connection, Connection]] = None):
+def swallow_io(
+    input_stream=None,
+    binary=False,
+    pipes: Optional[tuple[Connection, Connection]] = None,
+):
     """
     Swallows the standard input, output, and error streams and optionally redirects them through pipes.
     """
@@ -296,7 +311,9 @@ def swallow_io(input_stream=None, binary=False, pipes: Optional[tuple[Connection
 
 
 @contextlib.contextmanager
-def create_tempdir(vaults: Optional[list[Path]] = None, output_dir: Optional[Path] = None):
+def create_tempdir(
+    vaults: Optional[list[Path]] = None, output_dir: Optional[Path] = None
+):
     """
     Creates a temporary directory and optionally links vaults to it.
     """
@@ -312,11 +329,11 @@ def create_tempdir(vaults: Optional[list[Path]] = None, output_dir: Optional[Pat
                 try:
                     # Create a symbolic link pointing to the vault
                     temp_vault_path.symlink_to(
-                        vault.resolve(), target_is_directory=True)
+                        vault.resolve(), target_is_directory=True
+                    )
                     # Change permissions to read-only if supported
                     os.chmod(temp_vault_path, 0o555)
-                    print(
-                        f"Linked vault {vault} to {temp_vault_path} as read-only.")
+                    print(f"Linked vault {vault} to {temp_vault_path} as read-only.")
                 except Exception as e:
                     print(f"Failed to link vault {vault}: {e}")
                     raise
@@ -328,7 +345,7 @@ def create_tempdir(vaults: Optional[list[Path]] = None, output_dir: Optional[Pat
                 # Calculate relative path from dirname
                 rel_path = Path(root).relative_to(dirname)
 
-                if rel_path == Path('.'):
+                if rel_path == Path("."):
                     # Handle directories
                     for dir in dirs:
                         if vaults and any(vault.name in dir for vault in vaults):
@@ -380,13 +397,16 @@ def reliability_guard(maximum_memory_bytes=None):
     if maximum_memory_bytes is not None:
         import resource
 
-        resource.setrlimit(resource.RLIMIT_AS,
-                           (maximum_memory_bytes, maximum_memory_bytes))
-        resource.setrlimit(resource.RLIMIT_DATA,
-                           (maximum_memory_bytes, maximum_memory_bytes))
+        resource.setrlimit(
+            resource.RLIMIT_AS, (maximum_memory_bytes, maximum_memory_bytes)
+        )
+        resource.setrlimit(
+            resource.RLIMIT_DATA, (maximum_memory_bytes, maximum_memory_bytes)
+        )
         if not platform.uname().system == "Darwin":
-            resource.setrlimit(resource.RLIMIT_STACK,
-                               (maximum_memory_bytes, maximum_memory_bytes))
+            resource.setrlimit(
+                resource.RLIMIT_STACK, (maximum_memory_bytes, maximum_memory_bytes)
+            )
 
     faulthandler.disable()
 
@@ -448,5 +468,5 @@ def reliability_guard(maximum_memory_bytes=None):
     sys.modules["tkinter"] = None
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

@@ -25,19 +25,33 @@ class AutoMLAgent:
 
     def create_graph(self):
         workflow = StateGraph(AutoMLAgentState)
-        workflow.add_node("problem_reflection", partial(
-            run_problem_reflection, inference=self.inference, dataset=self.dataset))
-        workflow.add_node("generate_automl_config", partial(
-            run_generate_automl_config, inference=self.inference, dataset=self.dataset))
-        workflow.add_node("select_skeleton", partial(run_select_skeleton, dataset=self
-                                                     .dataset
-                                                     ))
+        workflow.add_node(
+            "problem_reflection",
+            partial(
+                run_problem_reflection, inference=self.inference, dataset=self.dataset
+            ),
+        )
+        workflow.add_node(
+            "generate_automl_config",
+            partial(
+                run_generate_automl_config,
+                inference=self.inference,
+                dataset=self.dataset,
+            ),
+        )
+        workflow.add_node(
+            "select_skeleton", partial(run_select_skeleton, dataset=self.dataset)
+        )
         workflow.add_node("insert_templates", run_insert_templates)
-        workflow.add_node("codegen", partial(
-            run_codegen, inference=self.inference, dataset=self.dataset))
+        workflow.add_node(
+            "codegen",
+            partial(run_codegen, inference=self.inference, dataset=self.dataset),
+        )
         workflow.add_node("evaluate_main", run_evaluate)
-        workflow.add_node("fix_solution_main", partial(
-            run_fix_solution, inference=self.inference, dataset=self.dataset))
+        workflow.add_node(
+            "fix_solution_main",
+            partial(run_fix_solution, inference=self.inference, dataset=self.dataset),
+        )
         workflow.add_node("extract_metrics", run_extract_metrics)
         workflow.add_node("report_node", partial(run_report, inference=self.inference))
 
@@ -48,19 +62,13 @@ class AutoMLAgent:
         workflow.add_edge("codegen", "insert_templates")
         workflow.add_conditional_edges(
             "insert_templates",
-            lambda state: state['solutions'][-1]['code'] is None,
-            {
-                True: "codegen",
-                False: "evaluate_main"
-            }
+            lambda state: state["solutions"][-1]["code"] is None,
+            {True: "codegen", False: "evaluate_main"},
         )
         workflow.add_conditional_edges(
             "evaluate_main",
             if_bug,
-            {
-                True: "fix_solution_main",
-                False: "extract_metrics"
-            }
+            {True: "fix_solution_main", False: "extract_metrics"},
         )
         workflow.add_edge("fix_solution_main", "insert_templates")
         workflow.add_edge("extract_metrics", "report_node")

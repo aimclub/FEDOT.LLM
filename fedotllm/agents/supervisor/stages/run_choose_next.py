@@ -12,7 +12,11 @@ def run_choose_next(state: SupervisorState, inference: AIInference):
     else:
         messages_str = f"{messages.name}: {messages.content}"
 
-    response = inference.chat_completion(*render(get_settings().prompts.supervisor.choose_next,
-                                                 {"messages": messages_str}), structured=ChooseNext)
+    response = inference.chat_completion(
+        *render(
+            get_settings().prompts.supervisor.choose_next, {"messages": messages_str}
+        ),
+        structured=ChooseNext,
+    )
     state["next"] = response.next
     return state

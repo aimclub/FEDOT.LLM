@@ -1,5 +1,3 @@
-from functools import partial
-
 from langgraph.graph import START, END, StateGraph
 
 from fedotllm.agents.automl.automl import AutoMLAgent
@@ -14,8 +12,7 @@ class AutoMLAgentChat:
     def __init__(self, inference: AIInference, dataset: Dataset):
         self.inference = inference
         self.dataset = dataset
-        self.automl = AutoMLAgent(
-            inference=self.inference, dataset=self.dataset)
+        self.automl = AutoMLAgent(inference=self.inference, dataset=self.dataset)
 
     def create_graph(self):
         workflow = StateGraph(AutoMLAgentState)

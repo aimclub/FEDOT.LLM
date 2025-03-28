@@ -1,64 +1,48 @@
-[tool.poetry]
+[project]
 name = "fedotllm"
 version = "0.1.0"
 description = "LLM-based prototype for nexgen AutoML"
 authors = ["Alexey Lapin <a.lapin@itmo.ru>"]
 license = "BSD 3-Clause"
 readme = "README.md"
-packages = [
-    { include = "fedotllm", from = "." }
+requires-python = "~=3.10"
+dependencies = [
+    "autoflake>=2.3.1",
+    "beautifulsoup4>=4.13.3",
+    "chromadb>=0.6.3",
+    "deep-translator>=1.11.4",
+    "dynaconf>=3.2.10",
+    "fedot",
+    "giotto-tda==0.6.0",
+    "graphviz>=0.20.3",
+    "html2text>=2024.2.26",
+    "langchain-core>=0.3.49",
+    "langchain-openai>=0.3.11",
+    "langgraph>=0.3.21",
+    "loguru>=0.7.3",
+    "pandas>=2.2.3",
+    "pygwalker>=0.4.9.14",
+    "setuptools>=78.1.0",
+    "streamlit>=1.44.0",
+    "streamlit-extras>=0.6.0",
+    "tabulate>=0.9.0",
+    "tenacity>=9.0.0",
+    "tiktoken>=0.9.0",
 ]
 
-[tool.poetry.urls]
-repository = "https://github.com/aimclub/FEDOT.LLM"
+[tool.uv.sources]
+fedot = { git = "https://github.com/aimclub/FEDOT.git" }
 
-[tool.poetry.dependencies]
-python = "~3.10.0"
-# Fedot
-fedot = "^0.7.4"
-thegolem = "^0.4.0"
-giotto-tda = "0.6.0"
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "ruff>=0.11.2",
+]
 
-# Data processing
-pandas = "^2.2.3"
-tabulate = "^0.9.0"
-
-# LangChain ecosystem
-langchain-core = "^0.3.22"
-langchain-openai = "^0.2.11"
-
-# Web Interface
-streamlit = "^1.40.2"
-streamlit-extras = "^0.5.0"
-
-# Database and Vector Store
-chromadb = "^0.5.23"
-
-# Utilities
-typing-extensions = "^4.12.2"
-pydantic = "^2.10.3"
-asyncio = "^3.4.3"
-ipython = "^8.30.0"
-graphviz = "^0.20.3"
-beautifulsoup4 = "^4.12.3"
-dynaconf = "^3.2.6"
-watchdog = "^6.0.0"
-loguru = "^0.7.3"
-autoflake = "^2.3.1"
-requests = "^2.32.3"
-tenacity = "^9.0.0"
-tiktoken = "^0.8.0"
-html2text = "^2024.2.26"
-deep-translator = "^1.11.4"
-pygwalker = "^0.4.9.13"
-langgraph = ">=0.2.67,<0.3.0"
-
-[tool.poetry.group.dev.dependencies]
-flake8 = "^6.1.0"
-pytest = "^7.4.3"
-ruff = "^0.8.2"
-ipykernel = "^6.29.5"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff]
+exclude = [
+    "user_data/*",
+    "test*",
+    "fedotllm/**/templates/**",
+    "examples",
+]

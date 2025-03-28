@@ -7,13 +7,13 @@ def jinja_render(template: str, *args, **kwargs):
 
 
 def render(prompt, *args, **kwargs):
-    system = prompt.get('system', None)
+    system = prompt.get("system", None)
     if system:
         system = jinja_render(system, *args, **kwargs)
     user = jinja_render(prompt.user, *args, **kwargs)
 
-    temperature = prompt.get('temperature', 0.2)
-    frequency_penalty = prompt.get('frequency_penalty', 0.0)
+    temperature = prompt.get("temperature", 0.2)
+    frequency_penalty = prompt.get("frequency_penalty", 0.0)
 
     return user, system, temperature, frequency_penalty
 

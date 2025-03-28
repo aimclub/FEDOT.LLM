@@ -19,17 +19,17 @@ def _extract_metrics(raw_output: str):
 
 
 def run_extract_metrics(state: AutoMLAgentState):
-    solution = state['solutions'][-1]
-    work_dir = state['work_dir']
+    solution = state["solutions"][-1]
+    work_dir = state["work_dir"]
 
     logger.info("Running extract_metrics")
-    state['metrics'] = _extract_metrics(solution['exec_result'].stdout)
+    state["metrics"] = _extract_metrics(solution["exec_result"].stdout)
     logger.info(f"Metrics: {state['metrics']}")
 
-    if Path(work_dir / 'pipeline').exists():
-        model = Fedot(problem='classification')
-        model.load(work_dir / 'pipeline')
-        state['pipeline'] = graph_structure(model.current_pipeline)
+    if Path(work_dir / "pipeline").exists():
+        model = Fedot(problem="classification")
+        model.load(work_dir / "pipeline")
+        state["pipeline"] = graph_structure(model.current_pipeline)
         logger.info(f"Pipeline: {state['pipeline']}")
     else:
         logger.error("Pipeline not found")
