@@ -1,9 +1,9 @@
-from typing import List
-from typing import TypedDict, Optional
+from typing import List, Optional, TypedDict
 
 from fedotllm.agents.automl.eval.local_exec import ExecutionResult
-from fedotllm.agents.automl.structured import ProblemReflection, FedotConfig
+from fedotllm.agents.automl.structured import FedotConfig
 from fedotllm.agents.state import FedotLLMAgentState
+from fedotllm.predictor.task import PredictionTask
 
 
 class Solution(TypedDict):
@@ -14,7 +14,7 @@ class Solution(TypedDict):
 
 class AutoMLAgentState(FedotLLMAgentState):
     description: str
-    reflection: Optional[ProblemReflection]
+    reflection: str
     fedot_config: Optional[FedotConfig]
     skeleton: Optional[str]
     codegen_sol: Solution
@@ -23,3 +23,4 @@ class AutoMLAgentState(FedotLLMAgentState):
     metrics: Optional[str]
     pipeline: Optional[str]
     report: Optional[str]
+    prediction_task: Optional[PredictionTask]

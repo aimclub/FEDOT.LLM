@@ -16,6 +16,6 @@ def if_bug(state: AutoMLAgentState):
         return False
     elif codegen["fix_tries"] > get_settings().config.fix_tries:
         logger.error("Too many fix tries")
-        return False
+        raise Exception("Too many fix tries")
     else:
         return True

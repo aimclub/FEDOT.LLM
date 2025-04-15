@@ -1,9 +1,9 @@
+import shutil
 import uuid
 from datetime import datetime
 from hashlib import sha256
 from pathlib import Path
 
-import shutil
 import pandas as pd
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile

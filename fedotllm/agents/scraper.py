@@ -1,8 +1,9 @@
-import requests
 import warnings
+from urllib.parse import urljoin, urlparse
+
+import requests
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 from pydantic import HttpUrl
-from urllib.parse import urljoin, urlparse
 from tqdm import tqdm
 
 warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)

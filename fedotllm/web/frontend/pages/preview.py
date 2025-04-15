@@ -1,7 +1,8 @@
 import streamlit as st
-from ..utils import get_user_uploaded_files
 from pygwalker.api.streamlit import StreamlitRenderer
+
 from ..localization import lclz
+from ..utils import get_user_uploaded_files
 
 
 @st.fragment

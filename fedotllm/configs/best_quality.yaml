@@ -1,0 +1,6 @@
+automl:
+  fedot:
+    predictor_init_kwargs:
+        preset: best_quality
+        safe_mode: True
+    predictor_fit_kwargs: {}

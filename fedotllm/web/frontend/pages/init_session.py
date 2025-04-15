@@ -1,9 +1,10 @@
 import os
+from copy import deepcopy
 
 import streamlit as st
 from dotenv import load_dotenv
+
 from fedotllm.constants import DEFAULT_SESSION_VALUES
-from copy import deepcopy
 from fedotllm.settings.config_loader import get_settings
 
 

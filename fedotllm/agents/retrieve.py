@@ -1,11 +1,16 @@
-from fedotllm.llm.inference import OpenaiEmbeddings
 import chromadb
-from fedotllm.agents.memory import Memory, ChunkedDocument, text_splitter
-from fedotllm.agents.scraper import recursive_url_loader
 from bs4 import BeautifulSoup
 from chromadb.api.types import QueryResult
-from html2text import html2text
 from chromadb.config import Settings
+from html2text import html2text
+
+from fedotllm.agents.embedding_memory import (
+    ChunkedDocument,
+    EmbeddingMemory,
+    text_splitter,
+)
+from fedotllm.agents.scraper import recursive_url_loader
+from fedotllm.llm import OpenaiEmbeddings
 
 
 class RetrieveTool:
@@ -22,7 +27,7 @@ class RetrieveTool:
         )
         self.collection_name = collection_name
 
-        self.db = Memory(self.client, self.collection_name, self.embeddings)
+        self.db = EmbeddingMemory(self.client, self.collection_name, self.embeddings)
 
     def count(self):
         return self.db.check_collection_none()

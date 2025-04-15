@@ -1,8 +1,8 @@
 from enum import Enum
-from typing import Literal, Optional, Union, List
+from typing import List, Literal, Optional, Union
 
 from fedot.core.repository.tasks import TaskTypesEnum
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProblemType(str, Enum):

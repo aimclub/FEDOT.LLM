@@ -1,18 +1,18 @@
+import fedotllm.prompting.prompts as prompts
 from fedotllm.agents.automl.state import AutoMLAgentState
-from fedotllm.llm.inference import AIInference
-import fedotllm.prompts as prompts
+from fedotllm.llm import LiteLLMModel
 
 
-def run_report(state: AutoMLAgentState, inference: AIInference):
+def run_report(state: AutoMLAgentState, llm: LiteLLMModel):
     if state["solutions"][-1]["code"] and state["pipeline"]:
-        response = inference.chat_completion(
+        response = llm.query(
             prompts.automl.reporter_prompt(
                 description=state["description"],
                 metrics=state["metrics"],
                 pipeline=state["pipeline"],
                 code=state["solutions"][-1]["code"],
             )
-        ).content
+        )
     else:
         response = "Solution not found. Please try again."
     state["report"] = response

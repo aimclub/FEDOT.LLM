@@ -1,8 +1,10 @@
+from typing import List, NamedTuple
+
 from chromadb.api.client import Client
 from chromadb.api.types import QueryResult
-from fedotllm.llm.inference import OpenaiEmbeddings
 from tqdm import tqdm
-from typing import NamedTuple, List
+
+from fedotllm.llm import OpenaiEmbeddings
 
 
 def text_splitter(
@@ -32,7 +34,7 @@ class ChunkedDocument(NamedTuple):
     chunks: str
 
 
-class Memory:
+class EmbeddingMemory:
     def __init__(
         self, client: Client, collection_name: str, embedding_model: OpenaiEmbeddings
     ):

@@ -1,11 +1,10 @@
+from fedotllm.agents.automl.state import AutoMLAgentState
 from fedotllm.agents.automl.templates.load_template import (
     load_template,
     render_template,
 )
-
-from fedotllm.agents.automl.state import AutoMLAgentState
 from fedotllm.log import get_logger
-from fedotllm.data import Dataset
+from fedotllm.tabular import Dataset
 
 logger = get_logger()
 
@@ -28,7 +27,7 @@ def run_select_skeleton(state: AutoMLAgentState, dataset: Dataset) -> AutoMLAgen
     skeleton = render_template(
         template=skeleton,
         dataset_path=dataset.path,
-        work_dir_path=state["work_dir"].resolve(),
+        workspace=state["workspace"].resolve(),
     )
 
     state["skeleton"] = skeleton

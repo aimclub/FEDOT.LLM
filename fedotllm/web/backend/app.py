@@ -1,8 +1,10 @@
-from typing import Literal, Optional
+from pathlib import Path
+from typing import List, Literal, Optional
 
 from deep_translator import GoogleTranslator
-from fedotllm.llm.inference import AIInference, OpenaiEmbeddings
-from fedotllm.main import FedotAI
+from typing import AsyncIterator
+
+from fedotllm import run_ui
 from fedotllm.web.common.types import (
     BaseResponse,
     GraphResponse,
@@ -10,31 +12,25 @@ from fedotllm.web.common.types import (
     Response,
     ResponseState,
 )
-from typing_extensions import AsyncIterator
-from pathlib import Path
 
 
 async def ask(
     msg: str,
     task_path: Path,
-    llm_name: str,
-    llm_base_url: Optional[str] = None,
-    llm_api_key: Optional[str] = None,
-    work_dir: Optional[Path] = None,
+    config_overrides: Optional[List[str]] = None,
+    workspace: Optional[Path] = None,
     lang: Literal["en", "ru"] = "en",
 ) -> AsyncIterator[BaseResponse]:
     response = Response()
     message_handler = MessagesHandler(lang=lang).message_handler(response)
     graph_handler = GraphResponse(lang=lang).graph_handler(response)
-    fedot_ai = FedotAI(
+    fedot_ai = run_ui(
         task_path=task_path,
-        inference=AIInference(
-            model=llm_name, base_url=llm_base_url, api_key=llm_api_key
-        ),
-        embeddings=OpenaiEmbeddings(api_key=llm_api_key, base_url=llm_base_url),
-        handlers=[message_handler, graph_handler],
-        work_dir=work_dir,
+        presets="default",
+        workspace_path=workspace,
+        config_overrides=config_overrides,
     )
+    fedot_ai.handlers = [message_handler, graph_handler]
 
     async for _ in fedot_ai.ask(
         GoogleTranslator(source="auto", target="en").translate(msg)

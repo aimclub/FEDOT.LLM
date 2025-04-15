@@ -1,7 +1,6 @@
-from fedotllm.llm.inference import OpenaiEmbeddings
-from fedotllm.agents.retrieve import RetrieveTool
-
 from fedotllm.agents.researcher.state import ResearcherAgentState
+from fedotllm.agents.retrieve import RetrieveTool
+from fedotllm.llm import OpenaiEmbeddings
 
 
 def run_retrieve(

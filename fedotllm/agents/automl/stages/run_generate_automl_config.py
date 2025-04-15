@@ -1,16 +1,15 @@
-from fedotllm.data import Dataset
+import fedotllm.prompting.prompts as prompts
 from fedotllm.agents.automl.state import AutoMLAgentState
-from fedotllm.agents.automl.structured import FedotConfig, FedotIndustrialConfig
-from fedotllm.llm.inference import AIInference
+from fedotllm.agents.automl.structured import FedotConfig
+from fedotllm.llm import LiteLLMModel
 from fedotllm.log import get_logger
-from fedotllm.settings.config_loader import get_settings
-import fedotllm.prompts as prompts
+from fedotllm.tabular import Dataset
 
 logger = get_logger()
 
 
 def run_generate_automl_config(
-    state: AutoMLAgentState, inference: AIInference, dataset: Dataset
+    state: AutoMLAgentState, llm: LiteLLMModel, dataset: Dataset
 ):
     logger.info("Running generate automl config")
     dataset_description = "\n".join(
@@ -26,23 +25,19 @@ def run_generate_automl_config(
             for split in dataset.splits
         ]
     )
-    match get_settings().config.automl.lower():
-        case "fedot":
-            config = inference.chat_completion(
-                prompts.automl.generate_configuration_prompt(
+
+    config = llm.create(
+        messages=[
+            {
+                "role": "user",
+                "content": prompts.automl.generate_configuration_prompt(
                     reflection=state["reflection"],
                     dataset_description=dataset_description,
                 ),
-                structured=FedotConfig,
-            )
-        case "fedotind":
-            config = inference.chat_completion(
-                prompts.automl.generate_configuration_prompt(
-                    reflection=state["reflection"],
-                    dataset_description=dataset_description,
-                ),
-                structured=FedotIndustrialConfig,
-            )
+            }
+        ],
+        response_model=FedotConfig,
+    )
 
     state["fedot_config"] = config
 

@@ -1,11 +1,11 @@
+import fedotllm.prompting.prompts as prompts
 from fedotllm.agents.researcher.state import ResearcherAgentState
-from fedotllm.agents.researcher.structured import GradeDocuments, BoolAnswer
-from fedotllm.llm.inference import AIInference
-import fedotllm.prompts as prompts
+from fedotllm.agents.researcher.structured import BoolAnswer, GradeDocuments
+from fedotllm.llm import LiteLLMModel
 
 
 def run_retrieve_grader(
-    state: ResearcherAgentState, inference: AIInference
+    state: ResearcherAgentState, llm: LiteLLMModel
 ) -> ResearcherAgentState:
     question = state["question"]
     documents = state["retrieved"]["documents"]
@@ -13,11 +13,9 @@ def run_retrieve_grader(
     # Score each doc
     for i in range(len(documents)):
         document = state["retrieved"]["documents"][0][i]
-        score = GradeDocuments.model_validate(
-            inference.chat_completion(
-                prompts.researcher.retrieve_grader_prompt(question, document),
-                structured=GradeDocuments,
-            )
+        score = llm.create(
+            messages=prompts.researcher.retrieve_grader_prompt(question, document),
+            response_model=GradeDocuments,
         )
 
         grade = score.score

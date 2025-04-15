@@ -1,37 +1,42 @@
 from functools import partial
 
 from langgraph.graph import END, START, StateGraph
+from omegaconf import DictConfig
 
 from fedotllm.agents.base import Agent
 from fedotllm.agents.researcher.stages import (
-    run_retrieve,
-    run_retrieve_grader,
-    run_generate,
-    run_render_answer,
-    run_rewrite_question,
+    is_continue,
     is_grounded,
     is_useful,
-    is_continue,
+    run_generate,
+    run_render_answer,
+    run_retrieve,
+    run_retrieve_grader,
+    run_rewrite_question,
 )
 from fedotllm.agents.researcher.state import ResearcherAgentState
-from fedotllm.llm.inference import AIInference, OpenaiEmbeddings
+from fedotllm.llm import LiteLLMModel, OpenaiEmbeddings
+from fedotllm.utils import unpack_omega_config
 
 
 class ResearcherAgent(Agent):
-    def __init__(self, inference: AIInference, embeddings: OpenaiEmbeddings):
-        self.inference = inference
+    def __init__(
+        self, config: DictConfig, embeddings: OpenaiEmbeddings, session_id: str
+    ):
+        self.config = config
+        self.llm = LiteLLMModel(
+            **unpack_omega_config(config.llm), session_id=session_id
+        )
         self.embeddings = embeddings
 
     def create_graph(self):
         workflow = StateGraph(ResearcherAgentState)
         workflow.add_node("retrieve", partial(run_retrieve, embeddings=self.embeddings))
-        workflow.add_node(
-            "retrieve_grader", partial(run_retrieve_grader, inference=self.inference)
-        )
-        workflow.add_node("generate", partial(run_generate, inference=self.inference))
+        workflow.add_node("retrieve_grader", partial(run_retrieve_grader, llm=self.llm))
+        workflow.add_node("generate", partial(run_generate, llm=self.llm))
         workflow.add_node("render_answer", run_render_answer)
         workflow.add_node(
-            "rewrite_question", partial(run_rewrite_question, inference=self.inference)
+            "rewrite_question", partial(run_rewrite_question, llm=self.llm)
         )
 
         workflow.add_edge(START, "retrieve")
@@ -49,10 +54,7 @@ class ResearcherAgent(Agent):
         workflow.add_conditional_edges(
             "generate",
             lambda state: not (
-                not (
-                    is_grounded(state, self.inference)
-                    and is_useful(state, self.inference)
-                )
+                not (is_grounded(state, self.llm) and is_useful(state, self.llm))
                 and is_continue(state)
             ),
             {

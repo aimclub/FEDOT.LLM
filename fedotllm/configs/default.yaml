@@ -1,0 +1,109 @@
+time_limit: 14400
+max_fix_attempts: 3
+automl:
+  fedot:
+    predictor_init_kwargs:
+      preset: best_quality
+      safe_mode: True
+    predictor_fit_kwargs: {}
+embeddings:
+  model: text-embedding-3-small
+  base_url: https://models.inference.ai.azure.com # Optional
+  api_key: ${oc.env:FEDOTLLM_EMBEDDINGS_API_KEY}
+llm:
+  #model: gemini/gemini-2.0-flash
+  #model: gemini/gemini-2.5-pro-preview-03-25
+  #model: "openrouter/google/gemini-2.5-pro-exp-03-25:free"
+  model: github/gpt-4o-mini
+  #base_url: https://models.inference.ai.azure.com # Optional
+  api_key: ${oc.env:FEDOTLLM_LLM_API_KEY}
+  register_model:
+    "openrouter/google/gemini-2.5-pro-exp-03-25:free":
+      max_tokens: 8192
+      max_input_tokens: 1000000
+      max_output_tokens: 8192
+      input_cost_per_token: 0.0000025
+      output_cost_per_token: 0.0000075
+      input_cost_per_image: 0.00265
+      litellm_provider: "openrouter"
+      mode: "chat"
+      supports_function_calling: true
+      supports_vision: true
+      supports_tool_choice: true
+    "openrouter/google/gemini-2.5-pro-exp-03-25":
+      max_tokens: 8192
+      max_input_tokens: 1000000
+      max_output_tokens: 8192
+      input_cost_per_token: 0.0000025
+      output_cost_per_token: 0.0000075
+      input_cost_per_image: 0.00265
+      litellm_provider: "openrouter"
+      mode: "chat"
+      supports_function_calling: true
+      supports_vision: true
+      supports_tool_choice: true
+    github/DeepSeek-V3:
+      max_tokens: 4000
+      max_input_tokens: 8000
+      max_output_tokens: 4000
+      input_cost_per_token: 0.00000114
+      output_cost_per_token: 0.0000054
+      litellm_provider: "github"
+      mode: "chat"
+      supports_tool_choice: True
+    github/Llama-3.3-70B-Instruct:
+      max_tokens: 4000
+      max_input_tokens: 8000
+      max_output_tokens: 4000
+      input_cost_per_token: 0.00000114
+      output_cost_per_token: 0.0000054
+      litellm_provider: "github"
+      mode: "chat"
+      supports_tool_choice: True
+    github/gpt-4o-mini:
+      max_tokens: 4000
+      max_input_tokens: 8000
+      max_output_tokens: 4000
+      input_cost_per_token: 0.00000114
+      output_cost_per_token: 0.0000054
+      litellm_provider: "github"
+      mode: "chat"
+      supports_tool_choice: True
+      supports_function_calling: True
+    github/gpt-4o-mini-2024-07-18:
+      max_tokens: 4000
+      max_input_tokens: 8000
+      max_output_tokens: 4000
+      input_cost_per_token: 0.00000114
+      output_cost_per_token: 0.0000054
+      litellm_provider: "github"
+      mode: "chat"
+      supports_tool_choice: True
+      supports_function_calling: True
+    github/gpt-4o:
+      max_tokens: 4000
+      max_input_tokens: 8000
+      max_output_tokens: 4000
+      input_cost_per_token: 0.00000114
+      output_cost_per_token: 0.0000054
+      litellm_provider: "github"
+      mode: "chat"
+      supports_tool_choice: True
+      supports_function_calling: True
+    github/gpt-4o-2024-11-20:
+      max_tokens: 4000
+      max_input_tokens: 8000
+      max_output_tokens: 4000
+      input_cost_per_token: 0.00000114
+      output_cost_per_token: 0.0000054
+      litellm_provider: "github"
+      mode: "chat"
+      supports_tool_choice: True
+      supports_function_calling: True
+    openai/openai/gpt-4o-2024-11-20:
+      max_tokens: 4000
+      max_input_tokens: 8000
+      max_output_tokens: 4000
+      input_cost_per_token: 0.00000114
+      output_cost_per_token: 0.0000054
+      litellm_provider: "openai"

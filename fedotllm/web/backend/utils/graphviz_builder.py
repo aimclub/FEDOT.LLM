@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import graphviz
-from typing_extensions import List, Optional, Union, Literal, Dict, cast
+from typing import Dict, List, Literal, Optional, Union, cast
 
-from fedotllm.web.common.graphviz_typing import GraphAttr, NodeAttr, EdgeAttr
+from fedotllm.web.common.graphviz_typing import EdgeAttr, GraphAttr, NodeAttr
 
 
 class Node:

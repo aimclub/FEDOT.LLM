@@ -2,6 +2,7 @@
 model = "openai/gpt-4o-2024-11-20"
 #model = "gpt-4o"
 #model = "llama-3.3-70b-versatile"
+#model = "github/Llama-3.3-70B-Instruct"
 embeddings = "text-embedding-3-small"
 automl = "Fedot"
 #automl = "FedotInd"

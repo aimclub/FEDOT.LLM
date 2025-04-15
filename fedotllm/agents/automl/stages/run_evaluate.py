@@ -2,6 +2,7 @@ from pathlib import Path
 
 from fedotllm.agents.automl.state import AutoMLAgentState
 from fedotllm.log import get_logger
+
 from ..eval.simple_eval import execute_code
 from ..eval.types import ExecutionResult, ProgramStatus
 
@@ -16,11 +17,14 @@ def _generate_code_file(code: str, output_dir: Path):
 
 
 def run_evaluate(state: AutoMLAgentState):
+    assert state["solutions"] is not None, "Solutions are not found"
     solution = state["solutions"][-1]
-    work_dir = state["work_dir"]
+    assert solution["code"] is not None, "Code is not found"
+    workspace = state["workspace"]
+    assert workspace is not None, "Workspace is not found"
     logger.info("Running evaluate")
     logger.debug(f"{solution['code']}")
-    code_path = _generate_code_file(solution["code"], work_dir)
+    code_path = _generate_code_file(solution["code"], workspace)
     result: ExecutionResult
     result = execute_code(path_to_run_code=code_path, timeout=None)
     if result:

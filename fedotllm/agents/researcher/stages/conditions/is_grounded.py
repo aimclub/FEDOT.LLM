@@ -1,10 +1,10 @@
+import fedotllm.prompting.prompts as prompts
 from fedotllm.agents.researcher.state import ResearcherAgentState
-from fedotllm.agents.researcher.structured import GradeHallucination, BoolAnswer
-from fedotllm.llm.inference import AIInference
-import fedotllm.prompts as prompts
+from fedotllm.agents.researcher.structured import BoolAnswer, GradeHallucination
+from fedotllm.llm import LiteLLMModel
 
 
-def is_grounded(state: ResearcherAgentState, inference: AIInference):
+def is_grounded(state: ResearcherAgentState, llm: LiteLLMModel):
     documents = "".join(
         [
             f'{metadatas["title"]}\n\nsource:"{metadatas["source"]}"\n\n{document}'
@@ -13,10 +13,8 @@ def is_grounded(state: ResearcherAgentState, inference: AIInference):
             )
         ]
     )
-    grade = GradeHallucination.model_validate(
-        inference.chat_completion(
-            prompts.researcher.is_grounded_prompt(documents, state["generation"]),
-            structured=GradeHallucination,
-        )
+    grade = llm.create(
+        messages=prompts.researcher.is_grounded_prompt(documents, state["generation"]),
+        response_model=GradeHallucination,
     )
     return grade.score == BoolAnswer.YES

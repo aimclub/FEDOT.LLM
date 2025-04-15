@@ -10,10 +10,11 @@ import signal
 import sys
 import tempfile
 import traceback
-from .types import ProgramStatus, ExecutionResult
 from multiprocessing.connection import Connection
 from pathlib import Path
 from typing import Optional
+
+from .types import ExecutionResult, ProgramStatus
 
 
 class TimeoutException(Exception):

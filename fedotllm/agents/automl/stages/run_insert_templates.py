@@ -1,10 +1,10 @@
 from autoflake import fix_code
+
+from fedotllm.agents.automl.state import AutoMLAgentState
 from fedotllm.agents.automl.templates.load_template import (
     load_template,
     render_template,
 )
-
-from fedotllm.agents.automl.state import AutoMLAgentState
 from fedotllm.log import get_logger
 
 logger = get_logger()

@@ -1,15 +1,16 @@
-from fedotllm.data.data import Dataset
+import fedotllm.prompting.prompts as prompts
 from fedotllm.agents.automl.state import AutoMLAgentState, Solution
-from fedotllm.agents.utils import extract_code
-from fedotllm.llm.inference import AIInference
+from fedotllm.llm import LiteLLMModel
 from fedotllm.log import get_logger
-import fedotllm.prompts as prompts
+from fedotllm.tabular.data import Dataset
+from fedotllm.utils.parsers import extract_code
 
 logger = get_logger()
 
 
-def run_codegen(state: AutoMLAgentState, inference: AIInference, dataset: Dataset):
+def run_codegen(state: AutoMLAgentState, llm: LiteLLMModel, dataset: Dataset):
     logger.info("Running codegen")
+    assert state["skeleton"] is not None, "Skeleton is not found"
     files = "\n".join(
         [
             f"File: {file.name}\n"
@@ -20,10 +21,10 @@ def run_codegen(state: AutoMLAgentState, inference: AIInference, dataset: Datase
     codegen_prompt = prompts.automl.code_generation_prompt(
         user_instruction=state["description"],
         skeleton=state["skeleton"],
-        dataset_path=dataset.path.relative_to(dataset.path.cwd()),
+        dataset_path=str(dataset.path.relative_to(dataset.path.cwd())),
         files=files,
     )
-    code = inference.chat_completion(codegen_prompt)
+    code = llm.query(codegen_prompt)
     extracted_code = extract_code(code)
     if extracted_code:
         state["codegen_sol"] = Solution(
