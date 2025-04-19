@@ -6,7 +6,7 @@ services:
       dockerfile: docker/run.Dockerfile
     restart: always
     container_name: fdlm-app
-    command: "poetry run python -m streamlit run libs/fedotllm/streamlit-app.py --server.port=8080 --server.address=0.0.0.0"
+    command: "poetry run python -m streamlit run fedotllm/web/streamlit-app.py --server.port=8080 --server.address=0.0.0.0"
     ports:
       - "8080:8080"
     env_file:
