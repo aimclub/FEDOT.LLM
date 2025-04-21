@@ -7,22 +7,63 @@
 [![Acknowledgement ITMO](https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/ITMO_badge.svg)](https://itmo.ru/)
 [![Acknowledgement NCCR](https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/NCCR_badge.svg)](https://actcognitive.org/)
 [![Mirror](https://img.shields.io/badge/mirror-GitLab-orange)](https://gitlab.actcognitive.org/itmo-nccr-code/fedot-llm)
-
+![Python](https://img.shields.io/badge/python-3.10-blue.svg)
 
 FEDOT.LLM is an LLM-based prototype for next-generation AutoML. It combines the power of Large Language Models with automated machine learning techniques to enhance data analysis and pipeline building processes.
 
 ## Installation
 
-1. FEDOT.LLM is only available via github now. To install, clone the repository:
-   ```
-   git clone https://github.com/ITMO-NSS-team/FEDOT.LLM.git
-   cd FEDOT.LLM
-   ```
+### Method 1: Using uv (Recommended)
 
-2. Install dependencies:
-   ```
-   pip install -e .
-   ```
+1. Install uv (A fast Python package installer and resolver):
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+2. Clone the repository:
+
+```bash
+git clone https://github.com/aimclub/FEDOT.LLM.git
+cd FEDOT.LLM
+```
+
+3. Create a new virtual environment and activate it:
+
+```bash
+uv venv --python 3.10
+source .venv/bin/activate  # On Unix/macOS
+# Or on Windows:
+# .venv\Scripts\activate
+```
+
+4. Install dependencies:
+
+```bash
+uv sync
+```
+
+### Method 2: Using conda
+
+1. Create a new conda environment:
+
+```bash
+conda create -n FedotLLM python=3.10
+conda activate FedotLLM
+```
+
+2. Clone the repository:
+
+```bash
+git clone https://github.com/aimclub/FEDOT.LLM.git
+cd FEDOT.LLM
+```
+
+3. Install dependencies:
+
+```bash
+pip install -e .
+```
 
 ## How to Use
 

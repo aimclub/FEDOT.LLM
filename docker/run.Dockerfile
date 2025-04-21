@@ -1,36 +1,19 @@
-FROM python:3.10-slim AS builder
-
-RUN apt-get update && apt-get install \
-    --no-install-suggests \
-    --no-install-recommends \
-    -y \
-    build-essential \
-    curl \
-    python3-venv \
-    python3-pip \
-    && rm -rf /var/lib/apt/lists/*
-
-ENV PYTHONFAULTHANDLER=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONHASHSEED=random \
-    PIP_NO_CACHE_DIR=off \
-    PIP_DISABLE_PIP_VERSION_CHECK=on \
-    PIP_DEFAULT_TIMEOUT=100 \
-    POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_PATH=/app/venv\
-    POETRY_CACHE_DIR='/var/cache/pypoetry' \
-    POETRY_HOME='/usr/local' \
-    POETRY_VERSION=1.8.5
+FROM python:3.10-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
 
-RUN curl -sSL https://install.python-poetry.org | POETRY_VERSION=${POETRY_VERSION} python3 -
+# Install dependencies
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project
 
-COPY poetry.lock pyproject.toml /app/
+ADD . /app
 
-COPY . .
-
-RUN poetry install --no-interaction --no-ansi
+# Sync the project
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen
 
 RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/docker_caches/.bash_history" \
     && echo "$SNIPPET" >> "/root/.bashrc"
