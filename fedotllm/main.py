@@ -35,8 +35,11 @@ class FedotAI:
 
     async def ask(self, message: str) -> AsyncIterator[Any]:
         if not self.work_dir:
+            work_dir_path = f"fedotllm-output-{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}"
+            if self.inference.tag:
+                work_dir_path = f"{work_dir_path}-{self.inference.tag}" 
             self.work_dir = Path(
-                f"fedotllm-output-{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}"
+                work_dir_path
             )
 
         dataset = Dataset.from_path(self.task_path)

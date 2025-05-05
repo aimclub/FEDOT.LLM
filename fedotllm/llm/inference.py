@@ -26,6 +26,7 @@ class AIInference:
             chat_base_url = base_url or get_settings().get("config.base_url", None)
             chat_model = str(model or get_settings().config.model or "")
             chat_api_key = SecretStr(api_key or get_settings()["OPENAI_TOKEN"])
+            self.tag = tag
 
             x_title = "FEDOT.LLM"
             if tag:
