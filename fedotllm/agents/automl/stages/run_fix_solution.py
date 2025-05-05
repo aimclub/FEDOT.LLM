@@ -5,6 +5,8 @@ from fedotllm.llm.inference import AIInference
 from fedotllm.log import get_logger
 import fedotllm.prompts as prompts
 
+import os
+
 logger = get_logger()
 
 
@@ -20,9 +22,10 @@ def run_fix_solution(state: AutoMLAgentState, inference: AIInference, dataset: D
             for file in dataset.splits
         ]
     )
+    dataset_path = os.path.relpath(dataset.path, dataset.path.cwd())
     fix_prompt = prompts.automl.fix_solution_prompt(
         user_instruction=state["description"],
-        dataset_path=dataset.path.relative_to(dataset.path.cwd()),
+        dataset_path=dataset_path,
         files=files,
         code_recent_solution=codegen["code"],
         stderr=exec_result.stderr,

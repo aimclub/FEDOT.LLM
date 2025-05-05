@@ -5,6 +5,8 @@ from fedotllm.llm.inference import AIInference
 from fedotllm.log import get_logger
 import fedotllm.prompts as prompts
 
+import os
+
 logger = get_logger()
 
 
@@ -17,10 +19,11 @@ def run_codegen(state: AutoMLAgentState, inference: AIInference, dataset: Datase
             for file in dataset.splits
         ]
     )
+    dataset_path = os.path.relpath(dataset.path, dataset.path.cwd())
     codegen_prompt = prompts.automl.code_generation_prompt(
         user_instruction=state["description"],
         skeleton=state["skeleton"],
-        dataset_path=dataset.path.relative_to(dataset.path.cwd()),
+        dataset_path=dataset_path,
         files=files,
     )
     code = inference.chat_completion(codegen_prompt)
