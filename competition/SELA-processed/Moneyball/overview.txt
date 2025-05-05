@@ -1,0 +1,21 @@
+Moneyball
+In the early 2000s, Billy Beane and Paul DePodesta worked for the Oakland Athletics. While there, they literally changed the game of baseball. They didn't do it using a bat or glove, and they certainly didn't do it by throwing money at the issue; in fact, money was the issue. They didn't have enough of it, but they were still expected to keep up with teams that had much deeper pockets. This is where Statistics came riding down the hillside on a white horse to save the day. This data set contains some of the information that was available to Beane and DePodesta in the early 2000s, and it can be used to better understand their methods.
+
+Attributes
+This data set contains a set of variables that Beane and DePodesta focused heavily on. They determined that stats like on-base percentage (OBP) and slugging percentage (SLG) were very important when it came to scoring runs, however they were largely undervalued by most scouts at the time. This translated to a gold mine for Beane and DePodesta. Since these players weren't being looked at by other teams, they could recruit these players on a small budget. The variables are as follows:
+
+Team
+League
+Year
+Runs Scored (RS)
+Runs Allowed (RA)
+Wins (W)
+On-Base Percentage (OBP)
+Slugging Percentage (SLG)
+Batting Average (BA)
+Playoffs (binary)
+RankSeason
+RankPlayoffs
+Games Played (G)
+Opponent On-Base Percentage (OOBP)
+Opponent Slugging Percentage (OSLG)

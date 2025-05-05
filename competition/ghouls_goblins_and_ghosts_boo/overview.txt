@@ -1,0 +1,73 @@
+Ghouls, Goblins, and Ghosts... Boo!
+
+Can you classify monsters haunting Kaggle?
+
+![](https://www.kaggle.com/competitions/5708/images/header)
+
+[Overview](https://www.kaggle.com/competitions/ghouls-goblins-and-ghosts-boo/overview)[Data](https://www.kaggle.com/competitions/ghouls-goblins-and-ghosts-boo/data)[Code](https://www.kaggle.com/competitions/ghouls-goblins-and-ghosts-boo/code)[Models](https://www.kaggle.com/competitions/ghouls-goblins-and-ghosts-boo/models)[Discussion](https://www.kaggle.com/competitions/ghouls-goblins-and-ghosts-boo/discussion)[Leaderboard](https://www.kaggle.com/competitions/ghouls-goblins-and-ghosts-boo/leaderboard)[Rules](https://www.kaggle.com/competitions/ghouls-goblins-and-ghosts-boo/rules)
+
+## Overview
+
+Start
+
+Nov 1, 2016
+
+###### Close
+
+Dec 2, 2016
+
+### Description
+
+link
+
+keyboard_arrow_up
+
+Get out your dowsing rods, electromagnetic sensors, … and gradient boosting machines. Kaggle is haunted and we need your help. After a month of making scientific observations and taking careful measurements, we’ve determined that 900 ghouls, ghosts, and goblins are infesting our halls and frightening our data scientists. When trying garlic, asking politely, and using reverse psychology didn't work, it became clear that machine learning is the only answer to banishing our unwanted guests.
+
+![](https://storage.googleapis.com/kaggle-media/competitions/kaggle/5708/media/halloween-660x.png)
+
+So now the hour has come to put the data we’ve collected in your hands. We’ve managed to identify 371 of the ghastly creatures, but need your help to vanquish the rest. And only an accurate classification algorithm can thwart them. Use bone length measurements, severity of rot, extent of soullessness, and other characteristics to distinguish (and extinguish) the intruders. Are you ghost-busters up for the challenge?
+
+### Evaluation
+
+link
+
+keyboard_arrow_up
+
+Submissions are evaluated on the categorization accuracy (the percent of creatures that you correctly classify).
+
+## Submission File
+
+Your submission file should predict the type for each creature in the test set. The file should contain a header and have the following format:
+
+id,type  
+0,Ghost  
+1,Goblin  
+2,Ghoul  
+etc.
+
+### Citation
+
+link
+
+keyboard_arrow_up
+
+Wendy Kan. (2016). Ghouls, Goblins, and Ghosts... Boo! . Kaggle. https://kaggle.com/competitions/ghouls-goblins-and-ghosts-boo
+
+## Dataset Description
+
+## File descriptions
+
+- **train.csv** - the training set
+- **test.csv** - the test set
+- **sample_submission.csv** - a sample submission file in the correct format
+
+## Data fields
+
+- **id** - id of the creature
+- **bone_length** - average length of bone in the creature, normalized between 0 and 1
+- **rotting_flesh** - percentage of rotting flesh in the creature
+- **hair_length** - average hair length, normalized between 0 and 1
+- **has_soul** - percentage of soul in the creature
+- **color** - dominant color of the creature: 'white','black','clear','blue','green','blood'
+- **type** - target variable: 'Ghost', 'Goblin', and 'Ghoul'

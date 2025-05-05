@@ -1,0 +1,5 @@
+Multiple Features Dataset: Factors
+One of a set of 6 datasets describing features of handwritten numerals (0 - 9) extracted from a collection of Dutch utility maps. Corresponding patterns in different datasets correspond to the same original character. 200 instances per class (for a total of 2,000 instances) have been digitized in binary images.
+
+Attribute Information
+The attributes represent 216 profile correlations. No more information is known.

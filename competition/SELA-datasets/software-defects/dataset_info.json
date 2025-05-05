@@ -1,0 +1,15 @@
+{
+    "name": "software-defects",
+    "description": "",
+    "target_col": "defects",
+    "metadata": {
+        "NumberOfClasses": 2,
+        "NumberOfFeatures": 22,
+        "NumberOfInstances": 91586,
+        "NumberOfInstancesWithMissingValues": 0,
+        "NumberOfMissingValues": 0,
+        "NumberOfNumericFeatures": 21,
+        "NumberOfSymbolicFeatures": 0
+    },
+    "df_head": " loc  v(g)  ev(g)  iv(g)     n      v    l     d     i        e    b       t  lOCode  lOComment  lOBlank  locCodeAndComment  uniq_Op  uniq_Opnd  total_Op  total_Opnd  branchCount  defects\n21.0   3.0    1.0    3.0  71.0 355.00 0.10 10.50 34.29  3850.00 0.12  213.89      17          0        2                  0     14.0       18.0      43.0        28.0          5.0    False\n29.0   4.0    1.0    2.0  67.0 315.78 0.08 12.79 27.54  4162.24 0.11  231.24      17          4        4                  2     15.0       17.0      42.0        29.0          7.0     True\n42.0  11.0    9.0    5.0 165.0 872.80 0.05 21.72 49.79 26903.76 0.29 1494.65      33          1        4                  0     17.0       29.0      96.0        69.0         21.0    False\n 8.0   1.0    1.0    1.0   7.0  19.65 0.33  3.00  6.55    58.95 0.01    3.28       3          0        2                  0      6.0        1.0       6.0         1.0          1.0    False\n 5.0   1.0    1.0    1.0  14.0  46.51 0.33  3.00 15.50   139.52 0.01    7.75       3          0        0                  0      5.0        5.0       8.0         6.0          1.0    False"
+}

@@ -1,0 +1,102 @@
+[
+    {
+        "Analysis": "Analyze the distribution of 'IsBadBuy' to understand the class imbalance.",
+        "Category": "EDA",
+        "task_id": 1
+    },
+    {
+        "Analysis": "Explore the correlation between 'VehicleAge' and 'IsBadBuy' to see if older vehicles are more likely to be kicks.",
+        "Category": "EDA",
+        "task_id": 1
+    },
+    {
+        "Analysis": "Investigate the relationship between 'MMRAcquisitionAuctionAveragePrice' and 'MMRAcquisitionAuctionCleanPrice' with 'IsBadBuy' to understand pricing impact.",
+        "Category": "EDA",
+        "task_id": 1
+    },
+    {
+        "Analysis": "Examine the frequency of 'Make' and 'Model' to identify which brands or models are more prone to being kicks.",
+        "Category": "EDA",
+        "task_id": 1
+    },
+    {
+        "Analysis": "Visualize the distribution of 'VehOdo' to see if high mileage vehicles are more likely to be problematic.",
+        "Category": "EDA",
+        "task_id": 1
+    },
+    {
+        "Analysis": "Handle missing values by either imputing them or removing rows/columns with high missing value rates.",
+        "Category": "Data Preprocessing",
+        "task_id": 2
+    },
+    {
+        "Analysis": "Normalize or standardize numerical features to ensure consistent scaling across variables.",
+        "Category": "Data Preprocessing",
+        "task_id": 2
+    },
+    {
+        "Analysis": "Encode categorical variables using techniques like one-hot encoding or label encoding.",
+        "Category": "Data Preprocessing",
+        "task_id": 2
+    },
+    {
+        "Analysis": "Remove outliers in features like 'VehBCost' and 'WarrantyCost' to prevent skewed model performance.",
+        "Category": "Data Preprocessing",
+        "task_id": 2
+    },
+    {
+        "Analysis": "Create a validation set to assess model performance on unseen data during training.",
+        "Category": "Data Preprocessing",
+        "task_id": 2
+    },
+    {
+        "Analysis": "Create a feature representing the difference between 'MMRAcquisitionAuctionCleanPrice' and 'MMRAcquisitionAuctionAveragePrice' to capture price anomalies.",
+        "Category": "Feature Engineering",
+        "task_id": 3
+    },
+    {
+        "Analysis": "Generate a feature indicating the age of the vehicle at the time of purchase ('PurchDate' - 'VehYear').",
+        "Category": "Feature Engineering",
+        "task_id": 3
+    },
+    {
+        "Analysis": "Aggregate features like 'Nationality' and 'TopThreeAmericanName' to create a feature indicating the vehicle's origin.",
+        "Category": "Feature Engineering",
+        "task_id": 3
+    },
+    {
+        "Analysis": "Derive a feature from 'AUCGUART' to quantify the auction's reputation based on historical data.",
+        "Category": "Feature Engineering",
+        "task_id": 3
+    },
+    {
+        "Analysis": "Use time-based features from 'PurchDate' to capture seasonal trends in vehicle purchases and kicks.",
+        "Category": "Feature Engineering",
+        "task_id": 3
+    },
+    {
+        "Analysis": "Experiment with different algorithms such as Random Forest, Gradient Boosting, and Neural Networks to compare performance.",
+        "Category": "Model Training",
+        "task_id": 4
+    },
+    {
+        "Analysis": "Implement cross-validation to ensure the model's robustness and generalization capability.",
+        "Category": "Model Training",
+        "task_id": 4
+    },
+    {
+        "Analysis": "Tune hyperparameters using grid search or random search to optimize model performance.",
+        "Category": "Model Training",
+        "task_id": 4
+    },
+    {
+        "Analysis": "Address class imbalance using techniques like SMOTE, undersampling, or oversampling to improve prediction of minority class.",
+        "Category": "Model Training",
+        "task_id": 4
+    },
+    {
+        "Analysis": "Monitor the model's performance on the validation set to prevent overfitting and adjust model complexity accordingly.",
+        "Category": "Model Training",
+        "task_id": 4
+    }
+]

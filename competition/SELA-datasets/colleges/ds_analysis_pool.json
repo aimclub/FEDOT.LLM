@@ -1,0 +1,102 @@
+[
+    {
+        "Analysis": "Analyze the distribution of admission rates to understand the competitiveness of colleges.",
+        "Category": "EDA",
+        "task_id": 1
+    },
+    {
+        "Analysis": "Examine the correlation between SAT/ACT scores and other features like tuition and completion rates.",
+        "Category": "EDA",
+        "task_id": 1
+    },
+    {
+        "Analysis": "Identify the most common predominant degrees and highest degrees offered by colleges.",
+        "Category": "EDA",
+        "task_id": 1
+    },
+    {
+        "Analysis": "Explore the relationship between geographical location (region) and college characteristics.",
+        "Category": "EDA",
+        "task_id": 1
+    },
+    {
+        "Analysis": "Investigate the impact of ownership (public, private nonprofit) on college metrics like tuition and faculty salary.",
+        "Category": "EDA",
+        "task_id": 1
+    },
+    {
+        "Analysis": "Handle missing values by imputing them based on the mean or median of the feature, or using more advanced techniques like KNN imputation.",
+        "Category": "Data Preprocessing",
+        "task_id": 2
+    },
+    {
+        "Analysis": "Normalize or standardize numerical features to ensure they have a similar scale.",
+        "Category": "Data Preprocessing",
+        "task_id": 2
+    },
+    {
+        "Analysis": "Encode categorical variables using techniques like one-hot encoding or label encoding.",
+        "Category": "Data Preprocessing",
+        "task_id": 2
+    },
+    {
+        "Analysis": "Remove outliers in features like tuition and faculty salary to prevent skewing the model.",
+        "Category": "Data Preprocessing",
+        "task_id": 2
+    },
+    {
+        "Analysis": "Create a validation set to assess model performance on unseen data.",
+        "Category": "Data Preprocessing",
+        "task_id": 2
+    },
+    {
+        "Analysis": "Create a feature representing the overall diversity of the student body by combining percent_white, percent_black, percent_hispanic, and percent_asian.",
+        "Category": "Feature Engineering",
+        "task_id": 3
+    },
+    {
+        "Analysis": "Generate a feature that captures the affordability ratio by dividing average_cost_academic_year by tuition_(instate).",
+        "Category": "Feature Engineering",
+        "task_id": 3
+    },
+    {
+        "Analysis": "Derive a feature indicating the faculty-to-student ratio to understand the teaching environment.",
+        "Category": "Feature Engineering",
+        "task_id": 3
+    },
+    {
+        "Analysis": "Develop a feature that combines SAT/ACT scores to represent the overall academic rigor required for admission.",
+        "Category": "Feature Engineering",
+        "task_id": 3
+    },
+    {
+        "Analysis": "Construct a feature that measures the earnings potential by comparing mean_earnings_6_years and mean_earnings_10_years.",
+        "Category": "Feature Engineering",
+        "task_id": 3
+    },
+    {
+        "Analysis": "Experiment with different models like Random Forest, Gradient Boosting, and Neural Networks to see which performs best.",
+        "Category": "Model Training",
+        "task_id": 4
+    },
+    {
+        "Analysis": "Use cross-validation to ensure the model's robustness and generalization capability.",
+        "Category": "Model Training",
+        "task_id": 4
+    },
+    {
+        "Analysis": "Implement early stopping during training to prevent overfitting.",
+        "Category": "Model Training",
+        "task_id": 4
+    },
+    {
+        "Analysis": "Tune hyperparameters using grid search or random search to optimize model performance.",
+        "Category": "Model Training",
+        "task_id": 4
+    },
+    {
+        "Analysis": "Incorporate feature importance analysis to understand which features contribute most to the model's predictions and potentially refine the feature set.",
+        "Category": "Model Training",
+        "task_id": 4
+    }
+]

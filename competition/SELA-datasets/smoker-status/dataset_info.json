@@ -1,0 +1,15 @@
+{
+    "name": "smoker-status",
+    "description": "",
+    "target_col": "smoking",
+    "metadata": {
+        "NumberOfClasses": 2,
+        "NumberOfFeatures": 23,
+        "NumberOfInstances": 143330,
+        "NumberOfInstancesWithMissingValues": 0,
+        "NumberOfMissingValues": 0,
+        "NumberOfNumericFeatures": 23,
+        "NumberOfSymbolicFeatures": 0
+    },
+    "df_head": " age  height(cm)  weight(kg)  waist(cm)  eyesight(left)  eyesight(right)  hearing(left)  hearing(right)  systolic  relaxation  fasting blood sugar  Cholesterol  triglyceride  HDL  LDL  hemoglobin  Urine protein  serum creatinine  AST  ALT  Gtp  dental caries  smoking\n  35         175          80       84.0             0.8              1.0              1               1       122          70                  100          188           238   44   96        16.0              1               0.7   31   22   32              0        1\n  35         185          80       88.0             1.2              1.2              1               1       100          64                   92          154           122   49   80        15.0              1               0.9   22   22   17              0        1\n  20         160          60       76.0             1.2              1.2              1               1       130          85                   90          194           134   34  134        16.9              1               0.8   24   32   41              1        1\n  60         155          60       87.8             0.7              0.2              1               1       119          62                   91          261           103   73  167        13.2              1               0.9   21   16   14              0        0\n  60         165          70       85.0             0.8              0.6              1               1       142          93                  108          179           109   49  108        15.5              1               0.7   27   40   61              0        0"
+}
