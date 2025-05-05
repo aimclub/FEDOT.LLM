@@ -7,6 +7,7 @@ from langchain_core.runnables.schema import StreamEvent
 from typing_extensions import Any, AsyncIterator
 
 from fedotllm.agents.supervisor.supervisor import SupervisorAgent
+from fedotllm.agents.automl.automl_chat import AutoMLAgentChat
 from fedotllm.data import Dataset
 from fedotllm.llm.inference import AIInference, OpenaiEmbeddings
 
@@ -19,6 +20,7 @@ class FedotAI:
         embeddings: Optional[OpenaiEmbeddings] = OpenaiEmbeddings(),
         handlers: Optional[List[Callable[[StreamEvent], None]]] = [],
         work_dir: Optional[Path] = None,
+        automl_only: Optional[bool] = False,
     ):
         self.task_path = task_path.resolve()
         assert task_path.is_dir(), (
@@ -29,6 +31,7 @@ class FedotAI:
         self.embeddings = embeddings
         self.handlers = handlers
         self.work_dir = work_dir
+        self.automl_only = automl_only
 
     async def ask(self, message: str) -> AsyncIterator[Any]:
         if not self.work_dir:
@@ -38,9 +41,14 @@ class FedotAI:
 
         dataset = Dataset.from_path(self.task_path)
 
-        entry_point = SupervisorAgent(
-            inference=self.inference, embeddings=self.embeddings, dataset=dataset
-        ).create_graph()
+        if self.automl_only:
+            entry_point = AutoMLAgentChat(
+                inference=self.inference, dataset=dataset
+            ).create_graph()
+        else:
+            entry_point = SupervisorAgent(
+                inference=self.inference, embeddings=self.embeddings, dataset=dataset
+            ).create_graph()
 
         async for event in entry_point.astream_events(
             {

@@ -19,14 +19,20 @@ class AIInference:
         model: Optional[str] = None,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
+        tag: Optional[str] = None,
     ):
         try:
             headers = None
             chat_base_url = base_url or get_settings().get("config.base_url", None)
             chat_model = str(model or get_settings().config.model or "")
             chat_api_key = SecretStr(api_key or get_settings()["OPENAI_TOKEN"])
+
+            x_title = "FEDOT.LLM"
+            if tag:
+                x_title = x_title + " " + tag
+                
             if "vsegpt" in chat_base_url:
-                headers = {"X-Title": "FEDOT.LLM"}
+                headers = {"X-Title": x_title}
             self.model: ChatOpenAI = ChatOpenAI(
                 model=chat_model,
                 base_url=chat_base_url,
