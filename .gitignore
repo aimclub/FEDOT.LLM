@@ -194,7 +194,7 @@ chroma/
 # AutoMLAgent
 _experiments/
 user_data/
-fedot-output*
+*fedotllm-output*
 db/
 
 # Docker
