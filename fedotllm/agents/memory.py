@@ -1,6 +1,6 @@
 from chromadb.api.client import Client
 from chromadb.api.types import QueryResult
-from fedotllm.llm.inference import OpenaiEmbeddings
+from fedotllm.llm import OpenaiEmbeddings
 from tqdm import tqdm
 from typing import NamedTuple, List
 

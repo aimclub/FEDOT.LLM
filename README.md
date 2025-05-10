@@ -77,15 +77,14 @@ To use the API, follow these steps:
    from fedotllm.main import FedotAI
    ```
 
-2. Initialize the FedotAI object. The required parameters are the following: 
+2. Initialize the FedotAI object. The following parameters are required:
 
-* The `dataset` is a native `fedot_llm.data.data.Dataset` object that contains the dataset files. It can be initialized using specific loaders, such as the `PathDatasetLoader`.
-
-* The `model` is the chat model you want to use. You can use any chat model class from the `langchain` library. However, for the best experience, we recommend using models like gpt4o-mini or higher.
-
-* `handlers` is a list of output handlers to use. You can create your own output handler or use the pre-existing ones. For instance, `JupyterOutput` contains handlers for Jupyter notebooks. You can subscribe to all of them using `JupyterOutput().subscribe`.
+* The `task_path` parameter specifies the directory path where the competition files are located.
+* The `inference` parameter chat model to be utilized. A comprehensive list of supported models and providers can be accessed via the litellm official documentation at [https://docs.litellm.ai/docs/providers](https://docs.litellm.ai/docs/providers).
+* The `handlers` parameter is a list of output handlers to be utilized. It is possible to develop custom output handlers or utilize existing ones. For example, `JupyterOutput` includes handlers specifically designed for Jupyter notebooks. To subscribe to all available handlers, use the `subscribe` attribute.
 
 To acquire predictions, use the `ask` method with a string description of the dataset and associated task in an arbitrary form.
+
 ```python
 # Import necessary modules and classes
 import os
@@ -97,12 +96,11 @@ from fedotllm.main import FedotAI
 from fedotllm.output.jupyter import JupyterOutput
 
 # Initialize the LLM model
-inference = AIInference(model="gpt-4o-mini", api_key=os.getenv('OPENAI_TOKEN'), base_url='https://models.inference.ai.azure.com')
+inference = AIInference(model="openai/gpt-4o", api_key=os.getenv('FEDOTLLM_LLM_API_KEY'))
 
 # Set the path to the dataset
 # Load the dataset using PathDatasetLoader
 dataset_path = Path('datasets') / 'Health_Insurance'
-dataset = PathDatasetLoader.load(dataset_path)
 
 # Define the task description for the model
 msg="""Create a model that perform this task:
@@ -111,9 +109,12 @@ They are interested in whether the policyholders (customers) from last year
 will also be interested in the car insurance provided by the company."""
 
 # Initialize FedotAI with the dataset, language model, and output handlers
-fedot_ai = FedotAI(dataset=dataset,
-                   inference=inference,
-                   handlers=JupyterOutput().subscribe)
+fedot_ai = FedotAI(
+        task_path=dataset_path,
+        inference=inference,
+        workspace=output_path,
+        handlers=JupyterOutput().subscribe
+    )
 
 # Asynchronously process the task using FedotAI
 # The loop continues until the task is completed
@@ -150,5 +151,3 @@ This research is financially supported by the Foundation for
 National Technology Initiative's Projects Support as a part of the roadmap
 implementation for the development of the high-tech field of
 Artificial Intelligence for the period up to 2030 (agreement 70-2021-00187)
-
-

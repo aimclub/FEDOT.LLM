@@ -1,9 +1,8 @@
 from fedotllm.agents.automl.automl import AutoMLAgent
 from fedotllm.agents.automl.state import AutoMLAgentState
-from fedotllm.agents.base import Agent
+from fedotllm.agents.base import Agent, FedotLLMAgentState
 from fedotllm.agents.researcher.researcher import ResearcherAgent
 from fedotllm.agents.researcher.state import ResearcherAgentState
-from fedotllm.agents.state import FedotLLMAgentState
 
 
 def run_entry_state_connector(state: FedotLLMAgentState, agent: Agent):

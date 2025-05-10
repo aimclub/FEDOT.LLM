@@ -18,7 +18,7 @@ async def handle_predict(prompt):
             llm_name=st.session_state.llm["name"],
             llm_base_url=st.session_state.llm["base_url"],
             llm_api_key=st.session_state.llm["api_key"],
-            work_dir=user_data_dir,
+            workspace=user_data_dir,
             lang=st.session_state.lang,
         )
         current_idx = len(st.session_state.messages)

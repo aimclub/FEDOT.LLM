@@ -3,18 +3,18 @@ from functools import partial
 from langgraph.graph import END, START, StateGraph
 
 from fedotllm.agents.base import Agent
-from fedotllm.agents.researcher.stages import (
-    run_retrieve,
-    run_retrieve_grader,
-    run_generate,
-    run_render_answer,
-    run_rewrite_question,
+from fedotllm.agents.researcher.nodes import (
+    generate_response,
+    grade_retrieve,
+    is_continue,
     is_grounded,
     is_useful,
-    is_continue,
+    render_answer,
+    retrieve_documents,
+    rewrite_question,
 )
 from fedotllm.agents.researcher.state import ResearcherAgentState
-from fedotllm.llm.inference import AIInference, OpenaiEmbeddings
+from fedotllm.llm import AIInference, OpenaiEmbeddings
 
 
 class ResearcherAgent(Agent):
@@ -24,14 +24,18 @@ class ResearcherAgent(Agent):
 
     def create_graph(self):
         workflow = StateGraph(ResearcherAgentState)
-        workflow.add_node("retrieve", partial(run_retrieve, embeddings=self.embeddings))
         workflow.add_node(
-            "retrieve_grader", partial(run_retrieve_grader, inference=self.inference)
+            "retrieve", partial(retrieve_documents, embeddings=self.embeddings)
         )
-        workflow.add_node("generate", partial(run_generate, inference=self.inference))
-        workflow.add_node("render_answer", run_render_answer)
         workflow.add_node(
-            "rewrite_question", partial(run_rewrite_question, inference=self.inference)
+            "retrieve_grader", partial(grade_retrieve, inference=self.inference)
+        )
+        workflow.add_node(
+            "generate", partial(generate_response, inference=self.inference)
+        )
+        workflow.add_node("render_answer", render_answer)
+        workflow.add_node(
+            "rewrite_question", partial(rewrite_question, inference=self.inference)
         )
 
         workflow.add_edge(START, "retrieve")

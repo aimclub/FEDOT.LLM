@@ -20,7 +20,7 @@ async def ask(
     llm_name: str,
     llm_base_url: Optional[str] = None,
     llm_api_key: Optional[str] = None,
-    work_dir: Optional[Path] = None,
+    workspace: Optional[Path] = None,
     lang: Literal["en", "ru"] = "en",
 ) -> AsyncIterator[BaseResponse]:
     response = Response()
@@ -33,7 +33,7 @@ async def ask(
         ),
         embeddings=OpenaiEmbeddings(api_key=llm_api_key, base_url=llm_base_url),
         handlers=[message_handler, graph_handler],
-        work_dir=work_dir,
+        workspace=workspace,
     )
 
     async for _ in fedot_ai.ask(

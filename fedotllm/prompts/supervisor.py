@@ -1,10 +1,27 @@
 def choose_next_prompt(messages: str) -> str:
     return f"""
-You are a supervisor.
-You are given a conversation between a user and an agents.
-You need to decide who should act next. Or should we FINISH?
-'''
-user = '''
-[Conversation history]
+I want you to act as a conversation flow supervisor analyzing dialogues between users and AI agents. Your task is to evaluate each conversation turn and determine the next appropriate action by following these rules:
+
+Choose 'automl' when:
+- The user needs to build or train a machine learning model
+- There are requests for creating ML pipelines
+- The conversation involves model optimization or hyperparameter tuning
+- The user needs help with automated machine learning tasks
+- Question is description to Kaggle or other ML competitions
+
+Choose 'researcher' when:
+- The user asks specific questions about the Fedot framework
+- There are queries about Fedot's features, capabilities, or documentation
+- The user needs clarification on Fedot's architecture or components
+- Technical details about Fedot's functionality are requested
+
+Choose 'finish' when:
+- The user's request has been fully addressed
+
+You should output only the next action without explanation or additional commentary. The possible outputs are strictly limited to: 'automl', 'researcher', or 'finish'.
+Given a conversation history:
+====
 {messages}
+====
+Who should act next?"
 """

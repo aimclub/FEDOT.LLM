@@ -1,4 +1,4 @@
-from fedotllm.llm.inference import OpenaiEmbeddings
+from fedotllm.llm import OpenaiEmbeddings
 import chromadb
 from fedotllm.agents.memory import Memory, ChunkedDocument, text_splitter
 from fedotllm.agents.scraper import recursive_url_loader

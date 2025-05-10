@@ -4,7 +4,7 @@ from fedotllm.agents.automl.state import AutoMLAgentState
 
 
 def run_send_message(state: AutoMLAgentState):
-    if state["solutions"][-1]["code"] is None:
+    if state["code"] is None:
         state["messages"] = [
             HumanMessage(
                 content="Solution not found. Please try again.", name="AutoMLAgent"

@@ -1,4 +1,13 @@
+import json
+import re
+from typing import Any, Dict
+
+import json_repair
 from jinja2 import Environment, StrictUndefined
+
+from fedotllm.log import get_logger
+
+logger = get_logger()
 
 
 def jinja_render(template: str, *args, **kwargs):
@@ -18,5 +27,31 @@ def render(prompt, *args, **kwargs):
     return user, system, temperature, frequency_penalty
 
 
-def extract_code(response):
-    return response.content.split("```python")[1].split("```")[0].strip()
+def extract_code(response: str):
+    return response.split("```python")[1].split("```")[0].strip()
+
+
+def parse_json(raw_reply: str) -> Dict[str, Any] | None:
+    def try_json_loads(data: str) -> Dict[str, Any]:
+        try:
+            return json_repair.repair_json(
+                data, ensure_ascii=False, return_objects=True
+            )
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON decoding error: {e}")
+            return None
+
+    raw_reply = raw_reply.strip()
+    # Case 1: Check if the JSON is enclosed in triple backticks
+    json_match = re.search(r"\{.*\}|```(?:json)?\s*(.*?)```", raw_reply, re.DOTALL)
+    if json_match:
+        if json_match.group(1):
+            reply_str = json_match.group(1).strip()
+        else:
+            reply_str = json_match.group(0).strip()
+        reply = try_json_loads(reply_str)
+        if reply is not None:
+            return reply
+
+    # Case 2: Assume the entire string is a JSON object
+    return try_json_loads(raw_reply)

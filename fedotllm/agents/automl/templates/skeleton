@@ -8,7 +8,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.data.data import InputData
 from fedot.core.repository.tasks import Task
 from fedot.core.repository.tasks import TaskTypesEnum # classification, regression, ts_forecasting.
-from automl import train_model, evaluate_model
+from automl import train_model, evaluate_model, automl_predict
 ### UNMODIFIABLE IMPORT END ###
 # USER CODE BEGIN IMPORTS #
 from sklearn.model_selection import train_test_split
@@ -20,8 +20,8 @@ random.seed(SEED)
 np.random.seed(SEED)
 
 ### UNMODIFIABLE CODE BEGIN ###
-DATASET_PATH = Path({%dataset_path%}) # path for saving and loading dataset(s)
-PIPELINE_PATH = Path({%work_dir_path%}) / "pipeline" # path for saving and loading pipelines
+DATASET_PATH = Path("{%dataset_path%}") # path for saving and loading dataset(s)
+PIPELINE_PATH = Path("{%work_dir_path%}") / "pipeline" # path for saving and loading pipelines
 ### UNMODIFIABLE CODE END ###
 
 # USER CODE BEGIN LOAD_DATA #
@@ -62,7 +62,6 @@ def create_model():
     model_performance = evaluate_model(model, eval_test_features: np.ndarray, eval_test_target: np.ndarray)
 
     # Evaluate predictions for the test datase using AutoML Framework
-    # **YOU MUST USE automl_predict()**
     predictions:np.ndarray = automl_predict(model, test_features: np.ndarray) # returns 2D array
     output = pd.DataFrame(predictions, columns=[...])
     output.to_csv(Path({%work_dir_path%}) / 'submission.csv', index=False)

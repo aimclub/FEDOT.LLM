@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
+from pydantic import BaseModel
 
 
 class ProgramStatus(Enum):
@@ -18,3 +19,9 @@ class ExecutionResult:
     sandbox_result: str = ""
     trace: Optional[str] = None
     global_vars: Optional[dict] = None
+
+
+class CodeObservation(BaseModel):
+    error: bool
+    stdout: str
+    stderr: str

@@ -1,9 +1,8 @@
 from langchain_core.messages import HumanMessage
 
 from fedotllm.agents.automl.automl import AutoMLAgent, AutoMLAgentState
-from fedotllm.agents.base import Agent
+from fedotllm.agents.base import Agent, FedotLLMAgentState
 from fedotllm.agents.researcher import ResearcherAgent, ResearcherAgentState
-from fedotllm.agents.state import FedotLLMAgentState
 
 
 def run_exit_state_connector(state: FedotLLMAgentState, agent: Agent):
