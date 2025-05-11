@@ -29,7 +29,7 @@ def initial_session_state():
     if not st.session_state.llm:
         st.session_state.llm = {
             "name": get_settings().get("config.model") or "",
-            "api_key": get_settings().get("OPENAI_TOKEN") or "",
+            "api_key": get_settings().get("FEDOTLLM_LLM_API_KEY") or "",
             "base_url": get_settings().get("config.base_url") or "",
         }
 
