@@ -20,8 +20,8 @@ random.seed(SEED)
 np.random.seed(SEED)
 
 ### UNMODIFIABLE CODE BEGIN ###
-DATASET_PATH = Path({%dataset_path%}) # path for saving and loading dataset(s)
-PIPELINE_PATH = Path({%work_dir_path%}) / "pipeline" # path for saving and loading pipelines
+DATASET_PATH = Path("{%dataset_path%}") # path for saving and loading dataset(s)
+PIPELINE_PATH = Path("{%work_dir_path%}") / "pipeline" # path for saving and loading pipelines
 ### UNMODIFIABLE CODE END ###
 
 # USER CODE BEGIN LOAD_DATA #
@@ -31,11 +31,13 @@ def load_data():
 # USER CODE END LOAD_DATA #
 
 def transform_data(data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
-    # TODO: this function is for transforming the data into a format that can be used for training the model
-    # TODO: Only dropping columns is allowed, all other dataset transformations are STRICTLY FORBIDDEN
-    # TODO: Impute Missing Values in Test Data
-    # TODO: Ensure No Rows are Dropped in Test Data
+    # TODO: This function is for transforming the data into a format that can be used for training the model.
+    # TODO: You are using this function to process both Train and Test data. Test data may initially not contain target columns.
+    # TODO: Before operating on columns, make sure to check whether columns you operate on are present in data. Do not raise exceptions.
+    # TODO: Only dropping columns is allowed, all other dataset transformations are STRICTLY FORBIDDEN. 
+    # TODO: Impute Missing Value in Test Data. If numeric columns are present, use 'mean' strategy on them. If other columns are present, use 'most_frequent'.
     return features, target
+
 
 # The main function to orchestrate the data loading, feature engineering, model training and model evaluation
 def create_model():
@@ -63,6 +65,8 @@ def create_model():
 
     # Evaluate predictions for the test datase using AutoML Framework
     # **YOU MUST USE automl_predict()**
+    # Prediction result will not have an ID column, only a column for target (or columns for multiple targets)
+    # If output sample submission has an ID column, add it to the prediction
     predictions:np.ndarray = automl_predict(model, test_features: np.ndarray) # returns 2D array
     output = pd.DataFrame(predictions, columns=[...])
     output.to_csv(Path({%work_dir_path%}) / 'submission.csv', index=False)
@@ -73,11 +77,11 @@ def create_model():
 ### UNMODIFIABLE CODE BEGIN ###
 def main():
     """ 
-    Main function to execute the text classification pipeline.
+    Main function to execute the ML pipeline.
     """
     model_performance = create_model()
     print("Model Performance on Test Set:", model_performance)
         
 if __name__ == "__main__":
     main()
-### UNMODIFIABLE CODE END ###
+### UNMODIFIABLE CODE END ###z
