@@ -1,0 +1,8 @@
+bank_churn
+classification_with_an_academic_success_dataset
+ghouls_goblins_and_ghosts_boo
+house_prices
+obesity_risks
+plate_defect
+spaceship_titanic
+titanic

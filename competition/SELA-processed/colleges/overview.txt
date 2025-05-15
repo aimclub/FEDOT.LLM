@@ -1,1 +1,0 @@
-Modified version for the automl benchmark. Regroups information for about 7800 different US colleges. Including geographical information, stats about the population attending and post graduation career earnings.
