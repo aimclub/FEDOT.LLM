@@ -3,7 +3,7 @@ from fedotllm.agents.automl.state import AutoMLAgentState
 from fedotllm.agents.automl.structured import FedotConfig, FedotIndustrialConfig
 from fedotllm.llm.inference import AIInference
 from fedotllm.log import get_logger
-from fedotllm.settings.config_loader import get_settings
+from fedotllm.settings.config_loader import get_settings 
 import fedotllm.prompts as prompts
 
 logger = get_logger()
@@ -19,7 +19,7 @@ def run_generate_automl_config(
                 "<dataset-split>\n"
                 + f"{split.name}\n"
                 + "<features>\n"
-                + "\n".join([f"- {col}" for col in split.data.columns])
+                + split.get_description() + "\n"
                 + "</features>\n"
                 + "</dataset-split>"
             )

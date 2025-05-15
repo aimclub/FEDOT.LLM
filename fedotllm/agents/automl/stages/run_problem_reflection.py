@@ -18,7 +18,7 @@ def run_problem_reflection(
                 "<dataset-split>\n"
                 + f"{split.name}\n"
                 + "<features>\n"
-                + "\n".join([f"- {col}" for col in split.data.columns])
+                + split.get_description() + "\n"
                 + "</features>\n"
                 + "</dataset-split>"
             )

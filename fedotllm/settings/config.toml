@@ -1,14 +1,18 @@
 [config]
-model = "openai/gpt-4o-2024-11-20"
+model = "gpt-4o-mini"
+#model = "openai/gpt-4o-2024-11-20"
 #model = "gpt-4o"
 #model = "llama-3.3-70b-versatile"
 embeddings = "text-embedding-3-small"
+
 automl = "Fedot"
 #automl = "FedotInd"
+automl_display_data_head = true
+fedot_timeout = 1
+fix_tries = 3
+
 #base_url = "https://api.groq.com/openai/v1"
 #base_url = "https://models.inference.ai.azure.com"
 base_url = "https://api.vsegpt.ru/v1"
 #base_url="http://0.0.0.0:4000"
 #base_url="http://127.0.0.1:11434"
-fix_tries = 3
-fedot_timeout = 180

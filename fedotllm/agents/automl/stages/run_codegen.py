@@ -3,6 +3,7 @@ from fedotllm.agents.automl.state import AutoMLAgentState, Solution
 from fedotllm.agents.utils import extract_code
 from fedotllm.llm.inference import AIInference
 from fedotllm.log import get_logger
+from fedotllm.settings.config_loader import get_settings
 import fedotllm.prompts as prompts
 
 import os
@@ -15,7 +16,7 @@ def run_codegen(state: AutoMLAgentState, inference: AIInference, dataset: Datase
     files = "\n".join(
         [
             f"File: {file.name}\n"
-            + "\n".join([f"- {col}" for col in file.data.columns])
+            + file.get_description()
             for file in dataset.splits
         ]
     )
