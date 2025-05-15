@@ -12,7 +12,6 @@ from automl import train_model, evaluate_model
 ### UNMODIFIABLE IMPORT END ###
 # USER CODE BEGIN IMPORTS #
 from sklearn.model_selection import train_test_split
-from sklearn.impute import SimpleImputer
 import pandas as pd
 # USER CODE END IMPORTS #
 
@@ -31,39 +30,14 @@ def load_data():
     return train, X_test
 # USER CODE END LOAD_DATA #
 
-def transform_data(dataset: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Function to transform data into a format that can be used for training the model.
-    Used on both Train and Test data. Test data may initially not contain target columns.
-    """
-
-    # TODO: Specify target columns 
-    target_columns = []
-
-    # Separating features and target if present
-    data = dataset.copy(deep=True)
-    has_target = any(col in data.columns for col in target_columns)
-    if has_target:
-        features = data.drop(columns=target_columns)
-        target = data[target_columns].values
-    else:
-        features = data
-        target = None
-
-    # Imputing missing values - 'mean' strategy for numeric columns, 'most_frequent' otherwise
-    numeric_cols = features.select_dtypes(include=[np.number]).columns
-    categorical_cols = features.select_dtypes(exclude=[np.number]).columns
-    if len(numeric_cols) > 0:
-        numeric_imputer = SimpleImputer(strategy='mean')
-        features[numeric_cols] = numeric_imputer.fit_transform(features[numeric_cols])
-    if len(categorical_cols) > 0:
-        categorical_imputer = SimpleImputer(strategy='most_frequent')
-        features[categorical_cols] = categorical_imputer.fit_transform(features[categorical_cols])
-
-    # TODO: Drop all columns from features that are not important for prdictions. All other dataset transformations are STRICTLY FORBIDDEN. 
+def transform_data(data: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
+    # TODO: This function is for transforming the data into a format that can be used for training the model.
+    # TODO: You are using this function to process both Train and Test data. Test data may initially not contain target columns.
     # TODO: Before any operations, make sure to check whether columns you operate on are present in data. Do not raise exceptions.
-
-    return features.values, target
+    # TODO: Only dropping columns is allowed, all other dataset transformations are STRICTLY FORBIDDEN. 
+    # TODO: Impute Missing Value in Test Data. 
+    # TODO: If numeric columns are present, use imputer 'mean' strategy ONLY on them, 'most_frequent' on other coumns if there are any.
+    return features, target
 
 
 # The main function to orchestrate the data loading, feature engineering, model training and model evaluation
@@ -90,17 +64,14 @@ def create_model():
     # TODO: Step 4. evaluate the trained model using the defined "evaluate_model" function model_performance, model_complexity = evaluate_model()
     model_performance = evaluate_model(model, eval_test_features: np.ndarray, eval_test_target: np.ndarray)
 
-    # TODO: Step 5.  Evaluate predictions for the test datase using AutoML Framework
+    # Evaluate predictions for the test datase using AutoML Framework
     # **YOU MUST USE automl_predict()**
     # Prediction result will not have an ID column, only a column for target (or columns for multiple targets)
-    # If output submission should have an ID column, add it to the prediction. 
-    # If ID column has numeric type, convert it to integer 
+    # If output sample submission has an ID column, add it to the prediction
     predictions:np.ndarray = automl_predict(model, test_features: np.ndarray) # returns 2D array
     output = pd.DataFrame(predictions, columns=[...])
-    
-    # USER CODE END CREATE MODEL # 
-
     output.to_csv(Path({%work_dir_path%}) / 'submission.csv', index=False)
+    # USER CODE END CREATE MODEL # 
     return model_performance
 
 
@@ -114,4 +85,4 @@ def main():
         
 if __name__ == "__main__":
     main()
-### UNMODIFIABLE CODE END ###
+### UNMODIFIABLE CODE END ###z

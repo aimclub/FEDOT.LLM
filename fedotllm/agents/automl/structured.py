@@ -3,7 +3,7 @@ from typing import Literal, Optional, Union, List
 
 from fedot.core.repository.tasks import TaskTypesEnum
 from pydantic import BaseModel, Field, ConfigDict
-
+from fedotllm.settings.config_loader import get_settings 
 
 class ProblemType(str, Enum):
     CLASSIFICATION = "classification"
@@ -67,10 +67,14 @@ class FedotConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     problem: TaskTypesEnum = Field(
-        ..., description="Name of the modelling problem to solve: classification - predicting a distinct class, regression - predicting numeric value, ts_forecasting - forecasting a time series. Prioritize clear objective description over target data type if conflicting."
+        ..., description=(
+            "Name of the modelling problem to solve: classification - predicting a distinct class, regression - predicting a real value,"
+            "ts_forecasting - forecasting a time series. If a sample submission is present, prioritize data types in it." 
+            "If there are multiple target columns, define the single task type needed for all of them."
+        )
     )
     timeout: float = Field(
-        ..., description="Time for model design (in minutes): Default: 1.0"
+        ..., description=f"Time for model design (in minutes): Fixed: {get_settings().config.fedot_timeout}"
     )
     cv_folds: Optional[int] = Field(
         ..., description="Number of folds for cross-validation: Default: None"
@@ -99,7 +103,7 @@ class FedotConfig(BaseModel):
     )
     predict_method: Literal["predict", "predict_proba", "forecast"] = Field(
         ...,
-        description="Method for prediction: predict - for classification and regression, especially if target is categorical, predict_proba - for classification, forecast - for time series forecasting",
+        description="Method for prediction: predict - for classification and regression, especially if target is categorical, forecast - for time series forecasting",# predict_proba - for classification
     )
 
 
@@ -110,7 +114,7 @@ class FedotIndustrialConfig(BaseModel):
         ..., description="Name of the modelling problem to solve"
     )
     timeout: float = Field(
-        ..., description="Time for model design (in minutes): Default: 1.0"
+        ..., description=f"Time for model design (in minutes): Fixed: {get_settings().config.fedot_timeout}"
     )
     cv_folds: Optional[int] = Field(
         ..., description="Number of folds for cross-validation: Default: None"

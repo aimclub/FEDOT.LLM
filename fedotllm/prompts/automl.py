@@ -98,7 +98,6 @@ You are given a machine learning problem.
 </dataset-description>
 
 Make sure to fully address the problem goals, rules and constraints.
-Define modelling task type clear on objective description and sample submission if description contains it.
 Your goal is to define the optimal arguments for given function.
 """
 
