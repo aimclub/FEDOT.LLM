@@ -3,6 +3,7 @@ from functools import partial
 
 from langchain_core.runnables import Runnable
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command
 from pydantic import BaseModel, Field
 
 from fedotllm.agents.base import Agent, FedotLLMAgentState
@@ -34,18 +35,18 @@ class SupervisorAgent(Agent):
     def create_graph(self):
         workflow = StateGraph(SupervisorState)
         workflow.add_node("choose_next", partial(choose_next, inference=self.inference))
-        workflow.add_node("Researcher", self.researcher_agent)
-        workflow.add_node("AutoMLChat", self.automl_agent)
+        workflow.add_node("researcher", self.researcher_agent)
+        workflow.add_node("automl", self.automl_agent)
+
+        def finish_execution(state: SupervisorState):
+            return state
+
+        workflow.add_node("finish", finish_execution)
 
         workflow.add_edge(START, "choose_next")
-        workflow.add_conditional_edges(
-            "choose_next",
-            lambda state: state["next"].value,
-            {"finish": END, "researcher": "Researcher", "automl": "AutoMLChat"},
-        )
-        workflow.add_edge("Researcher", "choose_next")
-        workflow.add_edge(START, "AutoMLChat")
-        workflow.add_edge("AutoMLChat", END)
+        workflow.add_edge("researcher", "choose_next")
+        workflow.add_edge("automl", "finish")
+        workflow.add_edge("finish", END)
         return workflow.compile().with_config(config={"run_name": "SupervisorAgent"})
 
 
@@ -70,5 +71,4 @@ def choose_next(state: SupervisorState, inference: AIInference):
         choose_next_prompt(messages_str),
         response_model=ChooseNext,
     )
-    state["next"] = response.next
-    return state
+    return Command(goto=response.next)

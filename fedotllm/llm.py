@@ -8,11 +8,9 @@ from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from fedotllm import prompts
-from fedotllm.log import get_logger
 from fedotllm.settings.config_loader import get_settings
 from fedotllm.agents.utils import parse_json
 
-logger = get_logger()
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -33,15 +31,15 @@ class AIInference:
         base_url: str | None = None,
         model: str | None = None,
     ):
-        self.base_url = base_url or get_settings().get("config.base_url", None)
-        self.model = model or get_settings().get("config.model", None)
+        settings = get_settings()
+        self.base_url = base_url or settings.get("config.base_url")
+        self.model = model or settings.get("config.model")
+        self.api_key = api_key or os.getenv("FEDOTLLM_LLM_API_KEY")
 
-        if api_key:
-            self.api_key = api_key
-        elif "FEDOTLLM_LLM_API_KEY" in os.environ:
-            self.api_key = os.environ["FEDOTLLM_LLM_API_KEY"]
-        else:
-            raise Exception("OpenAI API env variable FEDOTLLM_LLM_API_KEY not set")
+        if not self.api_key:
+            raise Exception(
+                "API key not provided and FEDOTLLM_LLM_API_KEY environment variable not set"
+            )
 
     @retry(
         stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=10)

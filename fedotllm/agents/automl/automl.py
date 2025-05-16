@@ -60,7 +60,8 @@ class AutoMLAgent:
             ),
         )
         workflow.add_node(
-            "select_skeleton", partial(select_skeleton, dataset=self.dataset, workspace=self.workspace)
+            "select_skeleton",
+            partial(select_skeleton, dataset=self.dataset, workspace=self.workspace),
         )
         workflow.add_node("insert_templates", insert_templates)
         workflow.add_node(
@@ -72,7 +73,9 @@ class AutoMLAgent:
             "fix_solution_main",
             partial(fix_solution, inference=self.inference, dataset=self.dataset),
         )
-        workflow.add_node("extract_metrics", partial(extract_metrics, workspace=self.workspace))
+        workflow.add_node(
+            "extract_metrics", partial(extract_metrics, workspace=self.workspace)
+        )
         workflow.add_node(
             "generate_report", partial(generate_report, inference=self.inference)
         )

@@ -15,7 +15,9 @@ class AutoMLAgentChat:
         self.inference = inference
         self.dataset = dataset
         self.workspace = workspace
-        self.automl = AutoMLAgent(inference=self.inference, dataset=self.dataset, workspace=self.workspace)
+        self.automl = AutoMLAgent(
+            inference=self.inference, dataset=self.dataset, workspace=self.workspace
+        )
 
     def create_graph(self):
         workflow = StateGraph(AutoMLAgentState)

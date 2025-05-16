@@ -61,9 +61,7 @@ class FedotAI:
         ).create_graph()
 
         async for event in entry_point.astream_events(
-            {
-                "messages": [HumanMessage(content=message)]
-            },
+            {"messages": [HumanMessage(content=message)]},
             version="v2",
         ):
             for handler in self.handlers:

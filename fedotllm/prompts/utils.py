@@ -8,7 +8,9 @@ def structured_response(response_model: Type[T]):
     return f"""
 The output must be a JSON object equivalent to type ${response_model.__name__}, according to the following Pydantic definitions:
 =====
+```
 {response_model.model_json_schema()}
+```
 =====
 Important:
 1. Return only valid JSON. No extra explanations, text, or comments.

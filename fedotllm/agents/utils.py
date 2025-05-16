@@ -5,9 +5,7 @@ from typing import Any, Dict
 import json_repair
 from jinja2 import Environment, StrictUndefined
 
-from fedotllm.log import get_logger
-
-logger = get_logger()
+from fedotllm.log import logger
 
 
 def jinja_render(template: str, *args, **kwargs):
@@ -27,8 +25,22 @@ def render(prompt, *args, **kwargs):
     return user, system, temperature, frequency_penalty
 
 
-def extract_code(response: str):
-    return response.split("```python")[1].split("```")[0].strip()
+# if ```python on response, or ``` on response, or whole response is code, return code
+def extract_code(response: str) -> str:
+    """Extract code content from text that may contain code blocks.
+
+    Args:
+        response: Input text that might contain code blocks
+    Returns:
+        Extracted code content or original text if no code blocks found
+    """
+    response = response.strip()
+    code_match = re.search(
+        r"```(?:\w+)?\s*(.*?)```",
+        response,
+        re.DOTALL,
+    )
+    return code_match.group(1).strip() if code_match else response
 
 
 def parse_json(raw_reply: str) -> Dict[str, Any] | None:

@@ -8,5 +8,4 @@ automl = "Fedot"
 #base_url = "https://api.groq.com/openai/v1"
 #base_url = "https://models.inference.ai.azure.com"
 #base_url = "https://api.vsegpt.ru/v1"
-fix_tries = 3
-fedot_timeout = 180
+fix_tries = 2
