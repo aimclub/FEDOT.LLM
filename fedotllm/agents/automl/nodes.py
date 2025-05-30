@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 
+import pandas as pd
 from autoflake import fix_code
 from fedot.api.main import Fedot
 from golem.core.dag.graph_utils import graph_structure
@@ -18,6 +19,7 @@ from fedotllm.data import Dataset
 from fedotllm.enviroments.simple_eval import (
     execute_code,
 )
+from fedotllm.enviroments.types import Observation
 from fedotllm.llm import AIInference
 from fedotllm.log import logger
 from fedotllm.settings.config_loader import get_settings
@@ -102,7 +104,7 @@ def insert_templates(state: AutoMLAgentState):
             "fedot_train.py": {
                 "params": {
                     "problem": str(fedot_config.problem),
-                    "timeout": fedot_config.timeout,
+                    "timeout": 1.0,
                     "cv_folds": fedot_config.cv_folds,
                     "preset": f"'{fedot_config.preset.value}'",
                     "metric": f"'{fedot_config.metric.value}'",
@@ -159,12 +161,12 @@ def evaluate(state: AutoMLAgentState, workspace: Path):
     logger.debug(
         f"Evaluate result\nIs Error: {observation.error}\nStdout: {observation.stdout}\nStderr: {observation.stderr}"
     )
-    return Command(update={"code_observation": observation})
+    return Command(update={"observation": observation})
 
 
 def if_bug(state: AutoMLAgentState):
     if (
-        state["code_observation"].error
+        state["observation"].error
         and state["fix_attempts"] < get_settings().config.fix_tries
     ):
         return True
@@ -180,8 +182,9 @@ def fix_solution(state: AutoMLAgentState, inference: AIInference, dataset: Datas
         reflection=state["reflection"],
         dataset_path=str(dataset.path.absolute()),
         code_recent_solution=state["raw_code"],
-        stderr=state["code_observation"].stderr,
-        stdout=state["code_observation"].stdout,
+        msg=state["observation"].msg,
+        stderr=state["observation"].stderr,
+        stdout=state["observation"].stdout,
     )
 
     fixed_solution = inference.query(fix_prompt)
@@ -201,7 +204,7 @@ def extract_metrics(state: AutoMLAgentState, workspace: Path):
         return "Metrics not found"
 
     try:
-        state["metrics"] = _parse_metrics(state["code_observation"].stdout)
+        state["metrics"] = _parse_metrics(state["observation"].stdout)
         logger.info(f"Metrics: {state['metrics']}")
 
         pipeline_path = workspace / "pipeline"
@@ -217,6 +220,140 @@ def extract_metrics(state: AutoMLAgentState, workspace: Path):
         logger.error(f"Failed to extract metrics: {str(e)}")
         state["metrics"] = "Metrics not found"
         state["pipeline"] = "Pipeline not found"
+
+    return state
+
+
+def run_tests(state: AutoMLAgentState, workspace: Path, inference: AIInference):
+    logger.info("Running tests")
+
+    def extract_metrics(raw_output: str) -> Observation:
+        if match := re.search(r"Model metrics:\s*(\{.*?\})", raw_output):
+            return Observation(error=False, msg=match.group(1).strip())
+        return Observation(
+            error=True,
+            msg="Metrics not found. Check if you use `evaluate` function and it was executed successfully.",
+        )
+
+    def extract_pipeline(workspace: Path) -> Observation:
+        pipeline_path = workspace / "pipeline"
+        if not pipeline_path.exists():
+            return Observation(
+                error=True,
+                msg="Pipeline not found. Check if you use `train_model` function and it was executed successfully.",
+            )
+        try:
+            model = Fedot(problem="classification")
+            model.load(pipeline_path)
+            return Observation(error=False, msg=graph_structure(model.current_pipeline))
+        except Exception as e:
+            return Observation(error=True, msg=f"Pipeline loading failed: {str(e)}")
+
+    def check_submission_file(workspace: Path) -> Observation:
+        submission_file = workspace / "submission.csv"
+        return Observation(
+            error=not submission_file.exists(),
+            msg="Submission file exists."
+            if submission_file.exists()
+            else f"Submission file not found. Check if you save submission file successfully to {submission_file}.",
+        )
+
+    def test_submission_format(args: tuple) -> Observation:
+        raw_output, inference = args
+        submission_file = workspace / "submission.csv"
+        print("DEBUG: RAW OUTPUT\n", raw_output)
+
+        if not (match := re.search(r"Sample Submission File:\s*(.*?)$", raw_output, re.MULTILINE)):
+            return Observation(
+                error=True,
+                msg="Sample submission file format not found. Print `Sample Submission File: {sample_submission}` in your code so I can check it.",
+            )
+
+        sample_path = match.group(1).strip()
+        print(f"Sample submission file path: {sample_path}")
+        if not sample_path.endswith(".csv"):
+            return Observation(
+                error=True,
+                msg="Sample Submission file format is incorrect. It should be a CSV file (.csv).",
+            )
+
+        if not submission_file.exists() or submission_file.suffix != ".csv":
+            return Observation(
+                error=True,
+                msg="Submission file format is incorrect. It should be a CSV file (.csv).",
+            )
+
+        try:
+            sample_df = pd.read_csv(sample_path)
+            submission_df = pd.read_csv(submission_file)
+
+            if submission_df.empty:
+                return Observation(error=True, msg="Submission file is empty.")
+
+            if not submission_df.columns.equals(sample_df.columns):
+                return Observation(
+                    error=True,
+                    msg=f"Submission file columns don't match. Expected: {list(sample_df.columns)}, Got: {list(submission_df.columns)}",
+                )
+
+            if submission_df.shape[1] != sample_df.shape[1]:
+                return Observation(
+                    error=True,
+                    msg=f"Submission file has wrong number of columns. Expected: {sample_df.shape[1]}, Got: {submission_df.shape[1]}",
+                )
+
+            # LLM validation for deeper format checking
+            try:
+                submission_sample = submission_df.head(3).to_string(
+                    max_rows=3, max_cols=10
+                )
+                sample_submission_sample = sample_df.head(3).to_string(
+                    max_rows=3, max_cols=10
+                )
+
+                result = inference.query(
+                    prompts.utils.ai_assert_prompt(
+                        var1=submission_sample,
+                        var2=sample_submission_sample,
+                        condition=(
+                            "Compare the submission file format with the sample submission file format to determine if they have the same structure by verifying the following:"
+                            "1. Column names match exactly. 2. Data types in corresponding columns are compatible. 3. The overall structure, including column order and presence, is consistent.\n"
+                            "Note: Ignore differences in the values within the columns. Focus solely on structure, column names, and data types."
+                        ),
+                    )
+                )
+
+                if result.strip().lower() != "true":
+                    return Observation(
+                        error=True,
+                        msg=f"Submission file format does not match expected format. Expected: {sample_submission_sample}, Got: {submission_sample}",
+                    )
+            except Exception:
+                pass  # LLM validation is optional, pandas validation is sufficient
+
+            return Observation(error=False, msg="Submission file format is correct.")
+
+        except Exception as e:
+            return Observation(
+                error=True, msg=f"Error validating submission format: {str(e)}"
+            )
+
+    # Run all tests
+    tests = [
+        (extract_metrics, state["observation"].stdout),
+        (extract_pipeline, workspace),
+        (check_submission_file, workspace),
+        (test_submission_format, (state["observation"].stdout, inference)),
+    ]
+
+    for test_func, param in tests:
+        result = test_func(param)
+        if result.error:
+            logger.error(f"Test failed: {result.msg}")
+            state["observation"].error = True
+            state["observation"].msg += f"\nTest failed: {result.msg}"
+        else:
+            logger.info(f"Test passed: {result.msg}")
 
     return state
 

@@ -22,7 +22,7 @@ dependencies = [
     "langchain-openai>=0.3.11",
     "langfuse>=2.60.4",
     "langgraph>=0.3.21",
-    "litellm>=1.68.2",
+    "litellm==1.71.2",
     "loguru>=0.7.3",
     "pandas>=2.2.3",
     "pygwalker>=0.4.9.14",

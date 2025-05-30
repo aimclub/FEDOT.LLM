@@ -162,7 +162,6 @@ cython_debug/
 #.idea/
 
 # Example datasets
-titanic/
 credit-g/
 *.zip
 

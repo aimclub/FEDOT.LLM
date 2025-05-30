@@ -1,4 +1,4 @@
-from fedotllm.enviroments.types import CodeObservation
+from fedotllm.enviroments.types import Observation
 from fedotllm.agents.automl.structured import FedotConfig
 from fedotllm.agents.base import FedotLLMAgentState
 
@@ -10,7 +10,7 @@ class AutoMLAgentState(FedotLLMAgentState):
     skeleton: str
     raw_code: str | None
     code: str | None
-    code_observation: CodeObservation | None
+    observation: Observation | None
     fix_attempts: int
     metrics: str
     pipeline: str

@@ -134,8 +134,8 @@ def preprocess_data(train_features: pd.DataFrame, test_features: pd.DataFrame):
     X_test = X_test[important_features]
     
     # --- Step 1: Identify feature types (based on training data) ---
-    categorical_cols = [ ]
-    numerical_cols = [ ]
+    numerical_cols = X_train.select_dtypes(include=np.number).columns.tolist()
+    categorical_cols = X_train.select_dtypes(include=['object', 'category']).columns.tolist()
     # --- Step 2: Handle Missing Values (Fit on Train, Transform Train & Test) ---
     # Numerical Imputation
     # if numerical_cols:
@@ -156,7 +156,7 @@ def preprocess_data(train_features: pd.DataFrame, test_features: pd.DataFrame):
     # For robust OHE, ensure all categories seen during fit are handled during transform.
     # Important Note:
     # ---------
-    # OneHotEncoder sparse attribute is deprecated! Use sparse_output instead.
+    # OneHotEncoder sparse attribute is DEPRECATED! **Must use sparse_output instead.**
     # ----------
     # Example:
     # ---------
@@ -192,6 +192,14 @@ def preprocess_data(train_features: pd.DataFrame, test_features: pd.DataFrame):
     #        # Add 1 to prevent log(0) issues, ensure positive values
     #        X_train[col] = np.log1p(X_train[col] - X_train[col].min())
     #        X_test[col] = np.log1p(X_test[col] - X_test[col].min()) # Apply same shift as train
+    
+    # --- Step 6: Feature Engineering ---
+    # Create new features from existing ones if it makes sense for the problem.
+    # Use domain knowledge to create new features if it makes sense.
+    # Example:
+    # ---------
+    # X_train['feature_name'] = X_train['feature_name'].map({})
+    # X_train['feature_name'] = X_train['feature_name'] + X_train['feature_name_2']
 
     print("Preprocessing complete.")
     print(f"Train processed shape: {X_train.shape}, Test processed shape: {X_test.shape}")
@@ -257,7 +265,10 @@ def main():
     
     # --- Create a fixed validation split from the processed full training data ---
     print(f"\nCreating a fixed train-evaluation split (Eval size: {EVAL_SET_SIZE*100}%) ...")
-    stratify_target = y_train_full if current_problem_type.startswith('classification') else None
+    # For multi-target, set stratify=None
+    stratify_target = None
+    if current_problem_type.startswith('classification') and len(TARGET_COLUMNS) == 1:
+        stratify_target = y_train_full  # Only stratify for single-target classification
     X_train_main, X_eval_holdout, y_train_main, y_eval_holdout = train_test_split(
         X_train_processed, y_train_full,
         test_size=EVAL_SET_SIZE,
@@ -266,12 +277,15 @@ def main():
     )
     
     # --- Step 3: Train AutoML model ---
+    # You must use pre-defined train_model function to train the model.
     model = train_model(X_train_main, y_train_main)
     
     # --- Step 4: Evaluate the trained model ---
+    # You must use pre-defined evaluate_model function to evaluate the model.
     model_performance = evaluate_model(model, X_eval_holdout, y_eval_holdout)
 
     # --- Step 5: Evaluate predictions for the test dataset using AutoML Framework ---
+    # You must use pre-defined automl_predict function to predict the model.
     predictions:np.ndarray = automl_predict(model, X_test_processed) # returns 2D array
   
     # --- Step 6: Create submission file ---

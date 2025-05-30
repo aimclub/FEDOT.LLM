@@ -2,9 +2,11 @@ import os
 import kaggle
 import zipfile
 import time
+import shutil
 from datetime import datetime
 
 def download_from_kaggle(competition_name, save_path):
+    shutil.rmtree(save_path, ignore_errors=True)
     os.makedirs(save_path, exist_ok=True)
     print(f"Downloading dataset to: {save_path}")
     kaggle.api.competition_download_files(competition_name, path=save_path)

@@ -41,6 +41,14 @@ class AIInference:
                 "API key not provided and FEDOTLLM_LLM_API_KEY environment variable not set"
             )
 
+        self.completion_params = {
+            "model": self.model,
+            "api_key": self.api_key,
+            "base_url": self.base_url,
+            # "max_completion_tokens": 8000,
+            "extra_headers": {"X-Title": "FEDOT.LLM"}
+        }
+
     @retry(
         stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=10)
     )
@@ -59,9 +67,7 @@ class AIInference:
         messages = [{"role": "user", "content": messages}]
         response = litellm.completion(
             messages=messages,
-            model=self.model,
-            api_key=self.api_key,
-            base_url=self.base_url,
+            **self.completion_params,
         )
         return response.choices[0].message.content
 
@@ -112,3 +118,7 @@ def num_tokens_from_string(string: str, encoding_name: str = "cl100k_base") -> i
     num_tokens = len(encoding.encode(string))
 
     return num_tokens
+
+if __name__ == "__main__":
+    inference = AIInference(model="deepseek/DeepSeek-V3-0324")
+    print(inference.query("Say hello world!"))
