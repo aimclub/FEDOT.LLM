@@ -1,5 +1,14 @@
 # Документация по FEDOT.LLM
 
+<div align="center">
+
+[![Русский](https://img.shields.io/badge/Документация-Русский-4A90E2?style=for-the-badge&logo=github)](https://github.com/aimclub/FEDOT.LLM/blob/main/docs/wiki-ru.md) 
+[![English](https://img.shields.io/badge/Documentation-English-34C759?style=for-the-badge&logo=github)](https://github.com/aimclub/FEDOT.LLM/blob/main/docs/wiki-eng.md)
+
+</div>
+
+---
+
 ## Содержание
 
 - [Обзор проекта](#project-overview)
@@ -159,13 +168,13 @@ graph TD
     B -- "Запрос о фреймворке Fedot" --> D[Результат: 'researcher']
     B -- "Запрос обработан" --> E[Результат: 'finish']
 ```
-Источники: [fedotllm/prompts/supervisor.py:1-32]()
+Источники: [fedotllm/prompts/supervisor.py:1-32](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/prompts/supervisor.py#L1-L32)
 
 ### Агент-исследователь (Researcher)
 
 `Агент-исследователь` предназначен для ответов на вопросы пользователя путем извлечения релевантной информации из предоставленной документации и генерации обоснованных ответов. Его рабочий процесс включает несколько шагов: генерация первоначального ответа, проверка на обоснованность (наличие галлюцинаций), оценка полезности и, возможно, переформулирование вопроса для улучшения поиска информации.
 
-Рабочий процесс `агента-исследователя`, определенный в `fedotllm/agents/researcher/researcher.py` и реализованный в `fedotllm/agents/researcher/nodes.py`, включает несколько шагов для обеспечения высокого качества и обоснованности ответа:
+Рабочий процесс `агента-исследователя`, определенный в [`fedotllm/agents/researcher/researcher.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/researcher/researcher.py) и реализованный в [`fedotllm/agents/researcher/nodes.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/researcher/nodes.py), включает несколько шагов для обеспечения высокого качества и обоснованности ответа:
 
 ```mermaid
 graph TD
@@ -206,7 +215,7 @@ graph TD
     B -- "Разделение на фрагменты, создание эмбеддингов" --> C(Память: ChromaDB)
     C -- "Хранение векторов" --> D[Векторное хранилище]
 ```
-Источники: [fedotllm/agents/retrieve.py:1-42](), [fedotllm/agents/memory.py:4-31]()
+Источники: [fedotllm/agents/retrieve.py:1-42](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/retrieve.py#L1-L42), [fedotllm/agents/memory.py:4-31](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/memory.py#L4-L31)
 
 
 ### Агент AutoML
@@ -219,7 +228,7 @@ graph TD
 
 `AutoMLAgent` определяет последовательный рабочий процесс для управления процессом автоматического машинного обучения. Этот процесс, подобен конечному автомату, что обеспечивает выполнение шагов в логическом порядке со встроенными механизмами обработки ошибок и итераций.
 
-Источники: [fedotllm/agents/automl/automl.py:1-33]()
+Источники: [fedotllm/agents/automl/automl.py:1-33](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/automl.py#L1-L33)
 
 Рабочий процесс включает в себя отдельные этапы, такие как анализ задачи, генерация конфигурации, создание кода, его выполнение, тестирование и формирование отчета.
 
@@ -251,12 +260,12 @@ graph TD
 *   **`run_tests`**: Выполняет тесты для сгенерированного кода. При обнаружении ошибки переходит к `fix_solution_main`.
 *   **`extract_metrics`**: Извлекает метрики производительности из выполненного решения.
 *   **`generate_report`**: Составляет итоговый отчет на основе метрик и процесса.
-Источники: [fedotllm/agents/automl/automl.py:21-33]()
+Источники: [fedotllm/agents/automl/automl.py:21-33](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/automl.py#L21-L33)
 
 
 #### Формирование отчетов и обработка вывода
 
-После извлечения метрик, агент генерирует подробный отчет. Этот отчет структурируется в соответствии с определенным промптом, заданным в `fedotllm/prompts/automl.py`.
+После извлечения метрик, агент генерирует подробный отчет. Этот отчет структурируется в соответствии с определенным промптом, заданным в [`fedotllm/prompts/automl.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/prompts/automl.py).
 
 ##### Структура промпта для отчета AutoML
 
@@ -271,7 +280,7 @@ graph TD
 | Основные выводы          | Важные инсайты и заключения, сделанные в ходе процесса AutoML. |
 
 
-Источники: [fedotllm/prompts/automl.py:1-58]()
+Источники: [fedotllm/prompts/automl.py:1-58](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/prompts/automl.py#L1-L58)
 
 ---
 
@@ -293,13 +302,13 @@ graph TD
 
 Константа `DATASET_EXTENSIONS` объединяет все эти поддерживаемые расширения.
 
-Источники: [fedotllm/constants.py:7]()
+Источники: [fedotllm/constants.py:7](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/constants.py#L7)
 
 
 ## Структура набора данных
 
 Класс `Dataset` инкапсулирует один или несколько объектов `Split`, каждый из которых представляет DataFrame из файла.
-Источники: [fedotllm/data/data.py:1-24]()
+Источники: [fedotllm/data/data.py:1-24](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/data/data.py#L1-L24)
 
 ## Процесс загрузки данных
 
@@ -321,7 +330,7 @@ graph TD
     B -- Нет --> J;
 ```
 
-Источники: [fedotllm/data/data.py:1-9]()
+Источники: [fedotllm/data/data.py:1-9](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/data/data.py#L1-L9)
 
 
 # Веб-интерфейс на Streamlit
@@ -349,7 +358,7 @@ graph TD
 
 Веб-интерфейс Streamlit состоит из нескольких ключевых страниц и вспомогательных модулей, которые в совокупности обеспечивают его функциональность.
 
-### Интерфейс чата (`fedotllm/web/frontend/pages/chat.py`)
+### Интерфейс чата ([`fedotllm/web/frontend/pages/chat.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/frontend/pages/chat.py))
 
 Файл `chat.py` определяет основной диалоговый интерфейс, где пользователи взаимодействуют с системой FEDOT.LLM. Асинхронная функция `handle_predict` является центральной для обработки пользовательских промптов и отображения ответов ИИ. Она управляет состоянием сессии для сообщений и динамически отображает потоковый контент.
 
@@ -374,11 +383,11 @@ sequenceDiagram
     end
     Note right of Страница_чата_Streamlit: Обрабатывает исключения
 ```
-Источники: [fedotllm/web/frontend/pages/chat.py:10-33]()
+Источники: [fedotllm/web/frontend/pages/chat.py:10-33](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/frontend/pages/chat.py#L10-L33)
 
 
 
-### Вспомогательные функции фронтенда (`fedotllm/web/frontend/utils/__init__.py`)
+### Вспомогательные функции фронтенда ([`fedotllm/web/frontend/utils/__init__.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/frontend/utils/__init__.py))
 
 Этот модуль объединяет различные вспомогательные функции, используемые во всем фронтенде Streamlit. Эти функции в основном занимаются операциями с файловой системой, управлением сессиями и обработкой данных.
 
@@ -395,10 +404,10 @@ sequenceDiagram
 | `generate_output_file`  | Генерирует определенный выходной файл для сабмита.               |
 | `render`                | Отображает контент, в частности объекты `BaseResponse`, в UI.               |
 
-### Обработка ответов и их типы (`fedotllm/web/common/types.py`)
+### Обработка ответов и их типы ([`fedotllm/web/common/types.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/common/types.py))
 
 Файл `types.py` определяет структуры данных, используемые для коммуникации и представления контента в системе FEDOT.LLM, особенно для ответов, передаваемых потоком на фронтенд. Ключевые классы включают `BaseResponse`, `Response` и `MessagesHandler`.
-Источники: [fedotllm/web/common/types.py:1-62]()
+Источники: [fedotllm/web/common/types.py:1-62](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/common/types.py#L1-L62)
 
 ```mermaid
 classDiagram
@@ -438,14 +447,13 @@ classDiagram
 
 `BaseResponse` служит фундаментальной единицей для потокового контента, позволяя инкрементально обновлять и сравнивать части ответа. Класс `Response` является контейнером для корневого ответа и списка контекстных ответов, предоставляя методы для их управления и упаковки. `MessagesResponse` и `GraphResponse` расширяет `BaseResponse` и обрабатывают конкртные типы событий (сообщения, либо обновления графа).
 
-Источники: [fedotllm/web/common/types.py:1-62]()
+Источники: [fedotllm/web/common/types.py:1-62](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/common/types.py#L1-L62)
 
 ### Визуализация потока выполнения
 
 FEDOT.LLM использует библиотеку `graphviz` для визуализации потока выполнения
 
 Источники: [fedotllm/web/frontend/components/st_graph/frontend/main.js:1-32]()
-
 
 # Система шаблонов
 
@@ -495,16 +503,16 @@ graph TD
     S --> T[Вернуть текст];
     Q -- Нет --> T;
 ```
-Источники: [fedotllm/agents/automl/templates/load_template.py:53-125]()
+Источники: [fedotllm/agents/automl/templates/load_template.py:53-125](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L53-L125)
 
 ### Вспомогательные функции для обработки шаблонов
 
 Несколько вспомогательных функций поддерживают основную логику обработки шаблонов:
 
-*   `_extract_imports(content: str) -> Set[str]`: Находит и извлекает инструкции `import` и `from ... import` с помощью регулярного выражения. Источники: [fedotllm/agents/automl/templates/load_template.py:99-105]()
-*   `_remove_imports(content: str, imports: Set[str]) -> str`: Удаляет найденные инструкции импорта из контента. Источники: [fedotllm/agents/automl/templates/load_template.py:107-115]()
-*   `_replace_placeholder_with_content(text: str, placeholder: str, content: str) -> str`: Заменяет определенный плейсхолдер (`<%% placeholder %%>`) в тексте предоставленным контентом, критически важно сохраняя исходный отступ плейсхолдера. Источники: [fedotllm/agents/automl/templates/load_template.py:175-195]()
-*   `_insert_imports(text: str, imports_str: str) -> str`: Вставляет агрегированные инструкции импорта в начало текста, после любых начальных комментариев. Источники: [fedotllm/agents/automl/templates/load_template.py:197-210]()
+*   `_extract_imports(content: str) -> Set[str]`: Находит и извлекает инструкции `import` и `from ... import` с помощью регулярного выражения. Источники: [fedotllm/agents/automl/templates/load_template.py:99-105](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L99-L105)
+*   `_remove_imports(content: str, imports: Set[str]) -> str`: Удаляет найденные инструкции импорта из контента. Источники: [fedotllm/agents/automl/templates/load_template.py:107-115](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L107-L115)
+*   `_replace_placeholder_with_content(text: str, placeholder: str, content: str) -> str`: Заменяет определенный плейсхолдер (`<%% placeholder %%>`) в тексте предоставленным контентом, критически важно сохраняя исходный отступ плейсхолдера. Источники: [fedotllm/agents/automl/templates/load_template.py:175-195](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L175-L195)
+*   `_insert_imports(text: str, imports_str: str) -> str`: Вставляет агрегированные инструкции импорта в начало текста, после любых начальных комментариев. Источники: [fedotllm/agents/automl/templates/load_template.py:197-210](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L197-L210)
 
 ### Типы плейсхолдеров
 
@@ -512,11 +520,11 @@ graph TD
 
 | Тип плейсхолдера     | Назначение                                              | Исходный файл                                  |
 | :------------------- | :------------------------------------------------------ | :------------------------------------------- |
-| `<%% template_name %%>` | Для загрузки и вставки контента из файлов вложенных шаблонов. | [fedotllm/agents/automl/templates/load_template.py:59]() |
-| `{% var %}`          | Для прямой подстановки переменных в строковом шаблоне.  | [fedotllm/agents/automl/templates/load_template.py:221]() |
+| `<%% template_name %%>` | Для загрузки и вставки контента из файлов вложенных шаблонов. | [fedotllm/agents/automl/templates/load_template.py:59](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L59) |
+| `{% var %}`          | Для прямой подстановки переменных в строковом шаблоне.  | [fedotllm/agents/automl/templates/load_template.py:221](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L221) |
 
 ## Рендеринг шаблона
 
 Помимо загрузки шаблонов из файлов, система также предоставляет функцию `render_template` для замены простых плейсхолдеров переменных (например, `{% var %}`) в заданной строке-шаблоне. Это используется для прямого форматирования строк, когда загрузка из файла не требуется.
 
-Источники: [fedotllm/agents/automl/templates/load_template.py:212-237]()
+Источники: [fedotllm/agents/automl/templates/load_template.py:212-237](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L212-L237)

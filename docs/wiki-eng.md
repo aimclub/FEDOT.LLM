@@ -1,5 +1,14 @@
 # FEDOT.LLM Documentation
 
+<div align="center">
+
+[![Русский](https://img.shields.io/badge/Документация-Русский-4A90E2?style=for-the-badge&logo=github)](https://github.com/aimclub/FEDOT.LLM/blob/main/docs/wiki-ru.md) 
+[![English](https://img.shields.io/badge/Documentation-English-34C759?style=for-the-badge&logo=github)](https://github.com/aimclub/FEDOT.LLM/blob/main/docs/wiki-eng.md)
+
+</div>
+
+---
+
 ## Table of Contents
 
 - [Project Overview](#project-overview)
@@ -19,8 +28,7 @@
       - [Core Workflow and Architecture](#core-workflow-and-architecture)
       - [Reporting and Output Handling](#reporting-and-output-handling)
         - [AutoML Report Prompt Structure](#automl-report-prompt-structure)
-- [Data Handling and Preprocessing](#data-handling-and-preprocessing)
-  - [Data Loading and Representation](#data-loading-and-representation)
+- [Data Loading and Representation](#data-loading-and-representation)
     - [Supported File Formats](#supported-file-formats)
     - [Dataset Structure](#dataset-structure)
     - [Data Loading Process](#data-loading-process)
@@ -39,12 +47,6 @@
   - [Template Rendering](#template-rendering)
 
 <a id='project-overview'></a>
-
-## Project Overview
-
-### Related Pages
-
-Related topics: [Installation and Setup](#installation-setup)
 
 
 # Project Overview
@@ -163,13 +165,13 @@ graph TD
     B -- "Fedot framework query" --> D[Output: 'researcher']
     B -- "Request addressed" --> E[Output: 'finish']
 ```
-Sources: [fedotllm/prompts/supervisor.py:1-32]()
+Sources: [fedotllm/prompts/supervisor.py:1-32](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/prompts/supervisor.py#L1-L32)
 
 ### Researcher Agent
 
 The `Researcher` agent is designed to answer user questions by retrieving relevant information from provided documentation and generating grounded responses. Its workflow involves several steps, including generating an initial response, checking for grounding (hallucinations), assessing usefulness, and potentially rewriting the question for better retrieval.
 
-The `Researcher` agent's workflow, as defined in `fedotllm/agents/researcher/researcher.py` and implemented in `fedotllm/agents/researcher/nodes.py`, involves several steps to ensure a high-quality, grounded response:
+The `Researcher` agent's workflow, as defined in [`fedotllm/agents/researcher/researcher.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/researcher/researcher.py) and implemented in [`fedotllm/agents/researcher/nodes.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/researcher/nodes.py), involves several steps to ensure a high-quality, grounded response:
 
 ```mermaid
 graph TD
@@ -209,7 +211,7 @@ graph TD
     B -- "Chunk, Embed" --> C(Memory: ChromaDB)
     C -- "Store Vectors" --> D[Vector Store]
 ```
-Sources: [fedotllm/agents/retrieve.py:1-42](), [fedotllm/agents/memory.py:4-31]()
+Sources: [fedotllm/agents/retrieve.py:1-42](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/retrieve.py#L1-L42), [fedotllm/agents/memory.py:4-31](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/memory.py#L4-L31)
 
 
 ### AutoML Agent
@@ -221,7 +223,7 @@ The agent operates through a defined workflow, processing user input through a s
 #### Core Workflow and Architecture
 
 The `AutoMLAgent` defines a sequential and conditional workflow to guide the automated machine learning process. This workflow is compiled using a state machine-like approach, ensuring that steps are executed in a logical order, with built-in mechanisms for error handling and iteration.
-Sources: [fedotllm/agents/automl/automl.py:1-33]()
+Sources: [fedotllm/agents/automl/automl.py:1-33](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/automl.py#L1-L33)
 
 The workflow includes distinct stages such as problem reflection, configuration generation, code creation, execution, testing, and reporting.
 
@@ -253,12 +255,12 @@ The workflow steps are:
 *   **`run_tests`**: Executes tests against the generated code. If a bug is detected, it goes to `fix_solution_main`.
 *   **`extract_metrics`**: Extracts performance metrics from the executed solution.
 *   **`generate_report`**: Compiles a final report based on the metrics and process.
-Sources: [fedotllm/agents/automl/automl.py:21-33]()
+Sources: [fedotllm/agents/automl/automl.py:21-33](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/automl.py#L21-L33)
 
 
 #### Reporting and Output Handling
 
-After the AutoML process completes, especially after metrics extraction, the agent generates a comprehensive report. This report is structured according to a specific prompt defined in `fedotllm/prompts/automl.py`. The display of this report, particularly in a Jupyter environment, is handled by the `JupyterOutput` class.
+After the AutoML process completes, especially after metrics extraction, the agent generates a comprehensive report. This report is structured according to a specific prompt defined in [`fedotllm/prompts/automl.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/prompts/automl.py). The display of this report, particularly in a Jupyter environment, is handled by the `JupyterOutput` class.
 
 ##### AutoML Report Prompt Structure
 
@@ -273,17 +275,11 @@ The `generate_report` prompt guides the language model in creating a detailed re
 | Key Takeaways      | Important insights and conclusions drawn from the AutoML process. |
 
 
-Sources: [fedotllm/prompts/automl.py:1-58]()
+Sources: [fedotllm/prompts/automl.py:1-58](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/prompts/automl.py#L1-L58)
 
 ---
 
-# Data Handling and Preprocessing
-
-Data handling and preprocessing are fundamental stages within the FEDOT.LLM framework, ensuring that raw datasets are transformed into a suitable format for automated machine learning (AutoML) model training and evaluation. This involves robust mechanisms for loading various data formats, managing file uploads, and applying structured cleaning and transformation steps. The system is designed to accommodate diverse data sources and prepare them for consumption by the core AutoML agents.
-
-The primary goal of this module is to standardize data input, making it consistent and reliable for subsequent analytical tasks. This includes identifying training and testing splits, handling missing values, encoding categorical features, and ensuring submission files adhere to expected formats.
-
-## Data Loading and Representation
+# Data Loading and Representation
 
 The `fedotllm.data` module is responsible for abstracting the complexities of data loading and representing datasets consistently within the FEDOT.LLM ecosystem. It supports a variety of common tabular data formats.
 
@@ -300,13 +296,13 @@ The system defines a set of recognized file extensions for datasets, allowing it
 
 The `DATASET_EXTENSIONS` constant aggregates all these supported suffixes.
 
-Sources: [fedotllm/constants.py:7]()
+Sources: [fedotllm/constants.py:7](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/constants.py#L7)
 
 
 ### Dataset Structure
 
 The `Dataset` class encapsulates one or more `Split` objects, each representing a DataFrame from a file. 
-Sources: [fedotllm/data/data.py:1-24]()
+Sources: [fedotllm/data/data.py:1-24](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/data/data.py#L1-L24)
 
 ### Data Loading Process
 
@@ -328,7 +324,7 @@ graph TD
     B -- No --> J;
 ```
 
-Sources: [fedotllm/data/data.py:1-9]()
+Sources: [fedotllm/data/data.py:1-9](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/data/data.py#L1-L9)
 
 
 # Streamlit Web Interface
@@ -356,7 +352,7 @@ graph TD
 
 The Streamlit web interface is composed of several key pages and utility modules that collectively provide its functionality.
 
-### Chat Interface (`fedotllm/web/frontend/pages/chat.py`)
+### Chat Interface ([`fedotllm/web/frontend/pages/chat.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/frontend/pages/chat.py))
 
 The `chat.py` file defines the main conversational interface where users interact with the FEDOT.LLM system. The `handle_predict` asynchronous function is central to processing user prompts and displaying AI responses. It manages the session state for messages and dynamically renders streamed content.
 
@@ -381,11 +377,11 @@ sequenceDiagram
     end
     Note right of Streamlit_Chat_Page: Handles Exceptions
 ```
-Sources: [fedotllm/web/frontend/pages/chat.py:10-33]()
+Sources: [fedotllm/web/frontend/pages/chat.py:10-33](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/frontend/pages/chat.py#L10-L33)
 
 
 
-### Frontend Utility Functions (`fedotllm/web/frontend/utils/__init__.py`)
+### Frontend Utility Functions ([`fedotllm/web/frontend/utils/__init__.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/frontend/utils/__init__.py))
 
 This module aggregates various utility functions used across the Streamlit frontend. These functions primarily deal with file system operations, session management, and data handling.
 
@@ -402,10 +398,10 @@ This module aggregates various utility functions used across the Streamlit front
 | `generate_output_file`  | Generates a specific output file, likely for submission.                    |
 | `render`                | Renders content, specifically `BaseResponse` objects, in the UI.            |
 
-### Response Handling and Types (`fedotllm/web/common/types.py`)
+### Response Handling and Types ([`fedotllm/web/common/types.py`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/common/types.py))
 
 The `types.py` file defines the data structures used for communication and content representation within the FEDOT.LLM system, particularly for responses streamed to the frontend. Key classes include `BaseResponse`, `Response`, and `MessagesHandler`.
-Sources: [fedotllm/web/common/types.py:1-62]()
+Sources: [fedotllm/web/common/types.py:1-62](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/common/types.py#L1-L62)
 
 ```mermaid
 classDiagram
@@ -431,17 +427,17 @@ classDiagram
     Response o-- BaseResponse : contains
 ```
 
-Sources: [fedotllm/web/common/types.py:1-62]()
+Sources: [fedotllm/web/common/types.py:1-62](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/common/types.py#L1-L62)
 
 `BaseResponse` serves as the fundamental unit for streamed content, allowing incremental updates and comparison of response parts. The `Response` class is a container for a root response and a list of context responses, providing methods to manage and pack them. `MessagesHandler` extends `BaseResponse` and defines a list of event types it subscribes to, indicating its role in processing specific system messages.
 
-Sources: [fedotllm/web/common/types.py:1-62]()
+Sources: [fedotllm/web/common/types.py:1-62](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/common/types.py#L1-L62)
 
-### Graph Visualization (`fedotllm/web/frontend/components/st_graph/frontend/main.js`)
+### Graph Visualization ([`fedotllm/web/frontend/components/st_graph/frontend/main.js`](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/frontend/components/st_graph/frontend/main.js))
 
 It uses the `graphviz` library (implied) and interacts with the Streamlit component API to receive data from Python and update the displayed graph.
 
-Sources: [fedotllm/web/frontend/components/st_graph/frontend/main.js:1-32]()
+Sources: [fedotllm/web/frontend/components/st_graph/frontend/main.js:1-32](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/web/frontend/components/st_graph/frontend/main.js#L1-L32)
 
 # Template System
 
@@ -456,10 +452,10 @@ The core of the template system resides in `load_template.py`, which provides fu
 
 ### Template Loading and Sub-Template Resolution
 
-The `load_template` function is responsible for reading a template file from the filesystem, processing any nested templates within it, and handling circular dependencies. It leverages `render_sub_templates` to perform the actual substitution and import aggregation. Sources: [fedotllm/agents/automl/templates/load_template.py:100-125]()
+The `load_template` function is responsible for reading a template file from the filesystem, processing any nested templates within it, and handling circular dependencies. It leverages `render_sub_templates` to perform the actual substitution and import aggregation. Sources: [fedotllm/agents/automl/templates/load_template.py:100-125](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L100-L125)
 
 
-The `render_sub_templates` function is the workhorse for replacing sub-template placeholders (e.g., `<%% template_name %%>`) with their corresponding content. It recursively loads sub-templates, extracts their import statements, and then removes them from the sub-template content before insertion. The extracted imports are then aggregated and inserted at the top of the final rendered content. Sources: [fedotllm/agents/automl/templates/load_template.py:53-97]()
+The `render_sub_templates` function is the workhorse for replacing sub-template placeholders (e.g., `<%% template_name %%>`) with their corresponding content. It recursively loads sub-templates, extracts their import statements, and then removes them from the sub-template content before insertion. The extracted imports are then aggregated and inserted at the top of the final rendered content. Sources: [fedotllm/agents/automl/templates/load_template.py:53-97](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L53-L97)
 
 
 The overall flow for processing a template file is as follows:
@@ -490,16 +486,16 @@ graph TD
     S --> T[Return text];
     Q -- No --> T;
 ```
-Sources: [fedotllm/agents/automl/templates/load_template.py:53-125]()
+Sources: [fedotllm/agents/automl/templates/load_template.py:53-125](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L53-L125)
 
 ### Helper Functions for Template Processing
 
 Several helper functions support the main template processing logic:
 
-*   `_extract_imports(content: str) -> Set[str]`: Identifies and extracts `import` and `from ... import` statements using a regular expression. Sources: [fedotllm/agents/automl/templates/load_template.py:99-105]()
-*   `_remove_imports(content: str, imports: Set[str]) -> str`: Removes the identified import statements from the content. Sources: [fedotllm/agents/automl/templates/load_template.py:107-115]()
-*   `_replace_placeholder_with_content(text: str, placeholder: str, content: str) -> str`: Replaces a specific placeholder (`<%% placeholder %%>`) in the text with the provided content, critically preserving the original indentation of the placeholder. Sources: [fedotllm/agents/automl/templates/load_template.py:175-195]()
-*   `_insert_imports(text: str, imports_str: str) -> str`: Inserts the aggregated import statements at the beginning of the text, after any initial comments. Sources: [fedotllm/agents/automl/templates/load_template.py:197-210]()
+*   `_extract_imports(content: str) -> Set[str]`: Identifies and extracts `import` and `from ... import` statements using a regular expression. Sources: [fedotllm/agents/automl/templates/load_template.py:99-105](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L99-L105)
+*   `_remove_imports(content: str, imports: Set[str]) -> str`: Removes the identified import statements from the content. Sources: [fedotllm/agents/automl/templates/load_template.py:107-115](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L107-L115)
+*   `_replace_placeholder_with_content(text: str, placeholder: str, content: str) -> str`: Replaces a specific placeholder (`<%% placeholder %%>`) in the text with the provided content, critically preserving the original indentation of the placeholder. Sources: [fedotllm/agents/automl/templates/load_template.py:175-195](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L175-L195)
+*   `_insert_imports(text: str, imports_str: str) -> str`: Inserts the aggregated import statements at the beginning of the text, after any initial comments. Sources: [fedotllm/agents/automl/templates/load_template.py:197-210](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L197-L210)
 
 ### Placeholder Types
 
@@ -507,9 +503,9 @@ The template system utilizes two primary types of placeholders for different pur
 
 | Placeholder Type     | Purpose                                                 | Source File                                  |
 | :------------------- | :------------------------------------------------------ | :------------------------------------------- |
-| `<%% template_name %%>` | For loading and inserting content from sub-template files. | [fedotllm/agents/automl/templates/load_template.py:59]() |
-| `{% var %}`          | For direct variable substitution within a string template. | [fedotllm/agents/automl/templates/load_template.py:221]() |
+| `<%% template_name %%>` | For loading and inserting content from sub-template files. | [fedotllm/agents/automl/templates/load_template.py:59](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L59) |
+| `{% var %}`          | For direct variable substitution within a string template. | [fedotllm/agents/automl/templates/load_template.py:221](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L221) |
 
 ## Template Rendering
 
-Beyond the file-based template loading, the system also provides a `render_template` function for replacing simple variable placeholders (e.g., `{% var %}`) within a given string template. This is used for direct string templating where file loading is not required. Sources: [fedotllm/agents/automl/templates/load_template.py:212-237]()
+Beyond the file-based template loading, the system also provides a `render_template` function for replacing simple variable placeholders (e.g., `{% var %}`) within a given string template. This is used for direct string templating where file loading is not required. Sources: [fedotllm/agents/automl/templates/load_template.py:212-237](https://github.com/aimclub/FEDOT.LLM/blob/main/fedotllm/agents/automl/templates/load_template.py#L212-L237)
