@@ -1,55 +1,119 @@
+from unittest.mock import patch, MagicMock
+import pytest
+import os
+from pydantic import BaseModel, Field, ValidationError
 from fedotllm.llm import AIInference
-from pydantic import BaseModel, Field
+from tenacity import wait_none
 
-_llm = AIInference()
+class UserModel(BaseModel):
+    """Test model for structured response testing"""
+    name: str = Field(..., description="User name")
+    age: int = Field(..., description="User age", ge=0, le=120)
+    email: str = Field(..., description="User email")
+    active: bool = Field(default=True, description="User active status")
 
-class User(BaseModel):
-    name: str = Field(..., description="Full name of the user")
-    age: int = Field(..., description="Age in years", ge=0, le=120)
-    email: str = Field(..., description="Email address")
-    role: str = Field(default="user", description="User role in the system")
-    score: float = Field(default=0.0, description="User score", ge=0.0, le=100.0)
-    is_active: bool = Field(default=True, description="Whether the user account is active")
+# Fixtures
+@pytest.fixture
+def mock_settings():
+    """Mock settings for testing"""
+    with patch('fedotllm.llm.get_settings') as mock:
+        mock_settings_obj = MagicMock()
+        mock_settings_obj.get.side_effect = lambda key, default=None: {
+            'config.base_url': 'http://test-api.com',
+            'config.model': 'test-model',
+            'config.embeddings': 'test-embeddings-model'
+        }.get(key, default)
+        mock.return_value = mock_settings_obj
+        yield mock_settings_obj
+
+
+@pytest.fixture
+def mock_env_vars():
+    """Mock environment variables"""
+    with patch.dict(os.environ, {
+        'FEDOTLLM_LLM_API_KEY': 'test-llm-key',
+        'FEDOTLLM_EMBEDDINGS_API_KEY': 'test-embeddings-key',
+        'LANGFUSE_PUBLIC_KEY': 'test-langfuse-public',
+        'LANGFUSE_SECRET_KEY': 'test-langfuse-secret'
+    }):
+        yield
+
+@patch('fedotllm.llm.litellm')
+def test_query(mock_litellm):
+    """Test querying with AIInference"""
+    mock_litellm.completion.return_value = MagicMock(
+        choices=[MagicMock(message=MagicMock(content="Hello, world!"))],
+    )
+    inference = AIInference()
+    response = inference.query("Say hello")
+    assert response == "Hello, world!"
+
 
 def test_create_structured_object():
-    
-    message = """
-    New user:
-    <name>John Doe</name>
-    <age>30</age>
-    <email>john@example.com</email>
-    <role>admin</role>
-    <score>95.5</score>
-    <is_active>true</is_active>
-    """
-    
-    user = _llm.create(
-        messages=message,
-        response_model=User
+    """Test creating a structured object with AIInference"""
+    inference = AIInference()
+    inference.query = lambda *args, **kwargs: '{"name": "John Doe", "age": 30, "email": "john@example.com", "active": true}'
+    inference.create.retry.wait = wait_none()  # Disable retry for this test
+    user = inference.create(
+        messages="",
+        response_model=UserModel
     )
     assert user.name == "John Doe"
     assert user.age == 30
     assert user.email == "john@example.com"
-    assert user.role == "admin"
-    assert user.score == 95.5
-    assert user.is_active is True
+    assert user.active is True
     
 def test_create_structured_object_invalid():
-    message = """
-    New user:
-    <name>John Doe</name>
-    <age>150</age>
-    <email>john@example.com</email>
-    <role>admin</role>
-    <score>95.5</score>
-    <is_active>true</is_active>
-    """
-    try:
-        user = _llm.create(
-            messages=message,
-            response_model=User
+    """Test creating a structured object that fails validation"""
+   
+    inference = AIInference()
+    inference.query = lambda *args, **kwargs: '{"name": "John Doe", "age": 150, "email": "john@example.com", "active": true}'
+    inference.create.retry.wait = wait_none()  # Disable retry for this test
+    with pytest.raises(ValidationError, match=r".*less than or equal to 120.*") as exc_info:
+        user = inference.create(
+            messages="",
+            response_model=UserModel
         )
-    except Exception as e:
-        assert isinstance(e, ValueError)
-        assert "age" in str(e)
-        assert "must be less than or equal to 120" in str(e)
+        
+def test_create_structured_object_missing_field():
+    """Test creating a structured object with missing fields"""
+    inference = AIInference()
+    inference.query = lambda *args, **kwargs: '{"name": "John Doe", "age": 30}'
+    inference.create.retry.wait = wait_none()  # Disable retry for this test
+    with pytest.raises(ValidationError, match=r".*[fF]ield required.*") as exc_info:
+        user = inference.create(
+            messages="",
+            response_model=UserModel
+        )
+        
+@pytest.mark.parametrize("response,expected_error", [
+    ('name: "John Doe", "age": 30, "email": "john@example.com", "active": true', r".*valid dictionary.*"),
+    ('', r".*valid dictionary.*"),
+    (None, r".*valid dictionary.*"),   
+])
+def test_create_structured_object_invalid_format(response, expected_error):
+    """Test creating a structured object with invalid response"""
+    
+    inference = AIInference()
+    inference.query = lambda *args, **kwargs: response
+    inference.create.retry.wait = wait_none()  # Disable retry for this test
+    with pytest.raises(ValidationError, match=expected_error) as exc_info:
+        user = inference.create(
+            messages="",
+            response_model=UserModel
+        )
+
+@pytest.mark.parametrize("response", [
+    '{"name": "John Doe", "age": 30, "email": "john@example.com", "active": true}',
+    
+])
+@patch('fedotllm.llm.litellm')
+def test_create_structured_use_query_valid(mock_litellm):
+    """Test creating a structured object using query method"""
+    mock_litellm.completion.return_value = MagicMock(
+        choices=[MagicMock(message=MagicMock(content="Hello, world!"))],
+    )
+    inference = AIInference()
+    inference.query = lambda *args, **kwargs: '{"name": "Jane Doe", "age": 25, "email": '
+
+

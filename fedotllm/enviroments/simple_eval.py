@@ -1,15 +1,12 @@
-import logging
 import os
 import subprocess
 from pathlib import Path
 
-from .types import CodeObservation
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+from .types import Observation
+from fedotllm.log import logger
 
 
-def execute_code(path_to_run_code: Path) -> CodeObservation:
+def execute_code(path_to_run_code: Path) -> Observation:
     try:
         result = subprocess.run(
             ["python3", "-W", "ignore", path_to_run_code],
@@ -17,7 +14,8 @@ def execute_code(path_to_run_code: Path) -> CodeObservation:
             text=True,
             preexec_fn=os.setsid,
         )
-        return CodeObservation(
+        logger.debug(f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}")
+        return Observation(
             error=result.returncode != 0, stdout=result.stdout, stderr=result.stderr
         )
     except Exception as e:
@@ -25,4 +23,4 @@ def execute_code(path_to_run_code: Path) -> CodeObservation:
         logger.error(
             f"Unexpected error executing {path_to_run_code}: {e}", exc_info=True
         )
-        return CodeObservation(error=True, stdout="", stderr=stderr)
+        return Observation(error=True, stdout="", stderr=stderr)

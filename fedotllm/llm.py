@@ -46,16 +46,16 @@ class AIInference:
             "api_key": self.api_key,
             "base_url": self.base_url,
             # "max_completion_tokens": 8000,
-            "extra_headers": {"X-Title": "FEDOT.LLM"}
+            "extra_headers": {"X-Title": "FEDOT.LLM"},
         }
 
     @retry(
-        stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=10)
+        stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=10), reraise=True
     )
     def create(self, messages: str, response_model: Type[T]) -> T:
         messages = f"{messages}\n{prompts.utils.structured_response(response_model)}"
         response = self.query(messages)
-        json_obj = parse_json(response)
+        json_obj = parse_json(response) if response else None
         return response_model.model_validate(json_obj)
 
     @retry(
@@ -63,7 +63,7 @@ class AIInference:
         wait=wait_exponential(multiplier=1, min=4, max=10),
         reraise=True,
     )
-    def query(self, messages: str) -> str:
+    def query(self, messages: str) -> str | None:
         messages = [{"role": "user", "content": messages}]
         response = litellm.completion(
             messages=messages,
@@ -102,7 +102,7 @@ class OpenaiEmbeddings:
                 model=self.model, input=input, encoding_format="float"
             )
         except Exception:
-            len_embeddings = self.num_tokens_from_string(input)
+            len_embeddings = num_tokens_from_string(input)
             if len_embeddings > self.MAX_INPUT:
                 raise Exception(f"Input exceeds the limit of <{self.model}>!")
             else:
@@ -118,6 +118,7 @@ def num_tokens_from_string(string: str, encoding_name: str = "cl100k_base") -> i
     num_tokens = len(encoding.encode(string))
 
     return num_tokens
+
 
 if __name__ == "__main__":
     inference = AIInference(model="deepseek/DeepSeek-V3-0324")

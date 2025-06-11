@@ -10,7 +10,6 @@ dependencies = [
     "autoflake>=2.3.1",
     "beautifulsoup4>=4.13.3",
     "chromadb>=0.6.3",
-    "deep-translator>=1.11.4",
     "dynaconf>=3.2.10",
     "fedot>=0.7.5",
     "giotto-tda==0.6.0",
@@ -20,6 +19,7 @@ dependencies = [
     "kaggle>=1.7.4.5",
     "langchain-core>=0.3.49",
     "langchain-openai>=0.3.11",
+    "langdetect>=1.0.9",
     "langfuse>=2.60.4",
     "langgraph>=0.3.21",
     "litellm==1.71.2",
@@ -35,7 +35,13 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["ipykernel>=6.29.5", "pytest>=8.3.5", "ruff>=0.11.2"]
+dev = [
+ "ipykernel>=6.29.5",
+ "pytest>=8.3.5",
+ "pytest-asyncio>=1.0.0",
+ "pytest-mock>=3.12.0",
+ "ruff>=0.11.2",
+]
 
 [tool.setuptools]
 packages = ["fedotllm", "examples"]

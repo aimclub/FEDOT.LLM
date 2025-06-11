@@ -1,5 +1,5 @@
-def train_model(train_features: np.ndarray, train_target: np.ndarray):
-    input_data = InputData.from_numpy(train_features, train_target, task=Task({%problem%}))
+def train_model(train_features: pd.DataFrame | pd.Series, train_target: pd.DataFrame | pd.Series):
+    input_data = InputData.from_dataframe(train_features, train_target, task='classification')
     model = Fedot(problem={%problem%}.value,
             timeout={%timeout%},
             seed=42,

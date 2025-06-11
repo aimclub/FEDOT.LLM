@@ -1,7 +1,7 @@
 # FEDOT.LLM
 
 <p align="center">
-  <img src="/docs/fedot-llm.png" width="600" title="Fedot.LLM logo">
+  <img src="./docs/fedot-llm.png" width="600" title="Fedot.LLM logo">
 </p>
 
 [![Acknowledgement ITMO](https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/ITMO_badge.svg)](https://itmo.ru/)
@@ -12,25 +12,32 @@
 
 FEDOT.LLM is an LLM-based prototype for next-generation AutoML. It combines the power of Large Language Models with automated machine learning techniques to enhance data analysis and pipeline building processes.
 
-## Installation
+## ⚙️ Installation and Setup
 
-### Method 1: Using uv (Recommended)
 
-1. Install uv (A fast Python package installer and resolver):
+### 📦 Basic Installation
+
+We offer two installation methods to suit your preferences:
+
+
+#### 🚀 Method 1: Using uv (Recommended)
+
+<details>
+<summary><b>📋 Step-by-step installation with uv</b></summary>
+
+**Step 1: Install uv**
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-2. Clone the repository:
-
+**Step 2: Clone the repository**
 ```bash
 git clone https://github.com/aimclub/FEDOT.LLM.git
 cd FEDOT.LLM
 ```
 
-3. Create a new virtual environment and activate it:
-
+**Step 3: Create and activate virtual environment**
 ```bash
 uv venv --python 3.10
 source .venv/bin/activate  # On Unix/macOS
@@ -38,33 +45,71 @@ source .venv/bin/activate  # On Unix/macOS
 # .venv\Scripts\activate
 ```
 
-4. Install dependencies:
-
+**Step 4: Install dependencies**
 ```bash
 uv sync
 ```
 
-### Method 2: Using conda
+</details>
 
-1. Create a new conda environment:
+#### 🐍 Method 2: Using conda
 
+<details>
+<summary><b>📋 Step-by-step installation with conda</b></summary>
+
+**Step 1: Create conda environment**
 ```bash
 conda create -n FedotLLM python=3.10
 conda activate FedotLLM
 ```
 
-2. Clone the repository:
-
+**Step 2: Clone the repository**
 ```bash
 git clone https://github.com/aimclub/FEDOT.LLM.git
 cd FEDOT.LLM
 ```
 
-3. Install dependencies:
-
+**Step 3: Install dependencies**
 ```bash
 pip install -e .
 ```
+
+</details>
+
+### 🔧 Environment Configuration
+
+FEDOT.LLM requires API keys to access external services. Configure them through environment variables for seamless operation.
+
+#### Option 1: Create `.env` file (Recommended)
+
+Create a `.env` file in the project root:
+
+```bash
+# Required API Keys
+FEDOTLLM_LLM_API_KEY=your_llm_api_key_here
+FEDOTLLM_EMBEDDINGS_API_KEY=your_embeddings_api_key_here
+
+# Optional: For tracing LLM calls with Langfuse
+LANGFUSE_SECRET_KEY=your_langfuse_secret_key_here
+LANGFUSE_PUBLIC_KEY=your_langfuse_public_key_here
+```
+
+#### Option 2: Export directly
+
+```bash
+export FEDOTLLM_LLM_API_KEY=your_llm_api_key_here
+export FEDOTLLM_EMBEDDINGS_API_KEY=your_embeddings_api_key_here
+
+# Optional: For tracing LLM calls with Langfuse
+export LANGFUSE_SECRET_KEY=your_langfuse_secret_key_here
+export LANGFUSE_PUBLIC_KEY=your_langfuse_public_key_here
+```
+
+<div align="center">
+
+**🎉 Congratulations! You're ready to explore FEDOT.LLM**
+
+</div>
 
 ## How to Use
 
@@ -124,17 +169,11 @@ async for _ in fedot_ai.ask(message=msg):
 
 ## Examples and demo
 
-You can use the example notebooks in the `examples/by_datasets/` directory to get started. For instance, to run the [Health_Insurance](datasets/Health_Insurance) dataset example:
-   ```
-   jupyter notebook examples/by_datasets/health_insurance.ipynb
-   ```
-
 You can also use the Streamlit web interface for a more interactive experience. To run it:
-   ```
-   streamlit run streamlit-app.py
-   ```
 
-For more information on how to setup and run Streamlit app see [`STREAMLIT_README.md`](STREAMLIT_README.md).
+```zsh
+uv run python -m streamlit run fedotllm/web/streamlit-app.py
+```
 
 ## Development
 

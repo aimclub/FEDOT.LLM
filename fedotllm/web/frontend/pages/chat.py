@@ -83,20 +83,8 @@ def add_assistant_error_message(content):
     st.session_state.messages.append({"role": "assistant", "content": content})
     st.rerun()
 
-
+    
 def chat():
-    _, mid_pos, _ = st.columns([1, 22, 1], gap="large")
-    with mid_pos:
-        if st.button(
-            label="Run!",
-            key="run_task",
-            disabled=st.session_state.task_running,
-            use_container_width=True,
-        ):
-            st.session_state.task_running = True
-            st.rerun()
-
-    st.markdown("---", unsafe_allow_html=True)
     message_container = st.container()
     if st.session_state.task_running:
         message_handler(message_container)

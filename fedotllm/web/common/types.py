@@ -6,7 +6,6 @@ from datetime import datetime
 from enum import Enum
 from hashlib import sha256
 
-from deep_translator import GoogleTranslator
 from fedotllm.web.backend.utils.graphviz_builder import Edge, GraphvizBuilder, Node
 from fedotllm.web.common.colors import BSColors, STColors
 from fedotllm.web.frontend.localization import lclz
@@ -240,9 +239,6 @@ class MessagesHandler(BaseResponse):
                 id=self.id,
                 name=self.name,
                 state=self.state,
-                content=GoogleTranslator(source="en", target=self.lang).translate(
-                    "\n\n".join(content)
-                ),
                 stream=self.stream,
             )
         )

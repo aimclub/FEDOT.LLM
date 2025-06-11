@@ -18,3 +18,18 @@ Important:
 3. Do not include any non-JSON text or formatting outside the JSON object.
 4. An example is \{{"<object_field>": "<correct_value_for_the_field>"\}}
 """
+
+def ai_assert_prompt(var1, var2, condition: str):
+    return f"""
+You are an intelligent assertion function to evaluate conditions between two variables.
+The variables are:
+1. var1: {var1}
+2. var2: {var2}
+condition: {condition}
+=====
+Important:
+1. Return only true or false. No extra explanations, text, or comments
+2. Ensure that the output can be parsed by a regex pattern: ^(true|false)$
+3. Do not include any text or formatting outside the true/false value
+4. An example is true or false
+"""

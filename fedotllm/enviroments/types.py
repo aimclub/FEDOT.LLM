@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ProgramStatus(Enum):
@@ -19,9 +19,9 @@ class ExecutionResult:
     sandbox_result: str = ""
     trace: Optional[str] = None
     global_vars: Optional[dict] = None
-
-
-class CodeObservation(BaseModel):
-    error: bool
-    stdout: str
-    stderr: str
+    
+class Observation(BaseModel):
+    error: bool = Field(default=False)
+    msg: str = Field(default="")
+    stdout: str =  Field(default="")
+    stderr: str = Field(default="")

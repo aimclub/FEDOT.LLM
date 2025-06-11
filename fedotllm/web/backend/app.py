@@ -1,7 +1,6 @@
 from typing import Literal, Optional
 
-from deep_translator import GoogleTranslator
-from fedotllm.llm.inference import AIInference, OpenaiEmbeddings
+from fedotllm.llm import AIInference, OpenaiEmbeddings
 from fedotllm.main import FedotAI
 from fedotllm.web.common.types import (
     BaseResponse,
@@ -36,9 +35,7 @@ async def ask(
         workspace=workspace,
     )
 
-    async for _ in fedot_ai.ask(
-        GoogleTranslator(source="auto", target="en").translate(msg)
-    ):
+    async for _ in fedot_ai.ask(msg):
         if len(response.context) > 0:
             yield response.pack()
         response.clean()

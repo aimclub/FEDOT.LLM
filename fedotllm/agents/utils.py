@@ -3,27 +3,7 @@ import re
 from typing import Any, Dict
 
 import json_repair
-from jinja2 import Environment, StrictUndefined
-
 from fedotllm.log import logger
-
-
-def jinja_render(template: str, *args, **kwargs):
-    environment = Environment(undefined=StrictUndefined)
-    return environment.from_string(template).render(*args, **kwargs)
-
-
-def render(prompt, *args, **kwargs):
-    system = prompt.get("system", None)
-    if system:
-        system = jinja_render(system, *args, **kwargs)
-    user = jinja_render(prompt.user, *args, **kwargs)
-
-    temperature = prompt.get("temperature", 0.2)
-    frequency_penalty = prompt.get("frequency_penalty", 0.0)
-
-    return user, system, temperature, frequency_penalty
-
 
 # if ```python on response, or ``` on response, or whole response is code, return code
 def extract_code(response: str) -> str:
@@ -43,12 +23,18 @@ def extract_code(response: str) -> str:
     return code_match.group(1).strip() if code_match else response
 
 
-def parse_json(raw_reply: str) -> Dict[str, Any] | None:
-    def try_json_loads(data: str) -> Dict[str, Any]:
+def parse_json(raw_reply: str | None) -> Dict[str, Any] | None:
+    """Parse a JSON string from the raw reply."""
+    if not raw_reply:
+        logger.warning("Received empty or None raw reply for JSON parsing.")
+        return None
+    
+    def try_json_loads(data: str) -> Dict[str, Any] | None:
         try:
-            return json_repair.repair_json(
+            repaired_json = json_repair.repair_json(
                 data, ensure_ascii=False, return_objects=True
             )
+            return repaired_json if repaired_json != "" else None
         except json.JSONDecodeError as e:
             logger.error(f"JSON decoding error: {e}")
             return None
