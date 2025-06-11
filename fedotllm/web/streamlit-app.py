@@ -1,7 +1,6 @@
 from fedotllm.web.frontend import pages as pg
 from fedotllm.web.frontend.pages.preview import main as preview
 from fedotllm.web.frontend.pages.task import main as task
-from fedotllm.web.frontend.pages.side_bar import main as side_bar
 import streamlit as st
 import os
 

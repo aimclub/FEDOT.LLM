@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Literal, Optional, Union, List
+from typing import Literal, Optional, Union
 
 from fedot.core.repository.tasks import TaskTypesEnum
 from pydantic import BaseModel, Field, ConfigDict

@@ -30,9 +30,9 @@ def fix_solution_prompt(
     reflection: str,
     dataset_path: str,
     code_recent_solution: str,
-    msg: str,
     stdout: str,
     stderr: str,
+    msg: str = "",
 ) -> str:
     return f"""
 You are a senior machine learning engineer. Analyze the following information: the task description with reflections, the path to the dataset, the Python code from a previous solution, and the resulting stdout and stderr. Identify and correct the specific error that caused the failure without altering any other logic. Provide the complete corrected Python script in a code block.
@@ -106,6 +106,8 @@ Ensure that the analysis is thorough, with a strong emphasis on :
 # Available Data File And Content in The File
 {data_files_and_content}
 """
+
+
 # # Available Data File And Content in The File
 # {data_files_and_content}
 

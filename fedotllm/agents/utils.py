@@ -5,6 +5,7 @@ from typing import Any, Dict
 import json_repair
 from fedotllm.log import logger
 
+
 # if ```python on response, or ``` on response, or whole response is code, return code
 def extract_code(response: str) -> str:
     """Extract code content from text that may contain code blocks.
@@ -28,7 +29,7 @@ def parse_json(raw_reply: str | None) -> Dict[str, Any] | None:
     if not raw_reply:
         logger.warning("Received empty or None raw reply for JSON parsing.")
         return None
-    
+
     def try_json_loads(data: str) -> Dict[str, Any] | None:
         try:
             repaired_json = json_repair.repair_json(

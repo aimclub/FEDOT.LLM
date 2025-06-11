@@ -105,15 +105,20 @@ def test_create_structured_object_invalid_format(response, expected_error):
 
 @pytest.mark.parametrize("response", [
     '{"name": "John Doe", "age": 30, "email": "john@example.com", "active": true}',
-    
 ])
 @patch('fedotllm.llm.litellm')
-def test_create_structured_use_query_valid(mock_litellm):
+def test_create_structured_use_query_valid(mock_litellm, response):
     """Test creating a structured object using query method"""
     mock_litellm.completion.return_value = MagicMock(
-        choices=[MagicMock(message=MagicMock(content="Hello, world!"))],
+        choices=[MagicMock(message=MagicMock(content=response))],
     )
     inference = AIInference()
-    inference.query = lambda *args, **kwargs: '{"name": "Jane Doe", "age": 25, "email": '
-
-
+    inference.create.retry.wait = wait_none()  # Disable retry for this test
+    user = inference.create(
+        messages="Create a user object",
+        response_model=UserModel
+    )
+    assert user.name == "John Doe"
+    assert user.age == 30
+    assert user.email == "john@example.com"
+    assert user.active is True

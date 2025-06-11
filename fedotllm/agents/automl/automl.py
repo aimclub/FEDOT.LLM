@@ -75,7 +75,8 @@ class AutoMLAgent:
             partial(fix_solution, inference=self.inference, dataset=self.dataset),
         )
         workflow.add_node(
-            "run_tests", partial(run_tests, workspace=self.workspace, inference=self.inference)
+            "run_tests",
+            partial(run_tests, workspace=self.workspace, inference=self.inference),
         )
         workflow.add_node(
             "extract_metrics", partial(extract_metrics, workspace=self.workspace)

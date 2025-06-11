@@ -50,7 +50,9 @@ class AIInference:
         }
 
     @retry(
-        stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=4, max=10), reraise=True
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        reraise=True,
     )
     def create(self, messages: str, response_model: Type[T]) -> T:
         messages = f"{messages}\n{prompts.utils.structured_response(response_model)}"

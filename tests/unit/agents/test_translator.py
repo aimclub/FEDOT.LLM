@@ -91,7 +91,7 @@ class TestTranslatorAgent:
         mock_inference_fixture.query.assert_called_once()
         args, kwargs = mock_inference_fixture.query.call_args
         prompt = args[0] if args else kwargs.get('messages', '')
-        assert "Translate the following text from en to es." in prompt
+        assert "Translate the following text from English to es." in prompt
         assert "Hello world again" in prompt
 
 

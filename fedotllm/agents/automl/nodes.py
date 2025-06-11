@@ -263,7 +263,11 @@ def run_tests(state: AutoMLAgentState, workspace: Path, inference: AIInference):
         submission_file = workspace / "submission.csv"
         print("DEBUG: RAW OUTPUT\n", raw_output)
 
-        if not (match := re.search(r"Sample Submission File:\s*(.*?)$", raw_output, re.MULTILINE)):
+        if not (
+            match := re.search(
+                r"Sample Submission File:\s*(.*?)$", raw_output, re.MULTILINE
+            )
+        ):
             return Observation(
                 error=True,
                 msg="Sample submission file format not found. Print `Sample Submission File: {sample_submission}` in your code so I can check it.",

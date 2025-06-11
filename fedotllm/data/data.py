@@ -96,7 +96,7 @@ class Dataset:
                 splits.append(split)
 
         return Dataset(splits=splits, path=path)
-    
+
     def get_train_split(self):
         # heuristics to find train split
         for split in self.splits:

@@ -19,6 +19,7 @@ Important:
 4. An example is \{{"<object_field>": "<correct_value_for_the_field>"\}}
 """
 
+
 def ai_assert_prompt(var1, var2, condition: str):
     return f"""
 You are an intelligent assertion function to evaluate conditions between two variables.

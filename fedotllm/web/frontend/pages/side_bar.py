@@ -1,14 +1,17 @@
 import streamlit as st
 
 from ..localization import lclz
-from ..utils import (create_zip_file, file_uploader, generate_output_file,
-                     get_user_data_dir, get_user_session_id,
-                     get_user_uploaded_files)
+from ..utils import (
+    create_zip_file,
+    file_uploader,
+    generate_output_file,
+    get_user_data_dir,
+    get_user_session_id,
+)
 
 
 def store_value(key):
     st.session_state[key] = st.session_state["_" + key]
-
 
 
 def init_dataset():
@@ -29,7 +32,7 @@ def set_llm_name():
     load_llm_value("name")
     st.text_input(
         lclz[st.session_state.lang]["NAME"],
-        placeholder="gpt-4o",
+        placeholder="e.g., gpt-4o, claude-4, llama-3.1",
         key="_llm_name",
         on_change=set_llm,
         args=["name"],
@@ -41,7 +44,7 @@ def set_llm_api_key():
     load_llm_value("api_key")
     st.text_input(
         lclz[st.session_state.lang]["API_KEY"],
-        placeholder="gpt-4o",
+        placeholder="sk-...",
         key="_llm_api_key",
         on_change=set_llm,
         args=["api_key"],
@@ -77,6 +80,7 @@ def change_lang():
         }
         st.rerun()
 
+
 def dwn_results():
     with st.container(border=True):
         st.header(lclz[st.session_state.lang]["RESULTS"])
@@ -111,6 +115,7 @@ def dwn_results():
                     file_name="pipeline.zip",
                     mime="application/zip",
                 )
+
 
 def run_section():
     with st.sidebar:

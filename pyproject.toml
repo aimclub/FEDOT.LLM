@@ -36,11 +36,12 @@ dependencies = [
 
 [dependency-groups]
 dev = [
- "ipykernel>=6.29.5",
- "pytest>=8.3.5",
- "pytest-asyncio>=1.0.0",
- "pytest-mock>=3.12.0",
- "ruff>=0.11.2",
+    "ipykernel>=6.29.5",
+    "pytest>=8.3.5",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=6.1.1",
+    "pytest-mock>=3.12.0",
+    "ruff>=0.11.2",
 ]
 
 [tool.setuptools]
@@ -54,4 +55,10 @@ python_functions = "test_*"
 filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
 
 [tool.ruff]
-exclude = ["user_data/*", "test*", "fedotllm/**/templates/**", "examples"]
+exclude = [
+    "user_data/*",
+    "test*",
+    "fedotllm/**/templates/**",
+    "examples",
+    "kaggle_comp",
+]

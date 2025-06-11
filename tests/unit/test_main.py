@@ -7,13 +7,6 @@ from langchain_core.messages import HumanMessage #, AIMessage
 from langchain_core.runnables.schema import StreamEvent #, EventData
 
 from fedotllm.main import FedotAI
-# Mocked class placeholders (actual mocks will be done with @patch or fixtures)
-# from fedotllm.llm import AIInference, OpenaiEmbeddings (will be mocked)
-# from fedotllm.data import Dataset (will be mocked)
-# from fedotllm.agents.supervisor import SupervisorAgent (will be mocked)
-# from fedotllm.agents.agent_wrapper.agent_wrapper import AgentWrapper (will be mocked)
-# from fedotllm.agents.automl.automl_chat import AutoMLAgentChat (will be mocked)
-# from fedotllm.agents.researcher.researcher import ResearcherAgent (will be mocked)
 
 # Fixtures
 @pytest.fixture

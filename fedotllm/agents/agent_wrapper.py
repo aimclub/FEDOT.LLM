@@ -2,17 +2,12 @@ from functools import partial
 
 from langgraph.graph import END, START, StateGraph
 
-from fedotllm.agents.agent_wrapper.stages.run_entry_state_connector import (
-    run_entry_state_connector,
-)
-from fedotllm.agents.agent_wrapper.stages.run_exit_state_connector import (
-    run_exit_state_connector,
-)
 from fedotllm.agents.automl.automl import AutoMLAgent
 from fedotllm.agents.automl.state import AutoMLAgentState
-from fedotllm.agents.base import Agent
+from fedotllm.agents.base import Agent, FedotLLMAgentState
 from fedotllm.agents.researcher.researcher import ResearcherAgent
 from fedotllm.agents.researcher.state import ResearcherAgentState
+from langchain_core.messages import HumanMessage
 
 
 class AgentWrapper(Agent):
@@ -42,3 +37,28 @@ class AgentWrapper(Agent):
         workflow.add_edge("run_exit_state_connector", END)
 
         return workflow.compile()
+
+
+def run_entry_state_connector(state: FedotLLMAgentState, agent: Agent):
+    if isinstance(agent, ResearcherAgent):
+        state: ResearcherAgentState
+        state["question"] = state["messages"][-1].content
+    elif isinstance(agent, AutoMLAgent):
+        state: AutoMLAgentState
+        state["description"] = state["messages"][-1].content
+    return state
+
+
+def run_exit_state_connector(state: FedotLLMAgentState, agent: Agent):
+    if isinstance(agent, ResearcherAgent):
+        state: ResearcherAgentState
+        return state | {
+            "messages": [HumanMessage(content=state["answer"], name="ResearcherAgent")]
+        }
+    elif isinstance(agent, AutoMLAgent):
+        state: AutoMLAgentState
+        return state | {
+            "messages": [
+                HumanMessage(content=state["solutions"][-1]["code"], name="AutoMLAgent")
+            ]
+        }
