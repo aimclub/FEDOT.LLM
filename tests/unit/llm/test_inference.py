@@ -39,7 +39,7 @@ def mock_env_vars():
         yield
 
 @patch('fedotllm.llm.litellm')
-def test_query(mock_litellm):
+def test_query(mock_litellm, mock_env_vars):
     """Test querying with AIInference"""
     mock_litellm.completion.return_value = MagicMock(
         choices=[MagicMock(message=MagicMock(content="Hello, world!"))],
@@ -49,7 +49,7 @@ def test_query(mock_litellm):
     assert response == "Hello, world!"
 
 
-def test_create_structured_object():
+def test_create_structured_object(mock_env_vars):
     """Test creating a structured object with AIInference"""
     inference = AIInference()
     inference.query = lambda *args, **kwargs: '{"name": "John Doe", "age": 30, "email": "john@example.com", "active": true}'
@@ -63,7 +63,7 @@ def test_create_structured_object():
     assert user.email == "john@example.com"
     assert user.active is True
     
-def test_create_structured_object_invalid():
+def test_create_structured_object_invalid(mock_env_vars):
     """Test creating a structured object that fails validation"""
    
     inference = AIInference()
@@ -75,7 +75,7 @@ def test_create_structured_object_invalid():
             response_model=UserModel
         )
         
-def test_create_structured_object_missing_field():
+def test_create_structured_object_missing_field(mock_env_vars):
     """Test creating a structured object with missing fields"""
     inference = AIInference()
     inference.query = lambda *args, **kwargs: '{"name": "John Doe", "age": 30}'
@@ -91,7 +91,7 @@ def test_create_structured_object_missing_field():
     ('', r".*valid dictionary.*"),
     (None, r".*valid dictionary.*"),   
 ])
-def test_create_structured_object_invalid_format(response, expected_error):
+def test_create_structured_object_invalid_format(response, expected_error, mock_env_vars):
     """Test creating a structured object with invalid response"""
     
     inference = AIInference()
@@ -107,7 +107,7 @@ def test_create_structured_object_invalid_format(response, expected_error):
     '{"name": "John Doe", "age": 30, "email": "john@example.com", "active": true}',
 ])
 @patch('fedotllm.llm.litellm')
-def test_create_structured_use_query_valid(mock_litellm, response):
+def test_create_structured_use_query_valid(mock_litellm, response, mock_env_vars):
     """Test creating a structured object using query method"""
     mock_litellm.completion.return_value = MagicMock(
         choices=[MagicMock(message=MagicMock(content=response))],
