@@ -76,6 +76,45 @@ pip install -e .
 
 </details>
 
+### 🐳 Quick Start with Docker
+
+For the fastest setup experience, use Docker with our comprehensive Makefile commands:
+
+#### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) (version 20.10 or later)
+- [Docker Compose](https://docs.docker.com/compose/install/) (version 2.0 or later)
+- [Make](https://www.gnu.org/software/make/) (usually pre-installed on Unix systems)
+
+#### Quick Launch
+```bash
+# Clone the repository
+git clone https://github.com/aimclub/FEDOT.LLM.git
+cd FEDOT.LLM
+
+# Create your .env file with API keys (see Environment Configuration below)
+cp .env.example .env  # Edit with your API keys
+
+# Build and start all services with development features
+make docker-dev-build
+```
+
+The application will be available at:
+- **🌐 Streamlit Web Interface**: [http://localhost:8080](http://localhost:8080)
+- **📊 ChromaDB Vector Database**: [http://localhost:8000](http://localhost:8000)
+
+#### Docker Commands
+
+| Command | Description | Use Case |
+|---------|-------------|----------|
+| `make docker-build` | Build Docker images | 🔨 Manual builds |
+| `make docker-run` | Start services with docker-compose | 🚀 Standard startup |
+| `make docker-dev` | Start development environment with watch mode | 🔄 Active development |
+| `make docker-dev-build` | Build and start development environment | 🆕 First-time setup |
+| `make docker-stop` | Stop all containers | ⏹️ Clean shutdown |
+| `make docker-logs` | View container logs | 🔍 Debugging |
+| `make docker-shell` | Access app container shell | 🐚 Interactive debugging |
+| `make docker-clean` | Clean up containers and images | 🧹 Regular cleanup |
+
 ### 🔧 Environment Configuration
 
 FEDOT.LLM requires API keys to access external services. Configure them through environment variables for seamless operation.
@@ -110,6 +149,44 @@ export LANGFUSE_PUBLIC_KEY=your_langfuse_public_key_here
 **🎉 Congratulations! You're ready to explore FEDOT.LLM**
 
 </div>
+
+### 🛠️ Development with Makefile
+
+Our Makefile provides comprehensive automation for development workflows:
+
+#### Essential Commands
+
+| Category | Command | Description |
+|----------|---------|-------------|
+| **🐳 Docker** | `make docker-dev` | Start development environment |
+| | `make docker-build` | Build Docker images |
+| | `make docker-clean` | Clean containers and images |
+| **🧪 Testing** | `make test` | Run tests |
+| | `make test-coverage` | Run tests with coverage |
+| | `make test-watch` | Run tests in watch mode |
+| **🔍 Quality** | `make lint` | Run linting |
+| | `make format` | Format code |
+| | `make quality` | Run all quality checks |
+| **🚀 Apps** | `make streamlit` | Run Streamlit app locally |
+| | `make jupyter` | Start Jupyter notebook |
+| **🛠️ Utils** | `make install` | Install dependencies |
+| | `make clean` | Clean temporary files |
+| | `make help` | Show all commands |
+
+#### Quick Development Setup
+```bash
+# Install dependencies and start development environment
+make dev
+
+# Run quality checks before committing
+make quick-test
+
+# Full project validation
+make full-check
+
+# Reset everything and reinstall
+make reset
+```
 
 ## How to Use
 

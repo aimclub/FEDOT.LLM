@@ -31,6 +31,13 @@
     - [🚀 Method 1: Using uv (Recommended)](#-method-1-using-uv-recommended)
     - [🐍 Method 2: Using conda](#-method-2-using-conda)
   - [🔧 Environment Configuration](#-environment-configuration)
+- [🐳 Docker Setup](#-docker-setup)
+  - [📋 Docker Prerequisites](#-docker-prerequisites)
+  - [🚀 Quick Start with Docker](#-quick-start-with-docker)
+  - [🏗️ Docker Architecture](#%EF%B8%8F-docker-architecture)
+  - [🛠️ Makefile Commands Reference](#%EF%B8%8F-makefile-commands-reference)
+  - [🔄 Development Workflow](#-development-workflow)
+  - [🐛 Troubleshooting](#-troubleshooting)
 
 </details>
 
@@ -248,6 +255,229 @@ export LANGFUSE_PUBLIC_KEY=your_langfuse_public_key_here
 **🎉 Congratulations! You're ready to explore FEDOT.LLM**
 
 </div>
+
+---
+
+## 🐳 Docker Setup
+
+<div align="center">
+
+> **🚀 Containerized Development and Deployment Made Simple**
+
+</div>
+
+FEDOT.LLM provides comprehensive Docker support with multi-container orchestration, development workflows, and production-ready configurations.
+
+### 📋 Docker Prerequisites
+
+Before starting, ensure you have the following installed:
+
+| Tool | Version | Installation |
+|------|---------|--------------|
+| 🐳 **Docker** | 20.10+ | [Install Docker](https://docs.docker.com/get-docker/) |
+| 🐙 **Docker Compose** | 2.0+ | [Install Compose](https://docs.docker.com/compose/install/) |
+| 🛠️ **Make** | Any | Usually pre-installed on Unix systems |
+
+### 🚀 Quick Start with Docker
+
+#### 1. Clone and Setup
+```bash
+# Clone the repository
+git clone https://github.com/aimclub/FEDOT.LLM.git
+cd FEDOT.LLM
+
+# Create environment file
+cp .env.example .env
+# Edit .env with your API keys
+```
+
+#### 2. Launch Services
+```bash
+# Build and start all services with development features
+make docker-dev-build
+
+# Or for a quick start without rebuild
+make docker-dev
+```
+
+#### 3. Access Applications
+- **🌐 Streamlit Web Interface**: [http://localhost:8080](http://localhost:8080)
+- **📊 ChromaDB Vector Database**: [http://localhost:8000](http://localhost:8000)
+
+### 🏗️ Docker Architecture
+
+Our Docker setup includes multiple specialized containers:
+
+```mermaid
+graph TD
+    A[👤 User] -->|Port 8080| B[🌐 Streamlit App]
+    B -->|Internal Network| C[📊 ChromaDB]
+    B -->|Volume Mount| D[💾 Persistent Storage]
+    C -->|Port 8000| E[🔍 Vector Database API]
+    C -->|Volume Mount| F[💾 ChromaDB Data]
+    
+    style A fill:#e1f5fe
+    style B fill:#fff3e0
+    style C fill:#e8f5e8
+    style D fill:#fce4ec
+    style E fill:#f1f8e9
+    style F fill:#fce4ec
+```
+
+### 🛠️ Makefile Commands Reference
+
+#### 🏃 Development Commands
+| Command | Description | Use Case |
+|---------|-------------|----------|
+| `make docker-dev` | Start development environment with watch mode | 🔄 Active development |
+| `make docker-dev-build` | Build and start development environment | 🆕 First-time setup |
+| `make docker-build` | Build all Docker images | 🔨 Manual builds |
+| `make docker-run` | Start services with docker-compose | 🚀 Standard startup |
+
+#### 📊 Monitoring Commands
+| Command | Description | Use Case |
+|---------|-------------|----------|
+| `make docker-logs` | View all container logs | 🔍 Debugging |
+| `make docker-logs-app` | View app container logs | 🌐 App debugging |
+| `make docker-logs-chroma` | View ChromaDB logs | 📊 Database debugging |
+| `make docker-ps` | Show running containers | 👀 Status check |
+
+#### 🔧 Management Commands
+| Command | Description | Use Case |
+|---------|-------------|----------|
+| `make docker-shell` | Access app container shell | 🐚 Interactive debugging |
+| `make docker-shell-chroma` | Access ChromaDB container shell | 📊 Database management |
+| `make docker-stop` | Stop all containers | ⏹️ Clean shutdown |
+| `make docker-restart` | Restart containers | 🔄 Quick restart |
+
+#### 🧹 Cleanup Commands
+| Command | Description | Use Case |
+|---------|-------------|----------|
+| `make docker-clean` | Clean containers and images | 🧹 Regular cleanup |
+| `make docker-clean-all` | **⚠️ Remove everything** | 🗑️ Complete reset |
+
+### 🔄 Development Workflow
+
+#### Daily Development Process
+```bash
+# Start your development session
+make docker-dev-build
+
+# Work on your code - changes auto-reload thanks to watch mode
+# View logs if needed
+make docker-logs-app
+
+# Stop when done
+make docker-stop
+```
+
+#### Testing and Quality Assurance
+```bash
+# Run tests in containerized environment
+make docker-shell
+uv run pytest
+
+# Or run quality checks
+make docker-shell
+make lint
+make test
+```
+
+### 📁 Volume Management
+
+Our Docker setup uses persistent volumes for data storage:
+
+| Volume | Purpose | Host Path | Container Path |
+|--------|---------|-----------|----------------|
+| 📊 **ChromaDB Data** | Vector database storage | `./docker/docker_caches/chroma` | `/docker_caches/chroma` |
+| 💾 **Cache Storage** | General application cache | `./docker/docker_caches` | `/docker_caches` |
+
+### 🌍 Environment Variables
+
+Essential environment variables for Docker deployment:
+
+```bash
+# Required LLM API Configuration
+FEDOTLLM_LLM_API_KEY=your_llm_api_key
+FEDOTLLM_EMBEDDINGS_API_KEY=your_embeddings_api_key
+
+# Optional Monitoring
+LANGFUSE_SECRET_KEY=your_langfuse_secret
+LANGFUSE_PUBLIC_KEY=your_langfuse_public
+
+# ChromaDB Configuration (auto-configured)
+IS_PERSISTENT=TRUE
+PERSIST_DIRECTORY=/docker_caches/chroma
+ANONYMIZED_TELEMETRY=FALSE
+```
+
+### 🔧 Advanced Configuration
+
+#### Custom Port Configuration
+```bash
+# Modify docker-compose.yml for custom ports
+services:
+  app:
+    ports:
+      - "8090:8080"  # Custom Streamlit port
+  chromadb:
+    ports:
+      - "8010:8000"  # Custom ChromaDB port
+```
+
+#### Production Optimization
+```bash
+# Use production Dockerfile
+docker build -t fedotllm-prod -f docker/run.Dockerfile .
+
+# Run with resource limits
+docker run --memory=4g --cpus=2 fedotllm-prod
+```
+
+### 🐛 Troubleshooting
+
+#### Common Issues and Solutions
+
+| Issue | Solution |
+|-------|----------|
+| 🔴 **Port already in use** | `make docker-stop` and check for conflicting services |
+| 🔴 **Build failures** | `make docker-clean` and retry with `make docker-build` |
+| 🔴 **Permission errors** | Ensure Docker daemon is running and user has Docker permissions |
+| 🔴 **Out of disk space** | `make docker-clean-all` to free up space |
+| 🔴 **ChromaDB connection issues** | Check `make docker-logs-chroma` for database errors |
+
+#### Debug Commands
+```bash
+# Check container status
+make docker-ps
+
+# Inspect container details
+docker inspect fdlm-app
+docker inspect fdlm-chroma
+
+# Check network connectivity
+docker network ls
+docker network inspect fedotllm_fdlm-net
+```
+
+#### Performance Monitoring
+```bash
+# Monitor resource usage
+docker stats
+
+# Container-specific monitoring
+docker stats fdlm-app fdlm-chroma
+```
+
+### 🚀 Production Deployment
+
+For production environments, consider:
+
+1. **🔒 Security**: Use secrets management for API keys
+2. **📊 Monitoring**: Implement health checks and logging
+3. **🔄 Load Balancing**: Use reverse proxy (nginx/traefik)
+4. **💾 Persistence**: Configure external volume storage
+5. **🔄 Updates**: Implement blue-green deployment strategies
 
 ---
 

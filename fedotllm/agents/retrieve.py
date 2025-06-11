@@ -53,8 +53,8 @@ class RetrieveTool:
         for doc in filtered_docs:
             if extracted := extract_sections_with_ids(doc["content"]):
                 ch_doc = ChunkedDocument(
+                    doc_name=doc["metadata"]["title"],
                     source=doc["metadata"]["source"],
-                    title=doc["metadata"]["title"],
                     chunks=text_splitter(html2text(extracted)),
                 )
                 chunked_docs.append(ch_doc)

@@ -358,6 +358,7 @@ def run_tests(state: AutoMLAgentState, workspace: Path, inference: AIInference):
             state["observation"].msg += f"\nTest failed: {result.msg}"
         else:
             logger.info(f"Test passed: {result.msg}")
+            state["observation"].msg += f"\nTest passed: {result.msg}"
 
     return state
 
