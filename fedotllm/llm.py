@@ -76,7 +76,9 @@ class AIInference:
             messages=messages,
             **self.completion_params,
         )
-        logger.debug("Received response from LLM: %s", response.choices[0].message.content)
+        logger.debug(
+            "Received response from LLM: %s", response.choices[0].message.content
+        )
         return response.choices[0].message.content
 
 
