@@ -208,8 +208,9 @@ lint-fix: ## Fix linting issues automatically
 	${UV} run ruff check --fix .
 
 .PHONY: format
-format: ## Format code with ruff
-	@echo "$(BLUE)Formatting code...$(NC)"
+format: ## Format code and organize imports with ruff
+	@echo "$(BLUE)Formatting code and organizing imports...$(NC)"
+	${UV} run ruff check --select I --fix .
 	${UV} run ruff format .
 
 .PHONY: format-check

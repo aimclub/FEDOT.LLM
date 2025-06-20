@@ -10,7 +10,14 @@ def train_model(train_features: np.ndarray, train_target: np.ndarray):
             with_tuning=True,
             show_progress=True)
 
-    model.fit(features=input_data) # this is the training step, after this step variable ‘model‘ will be a trained model
+    try:
+        model.fit(features=input_data) # this is the training step, after this step variable 'model' will be a trained model
+    except Exception as e:
+        raise RuntimeError(
+            f"Model training failed. Please check your data preprocessing carefully. "
+            f"Common issues include: missing values, incorrect data types, feature scaling problems, "
+            f"or incompatible target variable format. Original error: {str(e)}"
+        ) from e
 
     # Save the pipeline
     pipeline = model.current_pipeline

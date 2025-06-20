@@ -250,3 +250,200 @@ def test_memory_check_collection_none_not_empty(mock_chroma_client, mock_embeddi
     count = memory.check_collection_none()
     assert count == 5
     mock_chroma_collection.count.assert_called_once()
+
+# New tests for insert_vectors failures
+def test_memory_insert_vectors_embedding_returns_none(mock_chroma_client, mock_embedding_model, mock_chroma_collection, capsys, mocker):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_embed_none", embedding_model=mock_embedding_model, client=mock_chroma_client)
+    
+    mock_embedding_model.encode.return_value = None # Simulate encode returning None
+
+    doc_id = str(uuid.uuid4())
+    documents = [ChunkedDocument(doc_name="doc1", chunks=["chunk1"], doc_id=doc_id, source="s1")]
+    
+    mocker.patch('fedotllm.agents.memory.tqdm', lambda x, **kwargs: x)
+    memory.insert_vectors(documents)
+    
+    captured = capsys.readouterr()
+    assert "Warning: Could not generate embedding for chunk: chunk1..." in captured.out
+    mock_chroma_collection.add.assert_not_called()
+    assert memory.id == 0 # No chunks successfully added
+
+def test_memory_insert_vectors_embedding_returns_empty_list(mock_chroma_client, mock_embedding_model, mock_chroma_collection, capsys, mocker):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_embed_empty_list", embedding_model=mock_embedding_model, client=mock_chroma_client)
+    
+    mock_embedding_model.encode.return_value = [] # Simulate encode returning an empty list
+
+    doc_id = str(uuid.uuid4())
+    documents = [ChunkedDocument(doc_name="doc1", chunks=["chunk1"], doc_id=doc_id, source="s1")]
+    
+    mocker.patch('fedotllm.agents.memory.tqdm', lambda x, **kwargs: x)
+    memory.insert_vectors(documents)
+    
+    captured = capsys.readouterr()
+    # The code currently checks `if not embedding_obj or not hasattr(embedding_obj[0], "embedding")`,
+    # an empty list for embedding_obj would cause `not embedding_obj` to be true if not fixed.
+    # Let's assume the check `embedding_obj[0]` would raise IndexError if `embedding_obj` is `[]`.
+    # The current code is `if not embedding_obj or not hasattr(embedding_obj[0], "embedding")`.
+    # If `embedding_obj` is `[]`, `not embedding_obj` is `False`. `embedding_obj[0]` will raise IndexError.
+    # This should be caught by a try-except in real code, or the check needs to be more robust.
+    # For now, based on current code, it will print the warning.
+    assert "Warning: Could not generate embedding for chunk: chunk1..." in captured.out
+    mock_chroma_collection.add.assert_not_called()
+    assert memory.id == 0
+
+def test_memory_insert_vectors_embedding_malformed_object(mock_chroma_client, mock_embedding_model, mock_chroma_collection, capsys, mocker):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_embed_malformed", embedding_model=mock_embedding_model, client=mock_chroma_client)
+    
+    malformed_embedding_obj = MagicMock()
+    del malformed_embedding_obj.embedding # Remove the 'embedding' attribute
+    mock_embedding_model.encode.return_value = [malformed_embedding_obj]
+
+    doc_id = str(uuid.uuid4())
+    documents = [ChunkedDocument(doc_name="doc1", chunks=["chunk1"], doc_id=doc_id, source="s1")]
+    
+    mocker.patch('fedotllm.agents.memory.tqdm', lambda x, **kwargs: x)
+    memory.insert_vectors(documents)
+    
+    captured = capsys.readouterr()
+    assert "Warning: Could not generate embedding for chunk: chunk1..." in captured.out
+    mock_chroma_collection.add.assert_not_called()
+    assert memory.id == 0
+
+def test_memory_insert_vectors_all_chunks_fail_embedding(mock_chroma_client, mock_embedding_model, mock_chroma_collection, capsys, mocker):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_all_fail", embedding_model=mock_embedding_model, client=mock_chroma_client)
+    
+    # Simulate failure for all chunks
+    mock_embedding_model.encode.side_effect = [None, None] 
+
+    doc_id = str(uuid.uuid4())
+    documents = [ChunkedDocument(doc_name="doc1", chunks=["chunk_A", "chunk_B"], doc_id=doc_id, source="s1")]
+    
+    mocker.patch('fedotllm.agents.memory.tqdm', lambda x, **kwargs: x)
+    memory.insert_vectors(documents)
+    
+    captured = capsys.readouterr()
+    assert "Warning: Could not generate embedding for chunk: chunk_A..." in captured.out
+    assert "Warning: Could not generate embedding for chunk: chunk_B..." in captured.out
+    mock_chroma_collection.add.assert_not_called() # Crucial: add should not be called for this document
+    assert memory.id == 0
+
+def test_memory_insert_vectors_mixed_success_failure(mock_chroma_client, mock_embedding_model, mock_chroma_collection, capsys, mocker):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_mixed_fail", embedding_model=mock_embedding_model, client=mock_chroma_client)
+
+    successful_embedding_obj = MagicMock()
+    successful_embedding_obj.embedding = [0.1, 0.2, 0.3]
+    
+    # First chunk fails, second succeeds
+    mock_embedding_model.encode.side_effect = [None, [successful_embedding_obj]] 
+
+    doc_id = str(uuid.uuid4())
+    documents = [ChunkedDocument(doc_name="doc1", chunks=["chunk_fail", "chunk_ok"], doc_id=doc_id, source="s1")]
+    
+    mocker.patch('fedotllm.agents.memory.tqdm', lambda x, **kwargs: x)
+    memory.insert_vectors(documents)
+    
+    captured = capsys.readouterr()
+    assert "Warning: Could not generate embedding for chunk: chunk_fail..." in captured.out # chunk_fail
+    
+    mock_chroma_collection.add.assert_called_once_with(
+        ids=[f"{doc_id}_1"], # Only the second chunk (index 1)
+        embeddings=[[0.1, 0.2, 0.3]],
+        documents=["chunk_ok"],
+        metadatas=[{"doc_id": doc_id, "doc_name": "doc1", "source": "s1", "chunk_id": 1}] # Assuming default metadata
+    )
+    assert memory.id == 1 # Only one chunk added
+
+def test_memory_insert_vectors_empty_document_list(mock_chroma_client, mock_embedding_model, mock_chroma_collection, mocker):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_empty_docs", embedding_model=mock_embedding_model, client=mock_chroma_client)
+    
+    documents = [] # Empty list of documents
+    
+    mocker.patch('fedotllm.agents.memory.tqdm', lambda x, **kwargs: x)
+    memory.insert_vectors(documents)
+    
+    mock_chroma_collection.add.assert_not_called()
+    assert memory.id == 0
+
+# New tests for search_context failures
+def test_memory_search_context_embedding_returns_none(mock_chroma_client, mock_embedding_model, mock_chroma_collection):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_search_embed_none", embedding_model=mock_embedding_model, client=mock_chroma_client)
+    
+    mock_embedding_model.encode.return_value = None # Query embedding fails
+
+    results = memory.search_context("test query")
+    
+    expected_empty_result = {"documents": [[]], "metadatas": [[]], "distances": [[]]}
+    assert results == expected_empty_result
+    mock_chroma_collection.query.assert_not_called()
+
+def test_memory_search_context_embedding_returns_empty_list(mock_chroma_client, mock_embedding_model, mock_chroma_collection):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_search_embed_empty", embedding_model=mock_embedding_model, client=mock_chroma_client)
+    
+    mock_embedding_model.encode.return_value = [] # Query embedding returns empty list
+
+    results = memory.search_context("test query")
+    
+    expected_empty_result = {"documents": [[]], "metadatas": [[]], "distances": [[]]}
+    assert results == expected_empty_result
+    mock_chroma_collection.query.assert_not_called()
+
+def test_memory_search_context_embedding_malformed_object(mock_chroma_client, mock_embedding_model, mock_chroma_collection):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_search_embed_malformed", embedding_model=mock_embedding_model, client=mock_chroma_client)
+    
+    malformed_embedding_obj = MagicMock()
+    del malformed_embedding_obj.embedding # Remove 'embedding' attribute
+    mock_embedding_model.encode.return_value = [malformed_embedding_obj]
+
+    results = memory.search_context("test query")
+    
+    expected_empty_result = {"documents": [[]], "metadatas": [[]], "distances": [[]]}
+    assert results == expected_empty_result
+    mock_chroma_collection.query.assert_not_called()
+
+# New tests for search_context_with_metadatas failures
+def test_memory_search_context_with_metadatas_embedding_returns_none(mock_chroma_client, mock_embedding_model, mock_chroma_collection):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_search_meta_embed_none", embedding_model=mock_embedding_model, client=mock_chroma_client)
+    
+    mock_embedding_model.encode.return_value = None # Query embedding fails
+
+    results = memory.search_context_with_metadatas("test query", {"source": "s1"})
+    
+    expected_empty_result = {"documents": [[]], "metadatas": [[]], "distances": [[]]}
+    assert results == expected_empty_result
+    mock_chroma_collection.query.assert_not_called()
+
+def test_memory_search_context_with_metadatas_embedding_returns_empty_list(mock_chroma_client, mock_embedding_model, mock_chroma_collection):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_search_meta_embed_empty", embedding_model=mock_embedding_model, client=mock_chroma_client)
+    
+    mock_embedding_model.encode.return_value = [] # Query embedding returns empty list
+
+    results = memory.search_context_with_metadatas("test query", {"source": "s1"})
+    
+    expected_empty_result = {"documents": [[]], "metadatas": [[]], "distances": [[]]}
+    assert results == expected_empty_result
+    mock_chroma_collection.query.assert_not_called()
+
+def test_memory_search_context_with_metadatas_embedding_malformed_object(mock_chroma_client, mock_embedding_model, mock_chroma_collection):
+    mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
+    memory = Memory(collection_name="test_search_meta_embed_malformed", embedding_model=mock_embedding_model, client=mock_chroma_client)
+    
+    malformed_embedding_obj = MagicMock()
+    del malformed_embedding_obj.embedding # Remove 'embedding' attribute
+    mock_embedding_model.encode.return_value = [malformed_embedding_obj]
+
+    results = memory.search_context_with_metadatas("test query", {"source": "s1"})
+    
+    expected_empty_result = {"documents": [[]], "metadatas": [[]], "distances": [[]]}
+    assert results == expected_empty_result
+    mock_chroma_collection.query.assert_not_called()

@@ -1,9 +1,9 @@
 from typing import List
 
-from IPython.display import display, Markdown, DisplayObject, clear_output
+from IPython.display import DisplayObject, Markdown, clear_output, display
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.schema import StreamEvent
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class JupyterOutput(BaseModel):

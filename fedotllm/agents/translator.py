@@ -1,5 +1,7 @@
 import re
-from langdetect import detect, LangDetectException
+
+from langdetect import LangDetectException, detect
+
 from fedotllm.llm import AIInference
 from fedotllm.log import logger
 
@@ -79,6 +81,13 @@ class TranslatorAgent:
             f"Original text for _translate_text (first 200 chars): '{text[:200]}...'"
         )
 
+        # If the input text is empty, return it directly
+        if not text:
+            logger.debug(
+                "Input text to _translate_text is empty. Returning empty string."
+            )
+            return ""
+
         processed_text, code_blocks_map = self._extract_code_blocks(text)
         if text != processed_text:
             logger.debug(
@@ -110,40 +119,47 @@ class TranslatorAgent:
             f"Text to translate (placeholders like {self.code_block_placeholder_prefix}_0__ must be kept as is):\n{processed_text}"
         )
 
-        translated_text_with_placeholders = processed_text  # Fallback
         try:
             logger.debug(
                 f"TranslatorAgent: Sending prompt to self.inference.query (from '{source_language}' to '{target_language}'):\n{prompt}"
             )
-            # Using self.inference.query, expecting a direct string response
             response_text = self.inference.query(prompt)
             logger.debug(
                 f"TranslatorAgent: Received response from self.inference.query. Type: {type(response_text)}. Content (first 200 chars): '{str(response_text)[:200]}...'"
             )
 
-            if response_text and isinstance(response_text, str):
-                translated_text_with_placeholders = response_text
-                if translated_text_with_placeholders != processed_text:
+            if isinstance(response_text, str):
+                if (
+                    response_text == "" and processed_text != ""
+                ):  # LLM returned empty string for non-empty input
+                    logger.info(
+                        "LLM returned an empty string. Assuming it's an intentional empty translation."
+                    )
+                    translated_text_with_placeholders = (
+                        ""  # Use empty string for re-insertion
+                    )
+                elif response_text == processed_text:
+                    logger.info(
+                        f"Text from {source_language} to {target_language} may not have been translated by LLM (output is same as input to LLM)."
+                    )
+                    translated_text_with_placeholders = response_text
+                else:  # Non-empty, different from processed_text
+                    translated_text_with_placeholders = response_text
                     logger.info(
                         f"Successfully translated text from {source_language} to {target_language} using self.inference.query."
                     )
-                else:
-                    logger.info(
-                        f"Text from {source_language} to {target_language} may not have been translated by LLM (output is same as input to LLM, or LLM returned empty)."
-                    )
-            elif not response_text:
-                logger.warning("self.inference.query returned empty or None response.")
-            else:  # Response is not a string and not None/empty
+            else:  # Not a string (None, int, etc.)
                 logger.warning(
-                    f"self.inference.query returned unexpected type: {type(response_text)}. Expected str. Using original text as fallback."
+                    f"LLM query did not return a valid string (type: {type(response_text)}, value: '{str(response_text)[:200]}...'). Returning original text."
                 )
+                return text  # Return original, unprocessed text
 
         except Exception as e:
             logger.error(
                 f"Error during translation using self.inference.query from '{source_language}' to '{target_language}': {e}",
                 exc_info=True,
             )
-            # Fallback to processed_text (placeholders intact, no translation) is already default
+            return text  # Return original, unprocessed text
 
         logger.debug(
             f"TranslatorAgent._translate_text: Text before re-inserting code blocks (placeholders should be visible):\n{translated_text_with_placeholders}"
@@ -160,10 +176,14 @@ class TranslatorAgent:
         logger.info(
             f"TranslatorAgent: Received input message for translation to English (first 200 chars): '{message[:200]}...'"
         )
+        if not message:
+            logger.info("Input message is empty. Skipping detection and translation.")
+            self.source_language = None  # Explicitly set, as no detection happens
+            return ""
         try:
             self.source_language = detect(message)
         except LangDetectException as e:
-            self.source_language = "en"
+            self.source_language = "en"  # Default if detection fails
             logger.warning(
                 f"Language detection failed for input message (defaulting to 'en'): {e}",
                 exc_info=True,
@@ -174,9 +194,7 @@ class TranslatorAgent:
         )
 
         if self.source_language != "en":
-            logger.info(
-                f"Translating input from {self.source_language} to English using self.inference.query."
-            )
+            logger.info(f"Translating input from {self.source_language} to English.")
             return self._translate_text(
                 message, target_language="en", source_language=self.source_language
             )
@@ -186,17 +204,15 @@ class TranslatorAgent:
 
     def translate_output_to_source_language(self, message: str) -> str:
         logger.info(
-            f"TranslatorAgent: Attempting output translation. Current source_language_for_session: {self.source_language}"
+            f"TranslatorAgent: Attempting output translation. Current source_language: {self.source_language}"
         )
 
-        if not message or message.strip() == "":
-            logger.info("Output message is empty or whitespace. Skipping translation.")
-            return message
+        if not message:  # Handles empty string, None, etc.
+            logger.info("Output message is empty. Skipping translation.")
+            return ""  # Return empty string consistently
 
         if self.source_language and self.source_language != "en":
-            logger.info(
-                f"Translating output from English to {self.source_language} using self.inference.query."
-            )
+            logger.info(f"Translating output from English to {self.source_language}.")
             logger.info(
                 f"English message for output translation (first 200 chars): '{message[:200]}...'"
             )
@@ -205,12 +221,12 @@ class TranslatorAgent:
             )
         elif not self.source_language:
             logger.warning(
-                "Cannot translate output: source_language_for_session not set (input might not have been processed or detection failed)."
+                "Cannot translate output: source_language not set (input might not have been processed or detection failed)."
             )
             return message
-        else:
+        else:  # source_language is 'en'
             logger.info(
-                f"Output translation not needed (source session language was '{self.source_language}'). Returning original English message."
+                f"Output translation not needed (source language was '{self.source_language}'). Returning original English message."
             )
             logger.debug(
                 f"Original English message for output (first 200 chars): '{message[:200]}...'"

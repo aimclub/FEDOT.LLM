@@ -73,7 +73,7 @@ async def test_fedotai_ainvoke_flow(mocker, mock_task_path, mock_ai_inference, m
     mock_automl_agent_chat = MagicMock()
     mock_automl_graph = AsyncMock()
     mock_automl_agent_chat.create_graph.return_value = mock_automl_graph
-    mocker.patch('fedotllm.main.AutoMLAgentChat', return_value=mock_automl_agent_chat)
+    mocker.patch('fedotllm.main.AutoMLAgent', return_value=mock_automl_agent_chat)
 
     mock_researcher_agent = MagicMock()
     mock_researcher_graph = AsyncMock() # Will be wrapped
@@ -155,7 +155,7 @@ async def test_fedotai_ask_flow(mocker, mock_task_path, mock_ai_inference, mock_
     mocker.patch('fedotllm.main.Dataset.from_path', return_value=MagicMock(name="DatasetInstance"))
     
     mock_automl_agent_chat = MagicMock()
-    mocker.patch('fedotllm.main.AutoMLAgentChat', return_value=mock_automl_agent_chat)
+    mocker.patch('fedotllm.main.AutoMLAgent', return_value=mock_automl_agent_chat)
     mock_researcher_agent = MagicMock()
     mocker.patch('fedotllm.main.ResearcherAgent', return_value=mock_researcher_agent)
     mock_agent_wrapper = MagicMock()

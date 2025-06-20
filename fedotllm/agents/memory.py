@@ -1,9 +1,11 @@
+from dataclasses import dataclass, field
+from typing import List
+
 from chromadb.api.client import Client
 from chromadb.api.types import QueryResult
-from fedotllm.llm import OpenaiEmbeddings
 from tqdm import tqdm
-from typing import List
-from dataclasses import dataclass, field
+
+from fedotllm.llm import OpenaiEmbeddings
 
 
 def text_splitter(

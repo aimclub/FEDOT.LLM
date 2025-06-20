@@ -21,7 +21,7 @@ from fedotllm.agents.automl.structured import FedotConfig
 from fedotllm.llm import AIInference
 from fedotllm.data import Dataset
 from langgraph.types import Command
-from fedotllm.enviroments.types import Observation 
+from fedotllm.enviroments import Observation 
 # from fedotllm.settings.config_loader import get_settings 
 from fedot.api.main import Fedot # For mocking Fedot API
 from golem.core.dag.graph_utils import graph_structure # For patching
@@ -71,11 +71,10 @@ def test_problem_reflection_success(mock_prompts, mock_inference, mock_dataset, 
     result_command = problem_reflection(state_dict, mock_inference, mock_dataset)
 
     mock_prompts.automl.problem_reflection_prompt.assert_called_once_with(
-        user_description="test description", 
-        data_files_and_content="Dataset Preview Text", 
+        data_files_and_content="Dataset Preview Text",
         dataset_eda="Dataset EDA Text"
     )
-    mock_inference.query.assert_called_once_with("Generated Reflection Prompt")
+    mock_inference.query.assert_called_once_with([{'role': 'user', 'content': 'Generated Reflection Prompt'}])
     assert isinstance(result_command, Command)
     assert result_command.update == {"reflection": "Test Reflection Output"}
 
@@ -180,10 +179,9 @@ def test_generate_code_success(mock_prompts, mock_extract_code, mock_inference, 
     assert result_command.update == {"raw_code": "Extracted Python Code"}
 
 # Tests for insert_templates
-@patch('fedotllm.agents.automl.nodes.fix_code')
 @patch('fedotllm.agents.automl.nodes.render_template')
 @patch('fedotllm.agents.automl.nodes.load_template')
-def test_insert_templates_success(mock_load_template, mock_render_template, mock_fix_code, initial_state):
+def test_insert_templates_success(mock_load_template, mock_render_template, initial_state):
     mock_fedot_config = FedotConfig(
         problem="classification", 
         preset="fast_train", 
@@ -210,7 +208,6 @@ def test_insert_templates_success(mock_load_template, mock_render_template, mock
         return rendered_output
     mock_render_template.side_effect = render_template_side_effect
     
-    mock_fix_code.return_value = "Final Fixed Code"
 
     result_command = insert_templates(current_state_dict)
 
@@ -229,22 +226,18 @@ def test_insert_templates_success(mock_load_template, mock_render_template, mock
     assert render_calls[2].kwargs['template'] == "Raw Template: fedot_predict.py"
     assert render_calls[2].kwargs['predict_method'] == "predict(features=input_data)"
 
-    combined_code_arg = mock_fix_code.call_args[0][0]
-    assert "Rendered: Raw Template: fedot_train.py" in combined_code_arg
-    assert "Rendered: Raw Template: fedot_evaluate.py" in combined_code_arg
-    assert "Rendered: Raw Template: fedot_predict.py" in combined_code_arg
-    assert "\n# Rest of code" in combined_code_arg 
-    assert "from automl import train_model, evaluate_model, automl_predict" not in combined_code_arg
-
-    mock_fix_code.assert_called_once_with(ANY, remove_all_unused_imports=True, remove_unused_variables=True)
+    expected_code = "\n".join([
+        "Rendered: Raw Template: fedot_train.py with {'problem': 'TaskTypesEnum.classification', 'timeout': 1.0, 'cv_folds': 5, 'preset': \"'fast_train'\", 'metric': \"'accuracy'\"}",
+        "Rendered: Raw Template: fedot_evaluate.py with {'problem': 'TaskTypesEnum.classification', 'predict_method': 'predict(features=input_data)'}",
+        "Rendered: Raw Template: fedot_predict.py with {'problem': 'TaskTypesEnum.classification', 'predict_method': 'predict(features=input_data)'}"
+    ]) + "\n# Rest of code"
     
     assert isinstance(result_command, Command)
-    assert result_command.update == {"code": "Final Fixed Code"}
+    assert result_command.update == {"code": expected_code}
 
-@patch('fedotllm.agents.automl.nodes.fix_code')
 @patch('fedotllm.agents.automl.nodes.render_template')
 @patch('fedotllm.agents.automl.nodes.load_template')
-def test_insert_templates_exception_handling(mock_load_template, mock_render_template, mock_fix_code, initial_state):
+def test_insert_templates_exception_handling(mock_load_template, mock_render_template, initial_state):
     mock_fedot_config = FedotConfig(
         problem="classification", 
         preset="fast_train", 
@@ -263,7 +256,6 @@ def test_insert_templates_exception_handling(mock_load_template, mock_render_tem
     
     assert isinstance(result_command, Command)
     assert result_command.update == {"code": None}
-    mock_fix_code.assert_not_called()
 
 # Tests for evaluate
 @patch('fedotllm.agents.automl.nodes.execute_code')
@@ -583,41 +575,3 @@ def test_run_tests_submission_format_fail_llm(mock_pd_read_csv, mock_fedot_api_r
     updated_state = run_tests(current_state_dict, automl_nodes_mock_workspace, mock_inference)
     assert updated_state["observation"].error is True
     assert "Submission file format does not match" in updated_state["observation"].msg
-
-
-# Tests for generate_report
-@patch('fedotllm.agents.automl.nodes.prompts')
-def test_generate_report_success(mock_prompts, mock_inference, initial_state):
-    current_state_dict = dict(initial_state)
-    current_state_dict["description"] = "Test Description" 
-    current_state_dict["metrics"] = "Test Metrics"
-    current_state_dict["pipeline"] = "Test Pipeline Structure"
-    current_state_dict["code"] = "Test Code"
-            
-    mock_prompts.automl.reporter_prompt.return_value = "Generated Report Prompt"
-    mock_inference.query.return_value = "Final Report"
-
-    updated_state = generate_report(current_state_dict, mock_inference)
-    
-    mock_prompts.automl.reporter_prompt.assert_called_once_with(
-        description="Test Description", 
-        metrics="Test Metrics", 
-        pipeline="Test Pipeline Structure", 
-        code="Test Code"
-    )
-    mock_inference.query.assert_called_once_with("Generated Report Prompt")
-    assert updated_state["report"] == "Final Report"
-
-@patch('fedotllm.agents.automl.nodes.prompts')
-def test_generate_report_solution_not_found(mock_prompts, mock_inference, initial_state):
-    current_state_dict = dict(initial_state)
-    current_state_dict["description"] = "Test Description"
-    current_state_dict["metrics"] = "Test Metrics"
-    current_state_dict["pipeline"] = None 
-    current_state_dict["code"] = None
-            
-    updated_state = generate_report(current_state_dict, mock_inference)
-    
-    mock_prompts.automl.reporter_prompt.assert_not_called()
-    mock_inference.query.assert_not_called()
-    assert updated_state["report"] == "Solution not found. Please try again."

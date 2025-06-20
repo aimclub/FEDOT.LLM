@@ -1,8 +1,10 @@
-from fedotllm.web.frontend import pages as pg
-from fedotllm.web.frontend.pages.side_bar import main as side_bar
-from fedotllm.web.frontend.localization import lclz
-import streamlit as st
 import os
+
+import streamlit as st
+
+from fedotllm.web.frontend import pages as pg
+from fedotllm.web.frontend.localization import lclz
+from fedotllm.web.frontend.pages.side_bar import main as side_bar
 
 st.set_page_config(
     page_title="FedotLLM",

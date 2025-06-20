@@ -5,20 +5,18 @@ description = "LLM-based prototype for nexgen AutoML"
 authors = [{ name = "Alexey Lapin", email = "a.lapin@itmo.ru" }]
 license = "BSD-3-Clause"
 readme = "README.md"
-requires-python = "~=3.10"
+requires-python = ">=3.11, <3.12"
 dependencies = [
-    "autoflake>=2.3.1",
     "beautifulsoup4>=4.13.3",
     "chromadb>=0.6.3",
     "dynaconf>=3.2.10",
     "fedot>=0.7.5",
-    "giotto-tda==0.6.0",
+    "giotto-tda==0.6.2",
     "graphviz>=0.20.3",
     "html2text>=2024.2.26",
     "json-repair>=0.44.1",
     "kaggle>=1.7.4.5",
     "langchain-core>=0.3.49",
-    "langchain-openai>=0.3.11",
     "langdetect>=1.0.9",
     "langfuse>=2.60.4",
     "langgraph>=0.3.21",

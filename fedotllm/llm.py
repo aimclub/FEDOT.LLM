@@ -1,16 +1,16 @@
 import os
-from typing import Optional, TypeVar, Type
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
+import litellm
 import tiktoken
 from openai import OpenAI
-import litellm
 from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from fedotllm import prompts
-from fedotllm.settings.config_loader import get_settings
 from fedotllm.agents.utils import parse_json
-
+from fedotllm.log import logger
+from fedotllm.settings.config_loader import get_settings
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -65,12 +65,18 @@ class AIInference:
         wait=wait_exponential(multiplier=1, min=4, max=10),
         reraise=True,
     )
-    def query(self, messages: str) -> str | None:
-        messages = [{"role": "user", "content": messages}]
+    def query(self, messages: str | List[Dict[str, Any]]) -> str | None:
+        messages = (
+            [{"role": "user", "content": messages}]
+            if isinstance(messages, str)
+            else messages
+        )
+        logger.debug("Sending messages to LLM: %s", messages)
         response = litellm.completion(
             messages=messages,
             **self.completion_params,
         )
+        logger.debug("Received response from LLM: %s", response.choices[0].message.content)
         return response.choices[0].message.content
 
 
@@ -123,5 +129,5 @@ def num_tokens_from_string(string: str, encoding_name: str = "cl100k_base") -> i
 
 
 if __name__ == "__main__":
-    inference = AIInference(model="deepseek/DeepSeek-V3-0324")
+    inference = AIInference()
     print(inference.query("Say hello world!"))

@@ -1,11 +1,12 @@
-from fedotllm.llm import OpenaiEmbeddings
 import chromadb
-from fedotllm.agents.memory import Memory, ChunkedDocument, text_splitter
-from fedotllm.agents.scraper import recursive_url_loader
 from bs4 import BeautifulSoup
 from chromadb.api.types import QueryResult
-from html2text import html2text
 from chromadb.config import Settings
+from html2text import html2text
+
+from fedotllm.agents.memory import ChunkedDocument, Memory, text_splitter
+from fedotllm.agents.scraper import recursive_url_loader
+from fedotllm.llm import OpenaiEmbeddings
 
 
 class RetrieveTool:

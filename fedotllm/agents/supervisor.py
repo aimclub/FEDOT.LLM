@@ -1,6 +1,8 @@
+import re
 from enum import Enum
 from functools import partial
 
+from langchain_core.messages import convert_to_openai_messages
 from langchain_core.runnables import Runnable
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
@@ -34,7 +36,8 @@ class SupervisorAgent(Agent):
 
     def create_graph(self):
         workflow = StateGraph(SupervisorState)
-        workflow.add_node("choose_next", partial(choose_next, inference=self.inference))
+
+        workflow.add_node("choose_next", partial(router_node, inference=self.inference))
         workflow.add_node("researcher", self.researcher_agent)
         workflow.add_node("automl", self.automl_agent)
 
@@ -60,15 +63,21 @@ researcher - responsible for QA about the Fedot framework.""",
     )
 
 
-def choose_next(state: SupervisorState, inference: AIInference):
-    messages = state["messages"]
-    if isinstance(messages, list):
-        messages_str = "\n".join([f"{m.name}: {m.content}" for m in messages])
-    else:
-        messages_str = f"{messages.name}: {messages.content}"
+def router_node(
+    state: SupervisorState,
+    inference: AIInference,
+) -> Command:
+    """
+    Router node to choose the next agent based on the current state and inference.
+    """
 
-    response = inference.create(
-        choose_next_prompt(messages_str),
-        response_model=ChooseNext,
-    )
-    return Command(goto=response.next)
+    messages = convert_to_openai_messages(state["messages"])
+    messages.append({"role": "user", "content": choose_next_prompt()})
+
+    response = inference.query(messages)
+    response = re.search(r"^(automl|researcher|finish)$", response)
+    if not response:
+        raise ValueError(
+            "Invalid response from inference, expected 'automl', 'researcher', or 'finish'."
+        )
+    return Command(goto=response.group(0))

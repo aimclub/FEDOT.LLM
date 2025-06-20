@@ -7,7 +7,7 @@
 [![Acknowledgement ITMO](https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/ITMO_badge.svg)](https://itmo.ru/)
 [![Acknowledgement NCCR](https://raw.githubusercontent.com/aimclub/open-source-ops/43bb283758b43d75ec1df0a6bb4ae3eb20066323/badges/NCCR_badge.svg)](https://actcognitive.org/)
 [![Mirror](https://img.shields.io/badge/mirror-GitLab-orange)](https://gitlab.actcognitive.org/itmo-nccr-code/fedot-llm)
-![Python](https://img.shields.io/badge/python-3.10-blue.svg)
+![Python](https://img.shields.io/badge/python-3.11-blue.svg)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/aimclub/FEDOT.LLM)
 
 FEDOT.LLM is an LLM-based prototype for next-generation AutoML. It combines the power of Large Language Models with automated machine learning techniques to enhance data analysis and pipeline building processes.
@@ -39,7 +39,7 @@ cd FEDOT.LLM
 
 **Step 3: Create and activate virtual environment**
 ```bash
-uv venv --python 3.10
+uv venv --python 3.11
 source .venv/bin/activate  # On Unix/macOS
 # Or on Windows:
 # .venv\Scripts\activate
@@ -59,7 +59,7 @@ uv sync
 
 **Step 1: Create conda environment**
 ```bash
-conda create -n FedotLLM python=3.10
+conda create -n FedotLLM python=3.11
 conda activate FedotLLM
 ```
 
@@ -100,7 +100,6 @@ make docker-dev-build
 
 The application will be available at:
 - **🌐 Streamlit Web Interface**: [http://localhost:8080](http://localhost:8080)
-- **📊 ChromaDB Vector Database**: [http://localhost:8000](http://localhost:8000)
 
 #### Docker Commands
 
@@ -251,14 +250,6 @@ You can also use the Streamlit web interface for a more interactive experience. 
 ```zsh
 uv run python -m streamlit run fedotllm/web/streamlit-app.py
 ```
-
-## Development
-
-If you want to contribute or set up a development environment, you can use the provided dev container.
-
-This will set up a fully-featured development environment in a container, either in GitHub Codespaces or using VS Code's Dev Containers extension.
-
-For more information see [`.devcontainer/README.md`](.devcontainer/README.md).
 
 Funding
 =======

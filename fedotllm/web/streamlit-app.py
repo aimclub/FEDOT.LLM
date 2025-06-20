@@ -1,8 +1,10 @@
+import os
+
+import streamlit as st
+
 from fedotllm.web.frontend import pages as pg
 from fedotllm.web.frontend.pages.preview import main as preview
 from fedotllm.web.frontend.pages.task import main as task
-import streamlit as st
-import os
 
 st.set_page_config(
     page_title="FedotLLM",

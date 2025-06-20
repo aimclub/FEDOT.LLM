@@ -1,5 +1,6 @@
 from functools import partial
 
+from langchain_core.messages import HumanMessage
 from langgraph.graph import END, START, StateGraph
 
 from fedotllm.agents.automl.automl import AutoMLAgent
@@ -7,7 +8,6 @@ from fedotllm.agents.automl.state import AutoMLAgentState
 from fedotllm.agents.base import Agent, FedotLLMAgentState
 from fedotllm.agents.researcher.researcher import ResearcherAgent
 from fedotllm.agents.researcher.state import ResearcherAgentState
-from langchain_core.messages import HumanMessage
 
 
 class AgentWrapper(Agent):

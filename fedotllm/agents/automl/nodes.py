@@ -2,9 +2,9 @@ import re
 from pathlib import Path
 
 import pandas as pd
-from autoflake import fix_code
 from fedot.api.main import Fedot
 from golem.core.dag.graph_utils import graph_structure
+from langchain_core.messages import HumanMessage, convert_to_openai_messages
 from langgraph.types import Command
 
 from fedotllm import prompts
@@ -16,10 +16,10 @@ from fedotllm.agents.automl.templates.load_template import (
 )
 from fedotllm.agents.utils import extract_code
 from fedotllm.data import Dataset
-from fedotllm.enviroments.simple_eval import (
+from fedotllm.enviroments import (
+    Observation,
     execute_code,
 )
-from fedotllm.enviroments.types import Observation
 from fedotllm.llm import AIInference
 from fedotllm.log import logger
 from fedotllm.settings.config_loader import get_settings
@@ -36,13 +36,17 @@ def problem_reflection(
 ):
     logger.info("Running problem reflection")
 
-    reflection = inference.query(
-        prompts.automl.problem_reflection_prompt(
-            user_description=state["description"],
-            data_files_and_content=dataset.dataset_preview(),
-            dataset_eda=dataset.dataset_eda(),
-        )
+    messages = convert_to_openai_messages(state["messages"])
+    messages.append(
+        {
+            "role": "user",
+            "content": prompts.automl.problem_reflection_prompt(
+                data_files_and_content=dataset.dataset_preview(),
+                dataset_eda=dataset.dataset_eda(),
+            ),
+        }
     )
+    reflection = inference.query(messages)
     return Command(update={"reflection": reflection})
 
 
@@ -134,9 +138,7 @@ def insert_templates(state: AutoMLAgentState):
             "from automl import train_model, evaluate_model, automl_predict",
             "\n".join(rendered_templates),
         )
-        code = fix_code(
-            code, remove_all_unused_imports=True, remove_unused_variables=True
-        )
+
         logger.debug(f"Updated code: \n{code}")
         return Command(update={"code": code})
 
@@ -365,15 +367,20 @@ def run_tests(state: AutoMLAgentState, workspace: Path, inference: AIInference):
 
 def generate_report(state: AutoMLAgentState, inference: AIInference):
     if state["code"] and state["pipeline"]:
-        response = inference.query(
-            prompts.automl.reporter_prompt(
-                description=state["description"],
-                metrics=state["metrics"],
-                pipeline=state["pipeline"],
-                code=state["code"],
-            )
+        messages = state["messages"]
+        messages.append(
+            {
+                "role": "user",
+                "content": prompts.automl.reporter_prompt(
+                    metrics=state["metrics"],
+                    pipeline=state["pipeline"],
+                    code=state["code"],
+                ),
+            }
         )
+        response = inference.query(convert_to_openai_messages(messages))
     else:
         response = "Solution not found. Please try again."
-    state["report"] = response
-    return state
+    return Command(
+        update={"messages": HumanMessage(content=response, role="AutoMLAgent")}
+    )

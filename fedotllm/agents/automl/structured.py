@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Literal, Optional, Union
 
 from fedot.core.repository.tasks import TaskTypesEnum
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProblemType(str, Enum):
@@ -19,16 +19,6 @@ class PresetType(str, Enum):
     GPU = "gpu"
     TS = "ts"
     AUTOML = "automl"
-
-
-class IndustrialStrategyType(str, Enum):
-    ANOMALY_DETECTION = "anomaly_detection"
-    FEDERATED_AUTOML = "federated_automl"
-    FORECASTING_ASSUMPTIONS = "forecasting_assumptions"
-    FORECASTING_EXOGENOUS = "forecasting_exogenous"
-    KERNEL_AUTOML = "kernel_automl"
-    LORA_STRATEGY = "lora_strategy"
-    SAMPLING_STRATEGY = "sampling_strategy"
 
 
 class ClassificationMetricsEnum(str, Enum):

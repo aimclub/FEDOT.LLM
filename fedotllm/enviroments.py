@@ -2,8 +2,16 @@ import os
 import subprocess
 from pathlib import Path
 
-from .types import Observation
+from pydantic import BaseModel, Field
+
 from fedotllm.log import logger
+
+
+class Observation(BaseModel):
+    error: bool = Field(default=False)
+    msg: str = Field(default="")
+    stdout: str = Field(default="")
+    stderr: str = Field(default="")
 
 
 def execute_code(path_to_run_code: Path) -> Observation:

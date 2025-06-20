@@ -1,24 +1,18 @@
 from pathlib import Path
-from typing import Callable, List, Optional, Any, AsyncIterator
+from typing import Any, AsyncIterator, Callable, List, Optional
 
 import pandas as pd
-from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.schema import StreamEvent
 
-from fedotllm.agents.supervisor import SupervisorAgent
 from fedotllm.agents.agent_wrapper import AgentWrapper
-from fedotllm.agents.automl.automl_chat import AutoMLAgentChat
+from fedotllm.agents.automl import AutoMLAgent
 from fedotllm.agents.researcher.researcher import ResearcherAgent
+from fedotllm.agents.supervisor import SupervisorAgent
+from fedotllm.agents.translator import TranslatorAgent
 from fedotllm.data import Dataset
 from fedotllm.llm import AIInference, OpenaiEmbeddings
-from fedotllm.agents.translator import TranslatorAgent
 from fedotllm.log import logger
-
-CONTENT_PRODUCING_EVENT_NAMES = [
-    "SupervisorAgent",
-    "AutoMLAgentChat",
-    "ResearcherAgent",
-]
 
 
 class TranslatorHandler:
@@ -104,7 +98,7 @@ class FedotAI:
             f"FedotAI ainvoke: Input message translated to (first 100 chars): '{translated_message[:100]}...'"
         )
 
-        automl_agent = AutoMLAgentChat(
+        automl_agent = AutoMLAgent(
             inference=self.inference, dataset=dataset, workspace=self.workspace
         ).create_graph()
 
@@ -211,7 +205,7 @@ class FedotAI:
             f"Input message translated to (first 100 chars): '{translated_message[:100]}...'"
         )
 
-        automl_agent = AutoMLAgentChat(
+        automl_agent = AutoMLAgent(
             inference=self.inference, dataset=dataset, workspace=self.workspace
         ).create_graph()
         researcher_agent = AgentWrapper(
@@ -224,7 +218,6 @@ class FedotAI:
         ).create_graph()
 
         translator_handler = TranslatorHandler(translator_agent)
-
         async for event in entry_point.astream_events(
             {"messages": [HumanMessage(content=translated_message)]}, version="v2"
         ):

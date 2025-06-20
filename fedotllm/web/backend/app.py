@@ -1,4 +1,7 @@
+from pathlib import Path
 from typing import Literal, Optional
+
+from typing_extensions import AsyncIterator
 
 from fedotllm.llm import AIInference, OpenaiEmbeddings
 from fedotllm.main import FedotAI
@@ -9,8 +12,6 @@ from fedotllm.web.common.types import (
     Response,
     ResponseState,
 )
-from typing_extensions import AsyncIterator
-from pathlib import Path
 
 
 async def ask(

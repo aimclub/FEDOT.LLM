@@ -76,7 +76,7 @@ cd FEDOT.LLM
 3. Create a new virtual environment and activate it:
 
 ```bash
-uv venv --python 3.10
+uv venv --python 3.11
 source .venv/bin/activate  # On Unix/macOS
 # Or on Windows:
 # .venv\Scripts\activate
@@ -93,7 +93,7 @@ uv sync
 1. Create a new conda environment:
 
 ```bash
-conda create -n FedotLLM python=3.10
+conda create -n FedotLLM python=3.11
 conda activate FedotLLM
 ```
 

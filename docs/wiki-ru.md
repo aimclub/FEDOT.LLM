@@ -81,7 +81,7 @@ cd FEDOT.LLM
 3. Создайте и активируйте новое виртуальное окружение:
 
 ```bash
-uv venv --python 3.10
+uv venv --python 3.11
 source .venv/bin/activate  # Для Unix/macOS
 # Или для Windows:
 # .venv\Scripts\activate
@@ -98,7 +98,7 @@ uv sync
 1. Создайте новое окружение conda:
 
 ```bash
-conda create -n FedotLLM python=3.10
+conda create -n FedotLLM python=3.11
 conda activate FedotLLM
 ```
 

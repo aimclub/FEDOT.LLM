@@ -6,9 +6,6 @@ from datetime import datetime
 from enum import Enum
 from hashlib import sha256
 
-from fedotllm.web.backend.utils.graphviz_builder import Edge, GraphvizBuilder, Node
-from fedotllm.web.common.colors import BSColors, STColors
-from fedotllm.web.frontend.localization import lclz
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.schema import StreamEvent
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -23,6 +20,10 @@ from typing_extensions import (
     TypedDict,
     Union,
 )
+
+from fedotllm.web.backend.utils.graphviz_builder import Edge, GraphvizBuilder, Node
+from fedotllm.web.common.colors import BSColors, STColors
+from fedotllm.web.frontend.localization import lclz
 
 ResponseContent: TypeAlias = Union[
     None, str, List["BaseResponse"], "BaseResponse", "TypedContentResponse"

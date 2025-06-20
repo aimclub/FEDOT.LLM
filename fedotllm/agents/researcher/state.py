@@ -1,7 +1,7 @@
 from chromadb.api.types import QueryResult
 
-from fedotllm.agents.researcher.structured import GenerateWithCitations
 from fedotllm.agents.base import FedotLLMAgentState
+from fedotllm.agents.researcher.structured import GenerateWithCitations
 
 
 class ResearcherAgentState(FedotLLMAgentState):

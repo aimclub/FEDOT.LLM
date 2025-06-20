@@ -7,7 +7,7 @@
 [![English](https://img.shields.io/badge/Documentation-English-34C759?style=for-the-badge&logo=github)](https://github.com/aimclub/FEDOT.LLM/blob/main/docs/wiki-eng-beautiful.md)  
 [![Русский](https://img.shields.io/badge/Документация-Русский-4A90E2?style=for-the-badge&logo=github)](https://github.com/aimclub/FEDOT.LLM/blob/main/docs/wiki-ru-beautiful.md)
 
-[![Python](https://img.shields.io/badge/Python-3.10-blue?style=flat-square&logo=python)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.11-blue?style=flat-square&logo=python)](https://python.org)
 [![LLM](https://img.shields.io/badge/LLM-Powered-ff6b6b?style=flat-square&logo=openai)](https://openai.com)
 [![AutoML](https://img.shields.io/badge/AutoML-FEDOT-success?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K)](https://github.com/aimclub/FEDOT)
 [![Streamlit](https://img.shields.io/badge/Interface-Streamlit-ff4b4b?style=flat-square&logo=streamlit)](https://streamlit.io)
@@ -178,7 +178,7 @@ cd FEDOT.LLM
 
 **Step 3: Create and activate virtual environment**
 ```bash
-uv venv --python 3.10
+uv venv --python 3.11
 source .venv/bin/activate  # On Unix/macOS
 # Or on Windows:
 # .venv\Scripts\activate
@@ -198,7 +198,7 @@ uv sync
 
 **Step 1: Create conda environment**
 ```bash
-conda create -n FedotLLM python=3.10
+conda create -n FedotLLM python=3.11
 conda activate FedotLLM
 ```
 

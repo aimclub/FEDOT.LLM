@@ -77,9 +77,7 @@ If specific parameter values or constraints are not provided, use default values
 """
 
 
-def problem_reflection_prompt(
-    user_description: str, data_files_and_content: str, dataset_eda: str
-) -> str:
+def problem_reflection_prompt(data_files_and_content: str, dataset_eda: str) -> str:
     return f"""
 Please conduct a comprehensive analysis of the competition, focusing on the following aspects:
 1. Competition Overview: Understand the background and context of the topic.
@@ -101,10 +99,11 @@ Ensure that the analysis is thorough, with a strong emphasis on :
 2. Figuring out the target variable and evaluation metrics.
 3. Classification of the features.
 
-# User Description
-{user_description}
 # Available Data File And Content in The File
 {data_files_and_content}
+
+# EDA
+{dataset_eda}
 """
 
 
@@ -116,12 +115,9 @@ Ensure that the analysis is thorough, with a strong emphasis on :
 # """
 
 
-def reporter_prompt(description: str, metrics: str, pipeline: str, code: str) -> str:
+def reporter_prompt(metrics: str, pipeline: str, code: str) -> str:
     return f"""
-You are an expert in machine learning tasked with evaluating and reporting on an ML model designed to address the following problem:
-
-**Problem Description:**  
-`{description}`
+You are an expert in machine learning tasked with evaluating and reporting on an ML model designed to address the problem.
 
 Your report should adhere to the following instructions:  
 - Be concise and styled like a Substack blog summary.  
@@ -134,7 +130,7 @@ Your report should adhere to the following instructions:
 
 **Report Outline:**  
 1. **Overview**  
-   - Problem: `{description}`  
+   - Problem description
    - Goal: Summarize the purpose of the model in plain terms for a general audience.
 
 2. **Data Preprocessing**  
