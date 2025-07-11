@@ -1,11 +1,13 @@
 import re
 from pathlib import Path
+from typing import Literal
 
 import pandas as pd
 from fedot.api.main import Fedot
 from golem.core.dag.graph_utils import graph_structure
 from langchain_core.messages import HumanMessage, convert_to_openai_messages
 from langgraph.types import Command
+from utils.config.loader import load_config
 
 from fedotllm import prompts
 from fedotllm.agents.automl.state import AutoMLAgentState
@@ -22,7 +24,6 @@ from fedotllm.enviroments import (
 )
 from fedotllm.llm import AIInference
 from fedotllm.log import logger
-from fedotllm.settings.config_loader import get_settings
 
 PREDICT_METHOD_MAP = {
     "predict": "predict(features=input_data)",
@@ -75,14 +76,14 @@ def select_skeleton(state: AutoMLAgentState, dataset: Dataset, workspace: Path):
     if predict_method is None:
         raise ValueError(f"Unknown predict method: {fedot_config.predict_method}")
 
-    skeleton = load_template("skeleton")
-    skeleton = render_template(
-        template=skeleton,
+    code_template = load_template(load_config().fedot.templates.code)
+    code_template = render_template(
+        template=code_template,
         dataset_path=dataset.path,
         work_dir_path=workspace.resolve(),
     )
 
-    return Command(update={"skeleton": skeleton})
+    return Command(update={"skeleton": code_template})
 
 
 def generate_code(state: AutoMLAgentState, inference: AIInference, dataset: Dataset):
@@ -97,30 +98,44 @@ def generate_code(state: AutoMLAgentState, inference: AIInference, dataset: Data
     return Command(update={"raw_code": extracted_code})
 
 
-def insert_templates(state: AutoMLAgentState):
+def insert_templates(
+    state: AutoMLAgentState, run_mode: Literal["test", "final"] = "test"
+):
     logger.info("Running insert templates")
     code = state["raw_code"]
     fedot_config = state["fedot_config"]
+    config = load_config()
     predict_method = PREDICT_METHOD_MAP.get(fedot_config.predict_method)
 
+    predictor_init_kwargs = (
+        {
+            "problem": str(fedot_config.problem),
+            "cv_folds": fedot_config.cv_folds,
+            "preset": f"'{fedot_config.preset.value}'",
+            "metric": f"'{fedot_config.metric.value}'",
+            **load_config().fedot.predictor_init_kwargs,
+            "timeout": 1.0,
+        }
+        if run_mode == "test"
+        else {
+            "problem": str(fedot_config.problem),
+            "timeout": fedot_config.timeout,
+            "cv_folds": fedot_config.cv_folds,
+            "preset": f"'{fedot_config.preset.value}'",
+            "metric": f"'{fedot_config.metric.value}'",
+            **load_config().fedot.predictor_init_kwargs,
+        }
+    )
     try:
         templates = {
-            "fedot_train.py": {
-                "params": {
-                    "problem": str(fedot_config.problem),
-                    "timeout": 1.0,
-                    "cv_folds": fedot_config.cv_folds,
-                    "preset": f"'{fedot_config.preset.value}'",
-                    "metric": f"'{fedot_config.metric.value}'",
-                }
-            },
-            "fedot_evaluate.py": {
+            config.fedot.templates.train: {"params": predictor_init_kwargs},
+            config.fedot.templates.evaluate: {
                 "params": {
                     "problem": str(fedot_config.problem),
                     "predict_method": predict_method,
                 }
             },
-            "fedot_predict.py": {
+            config.fedot.templates.predict: {
                 "params": {
                     "problem": str(fedot_config.problem),
                     "predict_method": predict_method,
@@ -169,10 +184,10 @@ def evaluate(state: AutoMLAgentState, workspace: Path):
 def if_bug(state: AutoMLAgentState):
     if (
         state["observation"].error
-        and state["fix_attempts"] < get_settings().config.fix_tries
+        and state["fix_attempts"] < load_config().fedot.fix_tries
     ):
         return True
-    if state["fix_attempts"] >= get_settings().config.fix_tries:
+    if state["fix_attempts"] >= load_config().fedot.fix_tries:
         logger.error("Too many fix tries")
     return False
 
@@ -194,36 +209,6 @@ def fix_solution(state: AutoMLAgentState, inference: AIInference, dataset: Datas
     return Command(
         update={"raw_code": extracted_code, "fix_attempts": state["fix_attempts"] + 1}
     )
-
-
-def extract_metrics(state: AutoMLAgentState, workspace: Path):
-    logger.info("Running extract_metrics")
-
-    def _parse_metrics(raw_output: str) -> str | None:
-        pattern = r"Model metrics:\s*(\{.*?\})"
-        if match := re.search(pattern, raw_output):
-            return match.group(1).strip()
-        return "Metrics not found"
-
-    try:
-        state["metrics"] = _parse_metrics(state["observation"].stdout)
-        logger.info(f"Metrics: {state['metrics']}")
-
-        pipeline_path = workspace / "pipeline"
-        if pipeline_path.exists():
-            model = Fedot(problem="classification")
-            model.load(pipeline_path)
-            state["pipeline"] = graph_structure(model.current_pipeline)
-            logger.info(f"Pipeline: {state['pipeline']}")
-        else:
-            logger.warning("Pipeline not found at expected path")
-            state["pipeline"] = "Pipeline not found"
-    except Exception as e:
-        logger.error(f"Failed to extract metrics: {str(e)}")
-        state["metrics"] = "Metrics not found"
-        state["pipeline"] = "Pipeline not found"
-
-    return state
 
 
 def run_tests(state: AutoMLAgentState, workspace: Path, inference: AIInference):
@@ -324,7 +309,9 @@ def run_tests(state: AutoMLAgentState, workspace: Path, inference: AIInference):
                         condition=(
                             "Compare the submission file format with the sample submission file format to determine if they have the same structure by verifying the following:"
                             "1. Column names match exactly. 2. Data types in corresponding columns are compatible. 3. The overall structure, including column order and presence, is consistent.\n"
-                            "Note: Ignore differences in the values within the columns. Focus solely on structure, column names, and data types."
+                            "IMPORTANT: \n"
+                            "1. Ignore differences in the values within the columns."
+                            "2. Focus solely on structure, column names, and data types."
                         ),
                     )
                 )
@@ -361,6 +348,36 @@ def run_tests(state: AutoMLAgentState, workspace: Path, inference: AIInference):
         else:
             logger.info(f"Test passed: {result.msg}")
             state["observation"].msg += f"\nTest passed: {result.msg}"
+
+    return state
+
+
+def extract_metrics(state: AutoMLAgentState, workspace: Path):
+    logger.info("Running extract_metrics")
+
+    def _parse_metrics(raw_output: str) -> str | None:
+        pattern = r"Model metrics:\s*(\{.*?\})"
+        if match := re.search(pattern, raw_output):
+            return match.group(1).strip()
+        return "Metrics not found"
+
+    try:
+        state["metrics"] = _parse_metrics(state["observation"].stdout)
+        logger.info(f"Metrics: {state['metrics']}")
+
+        pipeline_path = workspace / "pipeline"
+        if pipeline_path.exists():
+            model = Fedot(problem="classification")
+            model.load(pipeline_path)
+            state["pipeline"] = graph_structure(model.current_pipeline)
+            logger.info(f"Pipeline: {state['pipeline']}")
+        else:
+            logger.warning("Pipeline not found at expected path")
+            state["pipeline"] = "Pipeline not found"
+    except Exception as e:
+        logger.error(f"Failed to extract metrics: {str(e)}")
+        state["metrics"] = "Metrics not found"
+        state["pipeline"] = "Pipeline not found"
 
     return state
 

@@ -6,7 +6,7 @@ import re
 import logging
 from pathlib import Path
 from fedotllm.main import FedotAI
-from fedotllm.output import JupyterOutput
+from fedotllm.handlers import JupyterOutput
 from fedotllm.llm import AIInference
 from examples.kaggle import download_from_kaggle, submit_to_kaggle
 from golem.core.dag.graph_utils import graph_structure

@@ -64,12 +64,14 @@ class AutoMLAgent:
             "select_skeleton",
             partial(select_skeleton, dataset=self.dataset, workspace=self.workspace),
         )
-        workflow.add_node("insert_templates", insert_templates)
+        workflow.add_node(
+            "insert_templates_test", partial(insert_templates, run_mode="test")
+        )
         workflow.add_node(
             "generate_code",
             partial(generate_code, inference=self.inference, dataset=self.dataset),
         )
-        workflow.add_node("evaluate_main", partial(evaluate, workspace=self.workspace))
+        workflow.add_node("evaluate_test", partial(evaluate, workspace=self.workspace))
         workflow.add_node(
             "fix_solution_main",
             partial(fix_solution, inference=self.inference, dataset=self.dataset),
@@ -78,6 +80,10 @@ class AutoMLAgent:
             "run_tests",
             partial(run_tests, workspace=self.workspace, inference=self.inference),
         )
+        workflow.add_node(
+            "insert_templates_final", partial(insert_templates, run_mode="final")
+        )
+        workflow.add_node("evaluate_final", partial(evaluate, workspace=self.workspace))
         workflow.add_node(
             "extract_metrics", partial(extract_metrics, workspace=self.workspace)
         )
@@ -90,23 +96,25 @@ class AutoMLAgent:
         workflow.add_edge("problem_reflection", "generate_automl_config")
         workflow.add_edge("generate_automl_config", "select_skeleton")
         workflow.add_edge("select_skeleton", "generate_code")
-        workflow.add_edge("generate_code", "insert_templates")
+        workflow.add_edge("generate_code", "insert_templates_test")
         workflow.add_conditional_edges(
-            "insert_templates",
+            "insert_templates_test",
             lambda state: state["code"] is None,
-            {True: "generate_code", False: "evaluate_main"},
+            {True: "generate_code", False: "evaluate_test"},
         )
         workflow.add_conditional_edges(
-            "evaluate_main",
+            "evaluate_test",
             if_bug,
             {True: "fix_solution_main", False: "run_tests"},
         )
-        workflow.add_edge("fix_solution_main", "insert_templates")
+        workflow.add_edge("fix_solution_main", "insert_templates_test")
         workflow.add_conditional_edges(
             "run_tests",
             if_bug,
-            {True: "fix_solution_main", False: "extract_metrics"},
+            {True: "fix_solution_main", False: "insert_templates_final"},
         )
+        workflow.add_edge("insert_templates_final", "evaluate_final")
+        workflow.add_edge("evaluate_final", "extract_metrics")
         workflow.add_edge("extract_metrics", "generate_report")
         workflow.add_edge("generate_report", END)
         return workflow.compile().with_config(config={"run_name": "AutoMLAgent"})

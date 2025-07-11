@@ -4,8 +4,9 @@ import streamlit as st
 
 from fedotllm.web.backend.app import ask
 from fedotllm.web.common.types import BaseResponse
-from ..utils import render, get_user_data_dir, save_all_files, generate_output_file
+
 from ..localization import lclz
+from ..utils import generate_output_file, get_user_data_dir, render, save_all_files
 
 
 async def handle_predict(prompt):

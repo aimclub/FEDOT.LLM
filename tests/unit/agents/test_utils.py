@@ -1,6 +1,6 @@
 import pytest
 import json
-from fedotllm.agents.utils import extract_code, parse_json
+from fedotllm.utils.parsers import extract_code, parse_json
 
 # Tests for extract_code
 def test_extract_code_with_python_block():

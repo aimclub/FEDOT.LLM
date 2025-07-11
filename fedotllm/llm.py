@@ -8,9 +8,9 @@ from pydantic import BaseModel
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from fedotllm import prompts
-from fedotllm.agents.utils import parse_json
 from fedotllm.log import logger
 from fedotllm.settings.config_loader import get_settings
+from fedotllm.utils.parsers import parse_json
 
 T = TypeVar("T", bound=BaseModel)
 

@@ -6,8 +6,7 @@ import pandas as pd
 from fedot.api.main import Fedot
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.data.data import InputData
-from fedot.core.repository.tasks import Task
-from fedot.core.repository.tasks import TaskTypesEnum # classification, regression, ts_forecasting.
+from fedot.core.repository.tasks import Task, TaskTypesEnum  # classification, regression, ts_forecasting.
 from automl import train_model, evaluate_model, automl_predict
 ### UNMODIFIABLE IMPORT END ###
 # USER CODE BEGIN IMPORTS #
@@ -297,4 +296,16 @@ def main():
     print("\nKaggle ML Workflow finished.")
 
 if __name__ == "__main__":
+    print("Files and directories:")
+    paths = {
+        "Dataset Path": DATASET_PATH,
+        "Workspace Path": WORKSPACE_PATH,
+        "Pipeline Path": PIPELINE_PATH,
+        "Submission Path": SUBMISSION_PATH,
+        "Train File": TRAIN_FILE,
+        "Test File": TEST_FILE,
+        "Sample Submission File": SAMPLE_SUBMISSION_FILE
+    }
+    for name, path in paths.items():
+        print(f"{name}: {path}")
     main()
