@@ -1,5 +1,6 @@
 from typing import List
 
+from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 
 from fedotllm.agents.researcher.state import ResearcherAgentState
@@ -13,7 +14,7 @@ from fedotllm.agents.researcher.structured import (
     RewriteQuestion,
 )
 from fedotllm.agents.retrieve import RetrieveTool
-from fedotllm.llm import AIInference, OpenaiEmbeddings
+from fedotllm.llm import AIInference, LiteLLMEmbeddings
 from fedotllm.prompts.researcher import (
     generate_prompt,
     is_grounded_prompt,
@@ -24,7 +25,7 @@ from fedotllm.prompts.researcher import (
 
 
 def retrieve_documents(
-    state: ResearcherAgentState, embeddings: OpenaiEmbeddings
+    state: ResearcherAgentState, embeddings: LiteLLMEmbeddings
 ) -> ResearcherAgentState:
     retriever = RetrieveTool(embeddings=embeddings)
     if retriever.count() == 0:
@@ -36,7 +37,7 @@ def retrieve_documents(
 def grade_retrieve(
     state: ResearcherAgentState, inference: AIInference
 ) -> ResearcherAgentState:
-    question = state["question"]
+    question = state["messages"][-1].content
     documents = state["retrieved"]["documents"]
 
     # Score each doc
@@ -112,7 +113,9 @@ def render_answer(state: ResearcherAgentState):
         )
 
     state["answer"] = answer
-    return state
+    return Command(
+        update={"messages": HumanMessage(content=answer, name="ResearcherAgent")}
+    )
 
 
 def is_continue(state: ResearcherAgentState):

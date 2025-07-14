@@ -200,5 +200,7 @@ db/
 docker/docker_caches/
 temp-*
 
+# Ruff
+.ruff_cache/
 
 

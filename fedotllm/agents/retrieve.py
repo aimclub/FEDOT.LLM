@@ -6,13 +6,13 @@ from html2text import html2text
 
 from fedotllm.agents.memory import ChunkedDocument, Memory, text_splitter
 from fedotllm.agents.scraper import recursive_url_loader
-from fedotllm.llm import OpenaiEmbeddings
+from fedotllm.llm import LiteLLMEmbeddings
 
 
 class RetrieveTool:
     def __init__(
         self,
-        embeddings: OpenaiEmbeddings,
+        embeddings: LiteLLMEmbeddings,
         base_url: str = "https://fedot.readthedocs.io/en/latest/",
         collection_name: str = "docs",
     ):

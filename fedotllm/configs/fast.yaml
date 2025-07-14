@@ -1,0 +1,4 @@
+automl:
+  predictor_init_kwargs:
+    timeout: 1
+    preset: fast_train

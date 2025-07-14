@@ -5,12 +5,12 @@ from chromadb.api.client import Client
 from chromadb.api.types import QueryResult
 from tqdm import tqdm
 
-from fedotllm.llm import OpenaiEmbeddings
+from fedotllm.llm import LiteLLMEmbeddings
 
 
 def text_splitter(
     text: str,
-    max_chunk_length: int = OpenaiEmbeddings.MAX_INPUT,
+    max_chunk_length: int = LiteLLMEmbeddings.MAX_INPUT,
     overlap_ratio: float = 0.1,
 ):
     if not text:
@@ -42,7 +42,7 @@ class ChunkedDocument:
 
 class Memory:
     def __init__(
-        self, client: Client, collection_name: str, embedding_model: OpenaiEmbeddings
+        self, client: Client, collection_name: str, embedding_model: LiteLLMEmbeddings
     ):
         self.chroma_client = client
         self.collection_name = collection_name

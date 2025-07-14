@@ -1,13 +1,13 @@
 import re
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
 import pandas as pd
 from fedot.api.main import Fedot
+from golem.core.dag.graph import Graph
 from golem.core.dag.graph_utils import graph_structure
 from langchain_core.messages import HumanMessage, convert_to_openai_messages
 from langgraph.types import Command
-from utils.config.loader import load_config
 
 from fedotllm import prompts
 from fedotllm.agents.automl.state import AutoMLAgentState
@@ -16,7 +16,7 @@ from fedotllm.agents.automl.templates.load_template import (
     load_template,
     render_template,
 )
-from fedotllm.agents.utils import extract_code
+from fedotllm.configs.schema import AppConfig
 from fedotllm.data import Dataset
 from fedotllm.enviroments import (
     Observation,
@@ -24,6 +24,7 @@ from fedotllm.enviroments import (
 )
 from fedotllm.llm import AIInference
 from fedotllm.log import logger
+from fedotllm.utils.parsers import extract_code
 
 PREDICT_METHOD_MAP = {
     "predict": "predict(features=input_data)",
@@ -32,12 +33,29 @@ PREDICT_METHOD_MAP = {
 }
 
 
+def init_state(state: AutoMLAgentState):
+    return Command(
+        update={
+            "reflection": None,
+            "fedot_config": None,
+            "skeleton": None,
+            "raw_code": None,
+            "code": None,
+            "observation": None,
+            "fix_attempts": 0,
+            "metrics": "",
+            "pipeline": "",
+            "report": "",
+        }
+    )
+
+
 def problem_reflection(
     state: AutoMLAgentState, inference: AIInference, dataset: Dataset
 ):
     logger.info("Running problem reflection")
-
     messages = convert_to_openai_messages(state["messages"])
+    messages = [messages] if isinstance(messages, dict) else messages
     messages.append(
         {
             "role": "user",
@@ -56,17 +74,19 @@ def generate_automl_config(
 ):
     logger.info("Running generate automl config")
 
-    config = inference.create(
+    fedot_config = inference.create(
         prompts.automl.generate_configuration_prompt(
             reflection=state["reflection"],
         ),
         response_model=FedotConfig,
     )
 
-    return Command(update={"fedot_config": config})
+    return Command(update={"fedot_config": fedot_config})
 
 
-def select_skeleton(state: AutoMLAgentState, dataset: Dataset, workspace: Path):
+def select_skeleton(
+    state: AutoMLAgentState, app_config: AppConfig, dataset: Dataset, workspace: Path
+):
     logger.info("Running select skeleton")
     fedot_config = state["fedot_config"]
 
@@ -75,8 +95,8 @@ def select_skeleton(state: AutoMLAgentState, dataset: Dataset, workspace: Path):
 
     if predict_method is None:
         raise ValueError(f"Unknown predict method: {fedot_config.predict_method}")
-
-    code_template = load_template(load_config().fedot.templates.code)
+    app_config.automl.templates.code
+    code_template = load_template(app_config.automl.templates.code)
     code_template = render_template(
         template=code_template,
         dataset_path=dataset.path,
@@ -99,12 +119,13 @@ def generate_code(state: AutoMLAgentState, inference: AIInference, dataset: Data
 
 
 def insert_templates(
-    state: AutoMLAgentState, run_mode: Literal["test", "final"] = "test"
+    state: AutoMLAgentState,
+    app_config: AppConfig,
+    run_mode: Literal["test", "final"] = "test",
 ):
     logger.info("Running insert templates")
     code = state["raw_code"]
     fedot_config = state["fedot_config"]
-    config = load_config()
     predict_method = PREDICT_METHOD_MAP.get(fedot_config.predict_method)
 
     predictor_init_kwargs = (
@@ -113,7 +134,7 @@ def insert_templates(
             "cv_folds": fedot_config.cv_folds,
             "preset": f"'{fedot_config.preset.value}'",
             "metric": f"'{fedot_config.metric.value}'",
-            **load_config().fedot.predictor_init_kwargs,
+            **app_config.automl.predictor_init_kwargs,
             "timeout": 1.0,
         }
         if run_mode == "test"
@@ -123,19 +144,19 @@ def insert_templates(
             "cv_folds": fedot_config.cv_folds,
             "preset": f"'{fedot_config.preset.value}'",
             "metric": f"'{fedot_config.metric.value}'",
-            **load_config().fedot.predictor_init_kwargs,
+            **app_config.automl.predictor_init_kwargs,
         }
     )
     try:
         templates = {
-            config.fedot.templates.train: {"params": predictor_init_kwargs},
-            config.fedot.templates.evaluate: {
+            app_config.automl.templates.train: {"params": predictor_init_kwargs},
+            app_config.automl.templates.evaluate: {
                 "params": {
                     "problem": str(fedot_config.problem),
                     "predict_method": predict_method,
                 }
             },
-            config.fedot.templates.predict: {
+            app_config.automl.templates.predict: {
                 "params": {
                     "problem": str(fedot_config.problem),
                     "predict_method": predict_method,
@@ -144,9 +165,9 @@ def insert_templates(
         }
 
         rendered_templates = []
-        for template_name, config in templates.items():
+        for template_name, fconfig in templates.items():
             template = load_template(template_name)
-            rendered = render_template(template=template, **config["params"])
+            rendered = render_template(template=template, **fconfig["params"])
             rendered_templates.append(rendered)
 
         code = code.replace(
@@ -181,13 +202,13 @@ def evaluate(state: AutoMLAgentState, workspace: Path):
     return Command(update={"observation": observation})
 
 
-def if_bug(state: AutoMLAgentState):
+def if_bug(state: AutoMLAgentState, app_config: AppConfig):
     if (
         state["observation"].error
-        and state["fix_attempts"] < load_config().fedot.fix_tries
+        and state["fix_attempts"] < app_config.automl.fix_tries
     ):
         return True
-    if state["fix_attempts"] >= load_config().fedot.fix_tries:
+    if state["fix_attempts"] >= app_config.automl.fix_tries:
         logger.error("Too many fix tries")
     return False
 
@@ -232,7 +253,9 @@ def run_tests(state: AutoMLAgentState, workspace: Path, inference: AIInference):
         try:
             model = Fedot(problem="classification")
             model.load(pipeline_path)
-            return Observation(error=False, msg=graph_structure(model.current_pipeline))
+            return Observation(
+                error=False, msg=graph_structure(cast(Graph, model.current_pipeline))
+            )
         except Exception as e:
             return Observation(error=True, msg=f"Pipeline loading failed: {str(e)}")
 
@@ -369,7 +392,7 @@ def extract_metrics(state: AutoMLAgentState, workspace: Path):
         if pipeline_path.exists():
             model = Fedot(problem="classification")
             model.load(pipeline_path)
-            state["pipeline"] = graph_structure(model.current_pipeline)
+            state["pipeline"] = graph_structure(cast(Graph, model.current_pipeline))
             logger.info(f"Pipeline: {state['pipeline']}")
         else:
             logger.warning("Pipeline not found at expected path")
@@ -384,7 +407,8 @@ def extract_metrics(state: AutoMLAgentState, workspace: Path):
 
 def generate_report(state: AutoMLAgentState, inference: AIInference):
     if state["code"] and state["pipeline"]:
-        messages = state["messages"]
+        messages = convert_to_openai_messages(state["messages"])
+        messages = [messages] if isinstance(messages, dict) else messages
         messages.append(
             {
                 "role": "user",
@@ -395,7 +419,7 @@ def generate_report(state: AutoMLAgentState, inference: AIInference):
                 ),
             }
         )
-        response = inference.query(convert_to_openai_messages(messages))
+        response = inference.query(messages)
     else:
         response = "Solution not found. Please try again."
     return Command(

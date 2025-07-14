@@ -14,44 +14,50 @@ from fedotllm.agents.researcher.nodes import (
     rewrite_question,
 )
 from fedotllm.agents.researcher.state import ResearcherAgentState
-from fedotllm.llm import AIInference, OpenaiEmbeddings
+from fedotllm.llm import AIInference, LiteLLMEmbeddings
+
+RETRIEVE = "retrieve"
+RETRIEVE_GRADER = "retrieve_grader"
+GENERATE = "generate"
+RENDER_ANSWER = "render_answer"
+REWRITE_QUESTION = "rewrite_question"
 
 
 class ResearcherAgent(Agent):
-    def __init__(self, inference: AIInference, embeddings: OpenaiEmbeddings):
+    def __init__(self, inference: AIInference, embeddings: LiteLLMEmbeddings):
         self.inference = inference
         self.embeddings = embeddings
 
     def create_graph(self):
         workflow = StateGraph(ResearcherAgentState)
         workflow.add_node(
-            "retrieve", partial(retrieve_documents, embeddings=self.embeddings)
+            RETRIEVE, partial(retrieve_documents, embeddings=self.embeddings)
         )
         workflow.add_node(
-            "retrieve_grader", partial(grade_retrieve, inference=self.inference)
+            RETRIEVE_GRADER, partial(grade_retrieve, inference=self.inference)
         )
         workflow.add_node(
-            "generate", partial(generate_response, inference=self.inference)
+            GENERATE, partial(generate_response, inference=self.inference)
         )
-        workflow.add_node("render_answer", render_answer)
+        workflow.add_node(RENDER_ANSWER, render_answer)
         workflow.add_node(
-            "rewrite_question", partial(rewrite_question, inference=self.inference)
+            REWRITE_QUESTION, partial(rewrite_question, inference=self.inference)
         )
 
-        workflow.add_edge(START, "retrieve")
-        workflow.add_edge("retrieve", "retrieve_grader")
+        workflow.add_edge(START, RETRIEVE)
+        workflow.add_edge(RETRIEVE, RETRIEVE_GRADER)
         workflow.add_conditional_edges(
-            "retrieve_grader",
+            RETRIEVE_GRADER,
             lambda state: not (
                 len(state["retrieved"]["documents"]) == 0 and is_continue(state)
             ),
             {
-                True: "generate",
-                False: "rewrite_question",
+                True: GENERATE,
+                False: REWRITE_QUESTION,
             },
         )
         workflow.add_conditional_edges(
-            "generate",
+            GENERATE,
             lambda state: not (
                 not (
                     is_grounded(state, self.inference)
@@ -60,10 +66,10 @@ class ResearcherAgent(Agent):
                 and is_continue(state)
             ),
             {
-                True: "render_answer",
-                False: "generate",
+                True: RENDER_ANSWER,
+                False: GENERATE,
             },
         )
-        workflow.add_edge("rewrite_question", "retrieve")
-        workflow.add_edge("render_answer", END)
-        return workflow.compile().with_config(config={"run_name": "ResearcherAgent"})
+        workflow.add_edge(REWRITE_QUESTION, RETRIEVE)
+        workflow.add_edge(RENDER_ANSWER, END)
+        return workflow.compile().with_config(run_name="ResearcherAgent")

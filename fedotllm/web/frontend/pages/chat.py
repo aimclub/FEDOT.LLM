@@ -8,17 +8,24 @@ from fedotllm.web.common.types import BaseResponse
 from ..localization import lclz
 from ..utils import generate_output_file, get_user_data_dir, render, save_all_files
 
+def update_config_overrides():
+    config_overrides = []
+    if st.session_state.llm:
+        config_overrides.append(f'llm.model={st.session_state.llm["name"]}')
+        config_overrides.append(f'llm.base_url={st.session_state.llm["base_url"]}')
+        config_overrides.append(f'llm.api_key={st.session_state.llm["api_key"]}')
+    st.session_state.config_overrides = config_overrides
+
 
 async def handle_predict(prompt):
     try:
         user_data_dir = get_user_data_dir()
         save_all_files(user_data_dir)
+        update_config_overrides()
         gen_response = ask(
             prompt,
             task_path=user_data_dir,
-            llm_name=st.session_state.llm["name"],
-            llm_base_url=st.session_state.llm["base_url"],
-            llm_api_key=st.session_state.llm["api_key"],
+            config_overrides=st.session_state.config_overrides,
             workspace=user_data_dir,
             lang=st.session_state.lang,
         )

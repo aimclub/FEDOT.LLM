@@ -18,16 +18,17 @@ dependencies = [
     "kaggle>=1.7.4.5",
     "langchain-core>=0.3.49",
     "langdetect>=1.0.9",
-    "langfuse>=2.60.4",
+    "langfuse==2.59.7",
     "langgraph>=0.3.21",
     "litellm==1.71.2",
     "loguru>=0.7.3",
+    "omegaconf>=2.3.0",
     "pandas>=2.2.3",
     "pydantic>=2.11.5",
     "pydantic-settings>=2.10.1",
     "pygwalker>=0.4.9.14",
     "setuptools>=78.1.0",
-    "streamlit>=1.44.0",
+    "streamlit==1.44.0",
     "streamlit-extras>=0.6.0",
     "tabulate>=0.9.0",
     "tenacity>=9.0.0",
@@ -42,22 +43,18 @@ dev = [
     "pytest-cov>=6.1.1",
     "pytest-mock>=3.12.0",
     "ruff>=0.11.2",
+    "ty>=0.0.1a14",
 ]
 
 [tool.setuptools]
 packages = ["fedotllm", "examples"]
 
-[tool.pytest]
-testpaths = ["tests"]
-python_files = "test_*.py"
-python_classes = "Test*"
-python_functions = "test_*"
-filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning"]
+[tool.ty.environment]
+python = "./.venv"
 
 [tool.ruff]
 exclude = [
     "user_data/*",
-    "test*",
     "fedotllm/**/templates/**",
     "examples",
     "kaggle_comp",
