@@ -14,6 +14,7 @@ from fedotllm.agents.researcher.nodes import (
     rewrite_question,
 )
 from fedotllm.agents.researcher.state import ResearcherAgentState
+from fedotllm.configs.schema import AppConfig
 from fedotllm.llm import AIInference, LiteLLMEmbeddings
 
 RETRIEVE = "retrieve"
@@ -24,9 +25,9 @@ REWRITE_QUESTION = "rewrite_question"
 
 
 class ResearcherAgent(Agent):
-    def __init__(self, inference: AIInference, embeddings: LiteLLMEmbeddings):
-        self.inference = inference
-        self.embeddings = embeddings
+    def __init__(self, config: AppConfig):
+        self.inference = AIInference(config.llm, config.session_id)
+        self.embeddings = LiteLLMEmbeddings(config.embeddings)
 
     def create_graph(self):
         workflow = StateGraph(ResearcherAgentState)

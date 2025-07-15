@@ -8,12 +8,13 @@ from fedotllm.web.common.types import BaseResponse
 from ..localization import lclz
 from ..utils import generate_output_file, get_user_data_dir, render, save_all_files
 
+
 def update_config_overrides():
     config_overrides = []
     if st.session_state.llm:
-        config_overrides.append(f'llm.model={st.session_state.llm["name"]}')
-        config_overrides.append(f'llm.base_url={st.session_state.llm["base_url"]}')
-        config_overrides.append(f'llm.api_key={st.session_state.llm["api_key"]}')
+        config_overrides.append(f"llm.model={st.session_state.llm['name']}")
+        config_overrides.append(f"llm.base_url={st.session_state.llm['base_url']}")
+        config_overrides.append(f"llm.api_key={st.session_state.llm['api_key']}")
     st.session_state.config_overrides = config_overrides
 
 

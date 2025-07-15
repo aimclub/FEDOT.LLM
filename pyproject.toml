@@ -9,6 +9,7 @@ requires-python = ">=3.10, <3.12"
 dependencies = [
     "beautifulsoup4>=4.13.3",
     "chromadb>=0.6.3",
+    "diskcache>=5.6.3",
     "dynaconf>=3.2.10",
     "fedot>=0.7.5",
     "giotto-tda>=0.6.0",
@@ -20,7 +21,7 @@ dependencies = [
     "langdetect>=1.0.9",
     "langfuse==2.59.7",
     "langgraph>=0.3.21",
-    "litellm==1.71.2",
+    "litellm[caching]==1.71.2",
     "loguru>=0.7.3",
     "omegaconf>=2.3.0",
     "pandas>=2.2.3",

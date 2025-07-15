@@ -1,9 +1,10 @@
 import os
-from typing import Any, Dict, List, Type, TypeVar
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
 import litellm
 import tiktoken
-from pydantic import BaseModel
+from litellm.caching.caching import Cache, LiteLLMCacheType
+from pydantic import BaseModel, ValidationError
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from fedotllm import prompts
@@ -24,7 +25,7 @@ if LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY:
 
 
 class AIInference:
-    def __init__(self, config: LLMConfig):
+    def __init__(self, config: LLMConfig, session_id: Optional[str] = None):
         self.config = config
 
         if not self.config.api_key:
@@ -37,8 +38,14 @@ class AIInference:
             "api_key": self.config.api_key,
             "base_url": self.config.base_url,
             "extra_headers": self.config.extra_headers,
+            "metadata": {"session_id": session_id},
             **self.config.completion_params,
         }
+
+        if config.caching.enabled:
+            litellm.cache = Cache(
+                type=LiteLLMCacheType.DISK, disk_cache_dir=config.caching.dir_path
+            )
 
     @retry(
         stop=stop_after_attempt(5),
@@ -49,7 +56,13 @@ class AIInference:
         messages = f"{messages}\n{prompts.utils.structured_response(response_model)}"
         response = self.query(messages)
         json_obj = parse_json(response) if response else None
-        return response_model.model_validate(json_obj)
+        try:
+            return response_model.model_validate(json_obj)
+        except ValidationError as exc_info:
+            messages = f"{prompts.utils.fix_structured_response(json_obj, str(exc_info), response_model)}"
+            response = self.query(messages)
+            json_obj = parse_json(response) if response else None
+            return response_model.model_validate(json_obj)
 
     @retry(
         stop=stop_after_attempt(5),

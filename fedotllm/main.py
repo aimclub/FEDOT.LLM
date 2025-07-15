@@ -51,6 +51,9 @@ class FedotAI:
         self.inference = AIInference(self.config.llm)
         self.embeddings = LiteLLMEmbeddings(self.config.embeddings)
         self.handlers = handlers if handlers is not None else []
+        self.config.session_id = self.config.session_id or pd.Timestamp.now().strftime(
+            "%Y%m%d_%H%M%S"
+        )
         self.workspace = workspace
 
     async def ainvoke(self, message: str):
@@ -58,9 +61,7 @@ class FedotAI:
             f"FedotAI ainvoke called. Input message (first 100 chars): '{message[:100]}...'"
         )
         if not self.workspace:
-            self.workspace = Path(
-                f"fedotllm-output-{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}"
-            )
+            self.workspace = Path(f"fedotllm-output-{self.config.session_id}")
             logger.info(f"Workspace for ainvoke created at: {self.workspace}")
 
         translator_agent = TranslatorAgent(inference=self.inference)
@@ -74,12 +75,10 @@ class FedotAI:
         automl_agent = AutoMLAgent(
             config=self.config, dataset_path=self.task_path, workspace=self.workspace
         ).create_graph()
-        researcher_agent = ResearcherAgent(
-            inference=self.inference, embeddings=self.embeddings
-        ).create_graph()
+        researcher_agent = ResearcherAgent(config=self.config).create_graph()
 
         entry_point = SupervisorAgent(
-            inference=self.inference,
+            config=self.config,
             automl_agent=automl_agent,
             researcher_agent=researcher_agent,
         ).create_graph()
@@ -165,9 +164,7 @@ class FedotAI:
             f"FedotAI ask called with message (first 100 chars): '{message[:100]}...'"
         )
         if not self.workspace:
-            self.workspace = Path(
-                f"fedotllm-output-{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}"
-            )
+            self.workspace = Path(f"fedotllm-output-{self.config.session_id}")
             logger.info(f"Workspace created at: {self.workspace}")
         translator_agent = TranslatorAgent(inference=self.inference)
         logger.info("Translating input message to English for ask.")
@@ -179,11 +176,9 @@ class FedotAI:
         automl_agent = AutoMLAgent(
             config=self.config, dataset_path=self.task_path, workspace=self.workspace
         ).create_graph()
-        researcher_agent = ResearcherAgent(
-            inference=self.inference, embeddings=self.embeddings
-        ).create_graph()
+        researcher_agent = ResearcherAgent(config=self.config).create_graph()
         entry_point = SupervisorAgent(
-            inference=self.inference,
+            config=self.config,
             automl_agent=automl_agent,
             researcher_agent=researcher_agent,
         ).create_graph()

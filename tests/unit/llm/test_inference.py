@@ -4,8 +4,8 @@ import pytest
 from pydantic import BaseModel, Field, ValidationError
 from tenacity import wait_none
 
-from fedotllm.llm import AIInference
 from fedotllm.configs.schema import LLMConfig
+from fedotllm.llm import AIInference
 
 
 class UserModel(BaseModel):
@@ -66,9 +66,7 @@ def test_create_structured_object_invalid(llm_config):
         **kwargs: '{"name": "John Doe", "age": 150, "email": "john@example.com", "active": true}'
     )
     inference.create.retry.wait = wait_none()  # Disable retry for this test
-    with pytest.raises(
-        ValidationError, match=r".*less than or equal to 120.*"
-    ):
+    with pytest.raises(ValidationError, match=r".*less than or equal to 120.*"):
         inference.create(messages="", response_model=UserModel)
 
 
@@ -92,9 +90,7 @@ def test_create_structured_object_missing_field(llm_config):
         (None, r".*valid dictionary.*"),
     ],
 )
-def test_create_structured_object_invalid_format(
-    response, expected_error, llm_config
-):
+def test_create_structured_object_invalid_format(response, expected_error, llm_config):
     """Test creating a structured object with invalid response"""
 
     inference = AIInference(llm_config)

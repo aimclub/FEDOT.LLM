@@ -2,8 +2,9 @@ import os
 from copy import deepcopy
 
 import streamlit as st
-from fedotllm.constants import DEFAULT_SESSION_VALUES
+
 from fedotllm.configs.loader import load_config
+from fedotllm.constants import DEFAULT_SESSION_VALUES
 
 
 def init_page():

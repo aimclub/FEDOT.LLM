@@ -43,7 +43,7 @@ class AutoMLAgent:
         self, config: AppConfig, dataset_path: str | Path, workspace: str | Path
     ):
         self.config = config
-        self.inference = AIInference(config.llm)
+        self.inference = AIInference(config.llm, config.session_id)
         self.dataset = Dataset.from_path(dataset_path)
         self.workspace = Path(workspace)
 

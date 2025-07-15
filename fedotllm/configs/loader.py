@@ -1,6 +1,5 @@
 import logging
 import re
-from importlib.resources import files
 from pathlib import Path
 from typing import List, Optional, Type, TypeVar
 
@@ -9,6 +8,7 @@ from omegaconf import DictConfig, ListConfig, OmegaConf
 from pydantic import BaseModel
 
 from fedotllm.configs.schema import AppConfig
+from fedotllm.constants import PACKAGE_PATH
 
 
 def _get_default_config_path(
@@ -27,7 +27,7 @@ def _get_default_config_path(
         ValueError: If the config file is not found.
     """
     try:
-        config_path = Path(files("fedotllm") / "configs" / f"{presets}.yaml")
+        config_path = Path(PACKAGE_PATH) / "configs" / f"{presets}.yaml"
 
         if not config_path.exists():
             raise ValueError(

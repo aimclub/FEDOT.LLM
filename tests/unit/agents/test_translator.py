@@ -4,8 +4,8 @@ import pytest
 from langdetect import LangDetectException
 
 from fedotllm.agents.translator import TranslatorAgent
-
 from fedotllm.llm import AIInference
+
 
 @pytest.fixture
 def mock_inference_fixture():

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Literal, Optional, List
+from typing import List, Literal, Optional
 
 from typing_extensions import AsyncIterator
 

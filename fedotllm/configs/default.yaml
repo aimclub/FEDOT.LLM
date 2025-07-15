@@ -12,6 +12,8 @@ llm:
   model_name: gemini-2.0-flash
   base_url: https://generativelanguage.googleapis.com/v1beta/openai/
   api_key: ${oc.env:FEDOTLLM_LLM_API_KEY}
+  caching:
+    enabled: true
   extra_headers:
     X-Title: FEDOT.LLM
 embeddings:

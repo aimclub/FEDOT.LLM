@@ -216,13 +216,19 @@ def if_bug(state: AutoMLAgentState, app_config: AppConfig):
 def fix_solution(state: AutoMLAgentState, inference: AIInference, dataset: Dataset):
     logger.info("Running fix solution")
 
+    stdout_lines = state["observation"].stdout.splitlines()
+    if len(stdout_lines) > 20:
+        stdout = "\n".join(stdout_lines[:10] + ["..."] + stdout_lines[-10:])
+    else:
+        stdout = state["observation"].stdout
+
     fix_prompt = prompts.automl.fix_solution_prompt(
         reflection=state["reflection"],
         dataset_path=str(dataset.path.absolute()),
         code_recent_solution=state["raw_code"],
         msg=state["observation"].msg,
         stderr=state["observation"].stderr,
-        stdout=state["observation"].stdout,
+        stdout=stdout,
     )
 
     fixed_solution = inference.query(fix_prompt)

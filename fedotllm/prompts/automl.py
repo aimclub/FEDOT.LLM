@@ -60,7 +60,11 @@ You are a senior machine learning engineer. Analyze the following information: t
 {stderr}
 ```
 
-Write the full fixed code below.
+**IMPORTANT**:
+- Apply only **minimal**, **targeted** changes to fix code.
+- Do not rewrite from scratch.
+- Write full fixed code solution from file start to end.
+
 ```python
 """
 

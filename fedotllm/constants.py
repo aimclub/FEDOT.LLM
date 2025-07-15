@@ -1,3 +1,8 @@
+from importlib.resources import files
+from pathlib import Path
+
+PACKAGE_PATH = str(Path(files("fedotllm")))
+
 # File formats
 CSV_SUFFIXES = [".csv"]
 PARQUET_SUFFIXES = [".parquet", ".pq"]

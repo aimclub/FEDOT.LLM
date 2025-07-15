@@ -126,7 +126,7 @@ class Dataset:
         train_split = self.get_train_split()
         df = train_split.data
         eda = ""
-        if df.shape[1] <= 10:
+        if df.shape[1] <= 20:
             eda += "\n===== 1. BASIC INFO =====\n"
 
             buf = io.StringIO()
