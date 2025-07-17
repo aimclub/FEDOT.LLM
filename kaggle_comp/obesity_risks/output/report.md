@@ -51,7 +51,7 @@ Here’s a breakdown of the most critical sections of the code:
 
 1. **Data Preprocessing**  
    Converts the raw dataset to a clean format usable by the models.  
-   ```python
+```python
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
 
@@ -67,11 +67,11 @@ def transform_data(dataset: pd.DataFrame):
     features = scaler.fit_transform(features)
 
     return features, target
-   ```  
+```  
 
 2. **Model Training and AutoML**  
    Automated the model training process using the **FEDOT AutoML framework** to efficiently explore high-quality predictive models.  
-   ```python
+```python
 from fedot.api.main import Fedot
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -80,16 +80,16 @@ def train_model(features, target):
     pipeline = Fedot(problem='classification', preset='best_quality', timeout=1.0, metric='accuracy')
     pipeline.fit(features, target)
     return pipeline
-   ```  
+```  
 
 3. **Evaluation and Predictions**  
    Evaluated model performance and prepared submission files.  
-   ```python
+```python
 def create_submission():
     predictions = model.predict(test_features)
     submission_df = pd.DataFrame({'id': test_data['id'], 'NObeyesdad': predictions})
     submission_df.to_csv("submission.csv", index=False)
-   ```  
+```  
 
 ## 📊 Metrics  
 
