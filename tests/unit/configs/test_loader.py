@@ -26,7 +26,8 @@ class TestConfig(BaseModel):
 
 @fixture
 def config_file():
-    _, config_path = tempfile.mkstemp(suffix=".yaml")
+    fd, config_path = tempfile.mkstemp(suffix=".yaml")
+    os.close(fd)
 
     config_content = {
         "llm": {
@@ -59,7 +60,8 @@ def preset_files():
     presets = [{"fix_tries": 3}, {"predictor_init_kwargs": {"with_tune": False}}]
     preset_paths = []
     for preset in presets:
-        _, path = tempfile.mkstemp(suffix=".yaml")
+        fd, path = tempfile.mkstemp(suffix=".yaml")
+        os.close(fd)  # Close the file descriptor to avoid PermissionError on Windows
         preset_paths.append(path)
         with open(path, "w") as f:
             yaml.safe_dump(preset, f, indent=2)
