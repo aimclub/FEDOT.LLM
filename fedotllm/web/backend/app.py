@@ -1,9 +1,8 @@
 from pathlib import Path
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from typing_extensions import AsyncIterator
 
-from fedotllm.llm import AIInference, OpenaiEmbeddings
 from fedotllm.main import FedotAI
 from fedotllm.web.common.types import (
     BaseResponse,
@@ -17,9 +16,7 @@ from fedotllm.web.common.types import (
 async def ask(
     msg: str,
     task_path: Path,
-    llm_name: str,
-    llm_base_url: Optional[str] = None,
-    llm_api_key: Optional[str] = None,
+    config_overrides: List[str] | None = None,
     workspace: Optional[Path] = None,
     lang: Literal["en", "ru"] = "en",
 ) -> AsyncIterator[BaseResponse]:
@@ -28,10 +25,7 @@ async def ask(
     graph_handler = GraphResponse(lang=lang).graph_handler(response)
     fedot_ai = FedotAI(
         task_path=task_path,
-        inference=AIInference(
-            model=llm_name, base_url=llm_base_url, api_key=llm_api_key
-        ),
-        embeddings=OpenaiEmbeddings(api_key=llm_api_key, base_url=llm_base_url),
+        config_overrides=config_overrides,
         handlers=[message_handler, graph_handler],
         workspace=workspace,
     )

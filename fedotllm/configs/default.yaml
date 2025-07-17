@@ -1,0 +1,29 @@
+automl:
+  fix_tries: 5
+  templates:
+    code: skeleton-simple.py
+    train: fedot_train.py
+    evaluate: fedot_evaluate.py
+    predict: fedot_predict.py
+  predictor_init_kwargs:
+    timeout: 10  
+llm:
+  provider: openai
+  model_name: gemini-2.0-flash
+  base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+  api_key: ${oc.env:FEDOTLLM_LLM_API_KEY}
+  caching:
+    enabled: true
+  extra_headers:
+    X-Title: FEDOT.LLM
+embeddings:
+  provider: openai
+  model_name: text-embedding-3-small
+  base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+  api_key: ${oc.env:FEDOTLLM_EMBEDDINGS_API_KEY}
+  extra_headers:
+    X-Title: FEDOT.LLM
+langfuse:
+  host: ${oc.env:LANGFUSE_HOST}
+  public_key: ${oc.env:LANGFUSE_PUBLIC_KEY}
+  secret_key: ${oc.env:LANGFUSE_SECRET_KEY}

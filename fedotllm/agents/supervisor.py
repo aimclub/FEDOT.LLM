@@ -9,6 +9,7 @@ from langgraph.types import Command
 from pydantic import BaseModel, Field
 
 from fedotllm.agents.base import Agent, FedotLLMAgentState
+from fedotllm.configs.schema import AppConfig
 from fedotllm.llm import AIInference
 from fedotllm.prompts.supervisor import choose_next_prompt
 
@@ -26,11 +27,11 @@ class SupervisorState(FedotLLMAgentState):
 class SupervisorAgent(Agent):
     def __init__(
         self,
-        inference: AIInference,
+        config: AppConfig,
         automl_agent: Runnable,
         researcher_agent: Runnable,
     ):
-        self.inference = inference
+        self.inference = AIInference(config.llm, config.session_id)
         self.researcher_agent = researcher_agent
         self.automl_agent = automl_agent
 
@@ -50,7 +51,7 @@ class SupervisorAgent(Agent):
         workflow.add_edge("researcher", "choose_next")
         workflow.add_edge("automl", "finish")
         workflow.add_edge("finish", END)
-        return workflow.compile().with_config(config={"run_name": "SupervisorAgent"})
+        return workflow.compile().with_config(run_name=SupervisorAgent)
 
 
 class ChooseNext(BaseModel):
@@ -72,12 +73,14 @@ def router_node(
     """
 
     messages = convert_to_openai_messages(state["messages"])
+    messages = [messages] if isinstance(messages, dict) else messages
     messages.append({"role": "user", "content": choose_next_prompt()})
 
     response = inference.query(messages)
-    response = re.search(r"^(automl|researcher|finish)$", response)
-    if not response:
+    response = response.strip().lower()
+    match = re.search(r"\b(automl|researcher|finish)\b", response)
+    if not match:
         raise ValueError(
-            "Invalid response from inference, expected 'automl', 'researcher', or 'finish'."
+            f"Invalid response from inference: '{response}'. Expected 'automl', 'researcher', or 'finish'."
         )
-    return Command(goto=response.group(0))
+    return Command(goto=match.group(0))

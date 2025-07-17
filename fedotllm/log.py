@@ -1,7 +1,7 @@
 import logging
 
 logger = logging.getLogger("FEDOTLLM")
-logger.setLevel(logging.DEBUG)  # Changed from INFO to DEBUG to allow debug messages
+logger.setLevel(logging.DEBUG)
 
 file_handler = logging.FileHandler("fedotllm.log", mode="w")
 file_handler.setLevel(logging.DEBUG)

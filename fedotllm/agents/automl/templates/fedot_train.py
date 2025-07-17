@@ -1,5 +1,13 @@
-def train_model(train_features: np.ndarray, train_target: np.ndarray):
-    input_data = InputData.from_numpy(train_features, train_target, task=Task({%problem%}))
+def train_model(train_features: np.ndarray | pd.DataFrame, train_target: np.ndarray | pd.DataFrame | pd.Series):
+    if isinstance(train_features, pd.DataFrame) and isinstance(train_target, (pd.DataFrame, pd.Series)):
+        input_data = InputData.from_dataframe(train_features, train_target, task=Task({%problem%}))
+    elif isinstance(train_features, np.ndarray) and isinstance(train_target, np.ndarray):
+        input_data = InputData.from_numpy(train_features, train_target, task=Task({%problem%}))
+    else:
+        raise ValueError("Unsupported data types for train_features and train_target. "
+                         "Expected pandas DataFrame and (DataFrame or Series), or numpy ndarray and numpy ndarray."
+                         f"Got: {type(train_features)} and {type(train_target)}")
+        
     model = Fedot(problem={%problem%}.value,
             timeout={%timeout%},
             seed=42,

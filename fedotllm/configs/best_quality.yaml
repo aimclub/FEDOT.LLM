@@ -1,0 +1,4 @@
+automl:
+  predictor_init_kwargs:
+    timeout: 30
+    preset: best_quality

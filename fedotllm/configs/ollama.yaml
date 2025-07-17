@@ -1,0 +1,5 @@
+llm:
+  provider: ollama
+  model_name: "devstral:latest"
+  base_url:
+  api_key: "ollama"

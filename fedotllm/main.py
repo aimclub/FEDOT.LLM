@@ -5,78 +5,55 @@ import pandas as pd
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.schema import StreamEvent
 
-from fedotllm.agents.agent_wrapper import AgentWrapper
 from fedotllm.agents.automl import AutoMLAgent
 from fedotllm.agents.researcher.researcher import ResearcherAgent
 from fedotllm.agents.supervisor import SupervisorAgent
 from fedotllm.agents.translator import TranslatorAgent
-from fedotllm.data import Dataset
-from fedotllm.llm import AIInference, OpenaiEmbeddings
+from fedotllm.configs.loader import load_config
+from fedotllm.handlers.translator import TranslatorHandler
+from fedotllm.llm import AIInference, LiteLLMEmbeddings
 from fedotllm.log import logger
-
-
-class TranslatorHandler:
-    def __init__(self, translator: TranslatorAgent):
-        self.subscribe_events = ["SupervisorAgent", "ResearcherAgent", "AutoMLAgent"]
-        self.translated_message_ids = set()
-        self.translator = translator
-
-    def handler(self, event: StreamEvent):
-        event_name = event.get("name", "")
-        data = event.get("data", {})
-        if event_name in self.subscribe_events:
-            if data:
-                output = data.get("output", None)
-                if output is not None:
-                    if isinstance(output, dict):
-                        messages = output.get("messages", None)
-                        if messages is not None:
-                            if isinstance(messages, list):
-                                for message in messages:
-                                    if isinstance(message, AIMessage) or isinstance(
-                                        message, HumanMessage
-                                    ):
-                                        if (
-                                            message.id
-                                            not in self.translated_message_ids
-                                        ):
-                                            self.translated_message_ids.add(message.id)
-                                            message.content = self.translator.translate_output_to_source_language(
-                                                message.content
-                                            )
-                            else:
-                                if isinstance(messages, AIMessage) or isinstance(
-                                    messages, HumanMessage
-                                ):
-                                    if messages.id not in self.translated_message_ids:
-                                        self.translated_message_ids.add(messages.id)
-                                        messages.content = self.translator.translate_output_to_source_language(
-                                            messages.content
-                                        )
 
 
 class FedotAI:
     def __init__(
         self,
-        task_path: Path | str,
-        inference: Optional[AIInference] = None,
-        embeddings: Optional[OpenaiEmbeddings] = None,
+        task_path: str | Path,
         handlers: Optional[List[Callable[[StreamEvent], None]]] = None,
-        workspace: Path | str | None = None,
+        workspace: Optional[str | Path] = None,
+        presets: Optional[str | Path | List[str | Path]] = None,
+        config_path: Optional[str | Path] = None,
+        config_overrides: Optional[List[str]] = None,
     ):
-        if isinstance(task_path, str):
-            task_path = Path(task_path)
-        self.task_path = task_path.resolve()
+        """
+        Initialize the FedotAI agent system.
+
+        Args:
+            task_path (str): Path to the dataset or task directory.
+            handlers (Optional[List[Callable[[StreamEvent], None]]]): Optional list of event handler callbacks for streaming events.
+            workspace (Optional[str]): Optional path to the workspace directory for outputs and artifacts.
+            presets (Optional[str | List[str]]): Optional preset or list of presets for configuration.
+            config_path (Optional[str]): Optional path to a custom configuration file.
+            config_overrides (Optional[List[str]]): Optional list of configuration override strings.
+
+        Raises:
+            AssertionError: If the provided task_path does not exist or is not a directory.
+        """
+        self.task_path = Path(task_path).resolve()
         assert self.task_path.is_dir(), (
             "Task path does not exist or is not a directory."
         )
 
-        self.inference = inference if inference is not None else AIInference()
-        self.embeddings = embeddings if embeddings is not None else OpenaiEmbeddings()
-        self.handlers = handlers if handlers is not None else []
+        self.config = load_config(
+            presets=presets, config_path=config_path, overrides=config_overrides
+        )
 
-        if isinstance(workspace, str):
-            workspace = Path(workspace)
+        self.inference = AIInference(self.config.llm)
+        self.embeddings = LiteLLMEmbeddings(self.config.embeddings)
+        self.handlers = handlers if handlers is not None else []
+        self.config.session_id = self.config.session_id or pd.Timestamp.now().strftime(
+            "%Y%m%d_%H%M%S"
+        )
         self.workspace = workspace
 
     async def ainvoke(self, message: str):
@@ -84,12 +61,9 @@ class FedotAI:
             f"FedotAI ainvoke called. Input message (first 100 chars): '{message[:100]}...'"
         )
         if not self.workspace:
-            self.workspace = Path(
-                f"fedotllm-output-{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}"
-            )
+            self.workspace = Path(f"fedotllm-output-{self.config.session_id}")
             logger.info(f"Workspace for ainvoke created at: {self.workspace}")
 
-        dataset = Dataset.from_path(self.task_path)
         translator_agent = TranslatorAgent(inference=self.inference)
 
         logger.info("FedotAI ainvoke: Translating input message to English.")
@@ -99,15 +73,12 @@ class FedotAI:
         )
 
         automl_agent = AutoMLAgent(
-            inference=self.inference, dataset=dataset, workspace=self.workspace
+            config=self.config, dataset_path=self.task_path, workspace=self.workspace
         ).create_graph()
-
-        researcher_agent = AgentWrapper(
-            ResearcherAgent(inference=self.inference, embeddings=self.embeddings)
-        ).create_graph()
+        researcher_agent = ResearcherAgent(config=self.config).create_graph()
 
         entry_point = SupervisorAgent(
-            inference=self.inference,
+            config=self.config,
             automl_agent=automl_agent,
             researcher_agent=researcher_agent,
         ).create_graph()
@@ -193,11 +164,8 @@ class FedotAI:
             f"FedotAI ask called with message (first 100 chars): '{message[:100]}...'"
         )
         if not self.workspace:
-            self.workspace = Path(
-                f"fedotllm-output-{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}"
-            )
+            self.workspace = Path(f"fedotllm-output-{self.config.session_id}")
             logger.info(f"Workspace created at: {self.workspace}")
-        dataset = Dataset.from_path(self.task_path)
         translator_agent = TranslatorAgent(inference=self.inference)
         logger.info("Translating input message to English for ask.")
         translated_message = translator_agent.translate_input_to_english(message)
@@ -206,13 +174,11 @@ class FedotAI:
         )
 
         automl_agent = AutoMLAgent(
-            inference=self.inference, dataset=dataset, workspace=self.workspace
+            config=self.config, dataset_path=self.task_path, workspace=self.workspace
         ).create_graph()
-        researcher_agent = AgentWrapper(
-            ResearcherAgent(inference=self.inference, embeddings=self.embeddings)
-        ).create_graph()
+        researcher_agent = ResearcherAgent(config=self.config).create_graph()
         entry_point = SupervisorAgent(
-            inference=self.inference,
+            config=self.config,
             automl_agent=automl_agent,
             researcher_agent=researcher_agent,
         ).create_graph()

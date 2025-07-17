@@ -74,7 +74,7 @@ class Dataset:
         self.path = path
 
     @classmethod
-    def from_path(cls, path: Path):
+    def from_path(cls, path: str | Path):
         """
         Load Dataset a folder with dataset objects
 
@@ -83,9 +83,10 @@ class Dataset:
         """
 
         # Loading all splits in folder
+        dataset_path = Path(path)
         splits = []
-        if path.is_dir():
-            files = [x for x in path.glob("**/*") if x.is_file()]
+        if dataset_path.is_dir():
+            files = [x for x in dataset_path.glob("**/*") if x.is_file()]
         else:
             files = [path]
         for file in files:
@@ -95,7 +96,7 @@ class Dataset:
                 split = Split(data=file_dataframe, name=file.name)
                 splits.append(split)
 
-        return Dataset(splits=splits, path=path)
+        return Dataset(splits=splits, path=dataset_path)
 
     def get_train_split(self):
         # heuristics to find train split
@@ -125,7 +126,7 @@ class Dataset:
         train_split = self.get_train_split()
         df = train_split.data
         eda = ""
-        if df.shape[1] <= 10:
+        if df.shape[1] <= 20:
             eda += "\n===== 1. BASIC INFO =====\n"
 
             buf = io.StringIO()

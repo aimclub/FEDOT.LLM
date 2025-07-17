@@ -21,6 +21,30 @@ Important:
 """
 
 
+def fix_structured_response(
+    json_obj: dict | None, validation_error: str, response_model: Type[T]
+):
+    return f"""
+Correct JSON object to follow Pydantic definitions:
+=====
+```JSON object
+{json_obj}
+```Pydantic definition
+```
+{response_model.model_json_schema()}
+```
+```Validation error
+{validation_error}
+```
+=====
+Important:
+1. Return only valid JSON. No extra explanations, text, or comments.
+2. Ensure that the output can be parsed by a JSON parser directly.
+3. Do not include any non-JSON text or formatting outside the JSON object.
+4. An example is \{{"<object_field>": "<correct_value_for_the_field>"\}}
+"""
+
+
 def ai_assert_prompt(var1, var2, condition: str):
     return f"""
 You are an intelligent assertion function to evaluate conditions between two variables.
