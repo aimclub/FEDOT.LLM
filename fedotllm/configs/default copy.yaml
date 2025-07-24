@@ -6,7 +6,7 @@ automl:
     evaluate: fedot_evaluate.py
     predict: fedot_predict.py
   predictor_init_kwargs:
-    timeout: 3
+    timeout: 10  
 llm:
   provider: openai
   model_name: gpt-4o-mini

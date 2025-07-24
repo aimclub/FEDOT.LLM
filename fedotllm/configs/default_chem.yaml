@@ -1,12 +1,13 @@
 automl:
   fix_tries: 5
   templates:
-    code: skeleton-simple.py
+    code: skeleton-chem.py
     train: fedot_train.py
     evaluate: fedot_evaluate.py
     predict: fedot_predict.py
+    smiles_to_features: smiles_to_features.py
   predictor_init_kwargs:
-    timeout: 3
+    timeout: 10  
 llm:
   provider: openai
   model_name: gpt-4o-mini

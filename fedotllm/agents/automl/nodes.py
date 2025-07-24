@@ -11,7 +11,7 @@ from langgraph.types import Command
 
 from fedotllm import prompts
 from fedotllm.agents.automl.state import AutoMLAgentState
-from fedotllm.agents.automl.structured import FedotConfig
+from fedotllm.agents.automl.structured import FedotConfig, RDKitConfig
 from fedotllm.agents.automl.templates.load_template import (
     load_template,
     render_template,
@@ -32,12 +32,39 @@ PREDICT_METHOD_MAP = {
     "predict_proba": "predict_proba(features=input_data)",
 }
 
+RDKIT_DESCRIPTORS_MAP = {
+    "MolWt": "Descriptors.MolWt(mol)",
+    "HeavyAtomMolWt": "Descriptors.HeavyAtomMolWt(mol)",
+    "HeavyAtomCount": "Descriptors.HeavyAtomCount(mol)",
+    "NumAtoms": "mol.GetNumAtoms()",
+    "NumValenceElectrons": "Descriptors.NumValenceElectrons(mol)",
+    
+    # Lipophilicity/Hydrophobicity
+    "MolLogP": "Descriptors.MolLogP(mol)",
+    "MolMR": "Descriptors.MolMR(mol)",
+    
+    # Hydrogen Bonding
+    "NumHDonors": "Descriptors.NumHDonors(mol)",
+    "NumHAcceptors": "Descriptors.NumHAcceptors(mol)",
+    
+    # Topology and Connectivity
+    "TPSA": "Descriptors.TPSA(mol)",
+    "NumRotatableBonds": "Descriptors.NumRotatableBonds(mol)",
+    "RingCount": "Descriptors.RingCount(mol)",
+    "NumAromaticRings": "Descriptors.NumAromaticRings(mol)",
+    "NumAliphaticRings": "Descriptors.NumAliphaticRings(mol)",
+    "NumSaturatedRings": "Descriptors.NumSaturatedRings(mol)",
+    "NumHeteroatoms": "Descriptors.NumHeteroatoms(mol)",
+    "NumAmideBonds": "Descriptors.NumAmideBonds(mol)"
+}
+
 
 def init_state(state: AutoMLAgentState):
     return Command(
         update={
             "reflection": None,
             "fedot_config": None,
+            "rdkit_config": None,
             "skeleton": None,
             "raw_code": None,
             "code": None,
@@ -83,6 +110,20 @@ def generate_automl_config(
 
     return Command(update={"fedot_config": fedot_config})
 
+def generate_rdkit_config(
+    state: AutoMLAgentState, inference: AIInference, dataset: Dataset
+):
+    logger.info("Running generate RDKit config")
+
+    rdkit_config = inference.create(
+        prompts.automl.generate_rdkit_configuration_prompt(
+            reflection=state["reflection"],
+        ),
+        response_model=RDKitConfig,
+    )
+
+    return Command(update={"rdkit_config": rdkit_config})
+
 
 def select_skeleton(
     state: AutoMLAgentState, app_config: AppConfig, dataset: Dataset, workspace: Path
@@ -126,7 +167,12 @@ def insert_templates(
     logger.info("Running insert templates")
     code = state["raw_code"]
     fedot_config = state["fedot_config"]
+    rdkit_config = state["rdkit_config"]
     predict_method = PREDICT_METHOD_MAP.get(fedot_config.predict_method)
+
+    if rdkit_config is not None:
+        rdkit_decriptor_lines  = [f'"{item.value}": {RDKIT_DESCRIPTORS_MAP.get(item.value)}' for item in rdkit_config.descriptors]
+        rdkit_decriptors_code = "\n,".join(rdkit_decriptor_lines)
 
     predictor_init_kwargs = (
         {
@@ -164,14 +210,26 @@ def insert_templates(
             },
         }
 
+        if rdkit_config is not None:
+            smiles_to_features_params = {"descriptors": rdkit_decriptors_code}
+            smiles_to_features_template = {
+                app_config.automl.templates.smiles_to_features: {"params": smiles_to_features_params}
+            }
+            templates.update(smiles_to_features_template)
+
         rendered_templates = []
         for template_name, fconfig in templates.items():
             template = load_template(template_name)
             rendered = render_template(template=template, **fconfig["params"])
             rendered_templates.append(rendered)
 
+        line_to_replace = "from automl import train_model, evaluate_model, automl_predict"
+        
+        if rdkit_config is not None:
+            line_to_replace = "from automl import train_model, evaluate_model, automl_predict, smiles_to_features"
+
         code = code.replace(
-            "from automl import train_model, evaluate_model, automl_predict",
+            line_to_replace,
             "\n".join(rendered_templates),
         )
 
@@ -321,6 +379,7 @@ def run_tests(state: AutoMLAgentState, workspace: Path, inference: AIInference):
                     error=True,
                     msg=f"Submission file has wrong number of columns. Expected: {sample_df.shape[1]}, Got: {submission_df.shape[1]}",
                 )
+
 
             # LLM validation for deeper format checking
             try:

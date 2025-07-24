@@ -11,6 +11,7 @@ class TemplatesConfig(BaseModel):
     train: str
     evaluate: str
     predict: str
+    smiles_to_features: str
 
 
 class AutoMLConfig(BaseModel):

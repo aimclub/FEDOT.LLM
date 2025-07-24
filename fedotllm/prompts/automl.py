@@ -81,6 +81,17 @@ If specific parameter values or constraints are not provided, use default values
 </problem-description>
 """
 
+def generate_rdkit_configuration_prompt(reflection: str) -> str:
+    return f"""
+You are a chemistry and machine learning expert tasked with solving a given machine learning problem.  
+Review the problem description provided within the `<problem-description>` section, including any reflections or additional context.  
+Your objective is to pick descriptors that would yield the most information from the molecular data.
+
+<problem-description>
+{reflection}
+</problem-description>
+"""
+
 
 def problem_reflection_prompt(data_files_and_content: str, dataset_eda: str) -> str:
     return f"""

@@ -9,6 +9,7 @@ from fedotllm.agents.automl.nodes import (
     fix_solution,
     generate_automl_config,
     generate_code,
+    generate_rdkit_config,
     generate_report,
     if_bug,
     init_state,
@@ -26,6 +27,8 @@ from .state import AutoMLAgentState
 INIT_STATE = "init_state"
 PROBLEM_REFLECTION = "problem_reflection"
 GENERATE_AUTOML_CONFIG = "generate_automl_config"
+GENERATE_RDKIT_CONFIG = "generate_rdkit_config"
+
 SELECT_SKELETON = "select_skeleton"
 INSERT_TEMPLATE_FIRST = "insert_templates_first"
 GENERATE_CODE = "generate_code"
@@ -58,6 +61,14 @@ class AutoMLAgent:
             GENERATE_AUTOML_CONFIG,
             partial(
                 generate_automl_config,
+                inference=self.inference,
+                dataset=self.dataset,
+            ),
+        )
+        workflow.add_node(
+            GENERATE_RDKIT_CONFIG,
+            partial(
+                generate_rdkit_config,
                 inference=self.inference,
                 dataset=self.dataset,
             ),
@@ -103,7 +114,13 @@ class AutoMLAgent:
         workflow.add_edge(START, INIT_STATE)
         workflow.add_edge(INIT_STATE, PROBLEM_REFLECTION)
         workflow.add_edge(PROBLEM_REFLECTION, GENERATE_AUTOML_CONFIG)
-        workflow.add_edge(GENERATE_AUTOML_CONFIG, SELECT_SKELETON)
+        workflow.add_conditional_edges(
+            GENERATE_AUTOML_CONFIG,
+            lambda state: self.config.automl.templates.code == "skeleton-chem.py", #if chemistry
+            {True: GENERATE_RDKIT_CONFIG, False: SELECT_SKELETON},
+        )
+        workflow.add_edge(GENERATE_RDKIT_CONFIG, SELECT_SKELETON)
+
         workflow.add_edge(SELECT_SKELETON, GENERATE_CODE)
         workflow.add_edge(GENERATE_CODE, INSERT_TEMPLATE_FIRST)
         workflow.add_conditional_edges(

@@ -153,7 +153,7 @@ class Dataset:
         else:
             for split in self.splits:
                 preview += f"File: {split.name}\n"
-                preview += split.data.sample(sample_size).to_markdown()
+                preview += split.data.to_markdown()
             preview += "\n\n"
         return preview
 

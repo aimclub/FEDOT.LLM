@@ -12,7 +12,7 @@ dependencies = [
     "diskcache>=5.6.3",
     "dynaconf>=3.2.10",
     "fedot>=0.7.5",
-    "giotto-tda>=0.6.0",
+    "giotto-tda>=0.6.2",
     "graphviz>=0.20.3",
     "html2text>=2024.2.26",
     "json-repair>=0.44.1",
@@ -24,6 +24,7 @@ dependencies = [
     "litellm[caching]==1.71.2",
     "loguru>=0.7.3",
     "omegaconf>=2.3.0",
+    "openml>=0.15.1",
     "pandas>=2.2.3",
     "pydantic>=2.11.5",
     "pydantic-settings>=2.10.1",
@@ -34,6 +35,15 @@ dependencies = [
     "tabulate>=0.9.0",
     "tenacity>=9.0.0",
     "tiktoken>=0.9.0",
+
+    #Ind
+    "spacy>=3.8.7",
+    "dask-expr>=1.0.0,<2.0.0",
+    "fedot-ind",
+    
+
+    #Chem
+    "rdkit>=2025.3.3"
 ]
 
 [dependency-groups]
@@ -46,6 +56,10 @@ dev = [
     "ruff>=0.11.2",
     "ty>=0.0.1a14",
 ]
+
+
+[tool.uv.sources]
+fedot-ind = { path = "./Fedot.Industrial-main" }
 
 [tool.setuptools]
 packages = ["fedotllm", "examples"]

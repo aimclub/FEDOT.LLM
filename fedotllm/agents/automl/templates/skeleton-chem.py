@@ -10,7 +10,11 @@ from fedot.core.repository.tasks import (
     Task,
     TaskTypesEnum,
 )  # classification, regression, ts_forecasting.
-from automl import train_model, evaluate_model, automl_predict
+from automl import train_model, evaluate_model, automl_predict, smiles_to_features
+
+from rdkit import Chem
+from rdkit.Chem import Descriptors
+from rdkit.Chem import rdFingerprintGenerator
 
 ### UNMODIFIABLE IMPORT END ###
 # USER CODE BEGIN IMPORTS #
@@ -44,7 +48,6 @@ def load_data():
 
 # USER CODE END LOAD_DATA #
 
-
 def transform_data(dataset: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
     """
     Function to transform data into a format that can be used for training the model.
@@ -55,30 +58,24 @@ def transform_data(dataset: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray]:
 
     # Separating features and target if present
     data = dataset.copy(deep=True)
+
+    features = data['SMILES'].apply(smiles_to_features)
+    valid_smiles = features.notna()
+    if not valid_smiles.any():
+        raise ValueError("No valid SMILES strings found")
+    data = data[valid_smiles].drop(columns=['SMILES'])
+    features = features[valid_smiles].apply(pd.Series)
+    data = pd.concat([data, features], axis=1)
+
     has_target = any(col in data.columns for col in target_columns)
     if has_target:
         features = data.drop(columns=target_columns)
-        target = data[target_columns].values
+        target = data[target_columns]
     else:
         features = data
         target = None
 
-    # Imputing missing values - 'mean' strategy for numeric columns, 'most_frequent' otherwise
-    numeric_cols = features.select_dtypes(include=[np.number]).columns
-    categorical_cols = features.select_dtypes(exclude=[np.number]).columns
-    if len(numeric_cols) > 0:
-        numeric_imputer = SimpleImputer(strategy="mean")
-        features[numeric_cols] = numeric_imputer.fit_transform(features[numeric_cols])
-    if len(categorical_cols) > 0:
-        categorical_imputer = SimpleImputer(strategy="most_frequent")
-        features[categorical_cols] = categorical_imputer.fit_transform(
-            features[categorical_cols]
-        )
-
-    # TODO: Drop all columns from features that are not important for prdictions. All other dataset transformations are STRICTLY FORBIDDEN.
-    # TODO: Before any operations, make sure to check whether columns you operate on are present in data. Do not raise exceptions.
-
-    return features.values, target
+    return features, target
 
 
 # The main function to orchestrate the data loading, feature engineering, model training and model evaluation
