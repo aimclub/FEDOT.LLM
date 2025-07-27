@@ -24,7 +24,7 @@ dependencies = [
     "litellm[caching]==1.71.2",
     "loguru>=0.7.3",
     "omegaconf>=2.3.0",
-    "openml>=0.15.1",
+    #"openml>=0.15.1",
     "pandas>=2.2.3",
     "pydantic>=2.11.5",
     "pydantic-settings>=2.10.1",
@@ -37,9 +37,9 @@ dependencies = [
     "tiktoken>=0.9.0",
 
     #Ind
-    "spacy>=3.8.7",
-    "dask-expr>=1.0.0,<2.0.0",
-    "fedot-ind",
+    #"spacy>=3.8.7",
+    #"dask-expr>=1.0.0,<2.0.0",
+    #"fedot-ind",
     
 
     #Chem
@@ -58,8 +58,8 @@ dev = [
 ]
 
 
-[tool.uv.sources]
-fedot-ind = { path = "./Fedot.Industrial-main" }
+#[tool.uv.sources]
+#fedot-ind = { path = "./Fedot.Industrial-main" }
 
 [tool.setuptools]
 packages = ["fedotllm", "examples"]
