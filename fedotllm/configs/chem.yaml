@@ -1,0 +1,3 @@
+automl:
+  templates:
+    code: skeleton-chem.py
