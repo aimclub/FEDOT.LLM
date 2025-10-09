@@ -9,6 +9,8 @@ requires-python = ">=3.10, <3.12"
 dependencies = [
     "beautifulsoup4>=4.13.3",
     "chromadb>=0.6.3",
+    "dask>=2025.9.1",
+    "dask-ml>=2024.4.4",
     "diskcache>=5.6.3",
     "dynaconf>=3.2.10",
     "fedot>=0.7.5",
@@ -46,6 +48,10 @@ dev = [
     "ruff>=0.11.2",
     "ty>=0.0.1a14",
 ]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["fedotllm", "examples"]
