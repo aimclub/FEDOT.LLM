@@ -250,11 +250,3 @@ You can also use the Streamlit web interface for a more interactive experience. 
 ```zsh
 uv run python -m streamlit run fedotllm/web/streamlit-app.py
 ```
-
-Funding
-=======
-
-This research is financially supported by the Foundation for
-National Technology Initiative's Projects Support as a part of the roadmap
-implementation for the development of the high-tech field of
-Artificial Intelligence for the period up to 2030 (agreement 70-2021-00187)
