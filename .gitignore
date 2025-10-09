@@ -203,4 +203,21 @@ temp-*
 # Ruff
 .ruff_cache/
 
+#Fedotllm cache
+fedotllm/cache
 
+#Autokaggle expriments datasets
+experiments/autokaggle/competitions
+
+#MLZero experiments datasets
+experiments/mlzero/competitions/*/competition
+experiments/mlzero/competitions/*/target.csv
+
+#ML2B experiments datasets
+experiments/ml2b_target
+experiments/ml2b_ru
+experiments/ml2b_en
+
+#AutoGluon experiments
+experiments/mlzero/*/competition
+experiments/mlzero/*/target.csv
