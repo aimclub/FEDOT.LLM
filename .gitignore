@@ -206,4 +206,5 @@ temp-*
 # Ruff
 .ruff_cache/
 
-
+#uv lockfile
+uv.lock

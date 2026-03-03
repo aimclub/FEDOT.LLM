@@ -4,6 +4,8 @@ from datetime import datetime
 from hashlib import sha256
 from pathlib import Path
 
+from io import StringIO
+from scipy.io import arff
 import pandas as pd
 import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
@@ -92,7 +94,7 @@ def file_uploader():
         "Select the dataset",
         accept_multiple_files=True,
         label_visibility="collapsed",
-        type=["csv", "xlsx"],
+        type=["csv", "xlsx", "arff"],
     )
     st.session_state.uploaded_files = {}
     for file in uploaded_files:
@@ -100,6 +102,11 @@ def file_uploader():
             df = pd.read_csv(file)
         elif file.name.endswith(".xlsx"):
             df = pd.read_excel(file)
+        elif file.name.endswith(".arff"):
+            string_data = file.read().decode('utf-8')
+            data, meta = arff.loadarff(StringIO(string_data))
+            df = pd.DataFrame(data)
+
         st.session_state.uploaded_files[file.name] = {"file": file, "df": df}
 
 

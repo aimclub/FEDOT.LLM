@@ -6,11 +6,11 @@ automl:
     evaluate: fedot_evaluate.py
     predict: fedot_predict.py
   predictor_init_kwargs:
-    timeout: 10  
+    timeout: 1
 llm:
   provider: openai
-  model_name: gemini-2.0-flash
-  base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+  model_name: z-ai/glm-4.6
+  base_url: https://openrouter.ai/api/v1
   api_key: ${oc.env:FEDOTLLM_LLM_API_KEY}
   caching:
     enabled: true
