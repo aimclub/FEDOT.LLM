@@ -51,7 +51,7 @@ class SupervisorAgent(Agent):
         workflow.add_edge("researcher", "choose_next")
         workflow.add_edge("automl", "finish")
         workflow.add_edge("finish", END)
-        return workflow.compile().with_config(run_name=SupervisorAgent)
+        return workflow.compile().with_config(run_name="SupervisorAgent")
 
 
 class ChooseNext(BaseModel):

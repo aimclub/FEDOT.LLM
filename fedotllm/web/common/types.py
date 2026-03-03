@@ -240,7 +240,8 @@ class MessagesHandler(BaseResponse):
                 id=self.id,
                 name=self.name,
                 state=self.state,
-                stream=self.stream,
+                stream=self.stream,                                                                                                       
+                content="\n".join(content)
             )
         )
 

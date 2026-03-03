@@ -196,6 +196,9 @@ user_data/
 fedot-output*
 db/
 
+#Fedot.LLM cache
+fedotllm/cache/
+
 # Docker
 docker/docker_caches/
 temp-*

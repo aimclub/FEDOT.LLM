@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 from typing import Literal, cast
+import os 
 
 import pandas as pd
 from fedot.api.main import Fedot
@@ -277,38 +278,54 @@ def run_tests(state: AutoMLAgentState, workspace: Path, inference: AIInference):
     def test_submission_format(args: tuple) -> Observation:
         raw_output, inference = args
         submission_file = workspace / "submission.csv"
-        print("DEBUG: RAW OUTPUT\n", raw_output)
 
-        if not (
-            match := re.search(
-                r"Sample Submission File:\s*(.*?)$", raw_output, re.MULTILINE
-            )
-        ):
+        # If submission file doesn't exist - fail
+        if not submission_file.exists():
             return Observation(
                 error=True,
-                msg="Sample submission file format not found. Print `Sample Submission File: {sample_submission}` in your code so I can check it.",
+                msg="Submission file not found. Check if you save submission file successfully.",
             )
 
-        sample_path = match.group(1).strip()
-        print(f"Sample submission file path: {sample_path}")
-        if not sample_path.endswith(".csv"):
-            return Observation(
-                error=True,
-                msg="Sample Submission file format is incorrect. It should be a CSV file (.csv).",
-            )
-
-        if not submission_file.exists() or submission_file.suffix != ".csv":
+        if submission_file.suffix != ".csv":
             return Observation(
                 error=True,
                 msg="Submission file format is incorrect. It should be a CSV file (.csv).",
             )
 
         try:
-            sample_df = pd.read_csv(sample_path)
             submission_df = pd.read_csv(submission_file)
 
             if submission_df.empty:
                 return Observation(error=True, msg="Submission file is empty.")
+
+            # If no sample submission file is printed in stdout,
+            # we assume no sample submission exists and skip format comparison.
+            match = re.search(
+                r"Sample Submission File:\s*(.*?)$", raw_output, re.MULTILINE
+            )
+
+            if not match:
+                return Observation(
+                    error=False,
+                    msg="No sample submission file provided. Basic submission validation passed.",
+                )
+            sample_path = match.group(1).strip()
+
+            # If proivided path is without extension or does not exist - it is probably a placeholder
+            if "." not in sample_path or not os.path.exists(sample_path):
+                return Observation(
+                    error=False,
+                    msg="No sample submission file provided. Basic submission validation passed.",
+                )
+
+            # If sample exists → compare formats
+            if not sample_path.endswith(".csv"):
+                return Observation(
+                    error=True,
+                    msg="Sample Submission file format is incorrect. It should be a CSV file (.csv).",
+                )
+
+            sample_df = pd.read_csv(sample_path)
 
             if not submission_df.columns.equals(sample_df.columns):
                 return Observation(
@@ -412,6 +429,7 @@ def extract_metrics(state: AutoMLAgentState, workspace: Path):
 
 
 def generate_report(state: AutoMLAgentState, inference: AIInference):
+    logger.info("Running generate_report")
     if state["code"] and state["pipeline"]:
         messages = convert_to_openai_messages(state["messages"])
         messages = [messages] if isinstance(messages, dict) else messages
@@ -426,8 +444,9 @@ def generate_report(state: AutoMLAgentState, inference: AIInference):
             }
         )
         response = inference.query(messages)
+        logger.info(f"Report response: {response}")
     else:
         response = "Solution not found. Please try again."
     return Command(
-        update={"messages": HumanMessage(content=response, role="AutoMLAgent")}
+        update={"messages": HumanMessage(content=response, name="AutoMLAgent")}
     )
